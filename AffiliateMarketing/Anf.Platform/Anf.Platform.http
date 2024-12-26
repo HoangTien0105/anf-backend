@@ -1,0 +1,6 @@
+@Anf.Platform_HostAddress = http://localhost:5177
+
+GET {{Anf.Platform_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
