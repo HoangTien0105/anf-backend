@@ -5,5 +5,6 @@
 - **C# Coding Convention**: [Microsoft C# Coding Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
 
 - **Quy tắc commit code và tạo pull request**:
-  - Tiêu đề của pull request theo format: `[A/M/D/R] nội dung commit` (A: Add, M: Modify, D: Delete, R: Refactor)
+  - Nội dung commit message ngắn gọn, xúc tích và làm rõ phần content đã được làm
+  - Tiêu đề của pull request theo format: `[FeatureId] tiêu đề`
   - Không trực tiếp merge code vào nhánh `main`

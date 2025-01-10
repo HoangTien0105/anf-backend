@@ -1,13 +1,35 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using ANF.Core.Commons;
+using System.ComponentModel.DataAnnotations;
 
 namespace ANF.Core.Models.Entities
 {
-    public class User : IdentityUser
+    public class User : IGuidEntity
     {
-        public string FullName { get; set; } = null!;
+        public Guid Id { get; set; }
 
+        public string FirstName { get; set; } = null!;
+        
+        public string LastName { get; set; } = null!;
+        
+        public string PhoneNumber { get; set; } = null!;
+        
+        public string CitizenNo { get; set; } = null!;
+        
         public string? Address { get; set; }
+        
+        public DateTime? Birthday { get; set; }
+        
+        public string? Image { get; set; }
+        
+        public string Email { get; set; } = null!;
+        
+        public string PasswordHash { get; set; } = null!;
 
-        public string CitizenCode { get; set; } = null!;
+        [Timestamp]
+        public byte[]? RowVersion { get; set; }
+        
+        public bool? EmailConfirmed { get; set; }
+
+        public string? Bio { get; set; }
     }
 }
