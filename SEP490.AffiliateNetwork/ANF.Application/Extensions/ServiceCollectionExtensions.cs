@@ -1,8 +1,9 @@
-﻿using ANF.Infrastructure;
+﻿using ANF.Core;
+using ANF.Core.Services;
+using ANF.Infrastructure;
 using ANF.Service;
 using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -26,8 +27,11 @@ namespace ANF.Application.Extensions
             services.ConfigureSwagger();
             services.ConfigureCors();
             services.ConfigureDatabase(connectionString);
+
             services.AddAutoMapper(typeof(MappingProfileExtension));
             services.AddApiVersioning();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddApplicationService();
 
             return services;
         }
@@ -88,6 +92,12 @@ namespace ANF.Application.Extensions
             return services;
         }
 
+        /// <summary>
+        /// Configures the database context for the application.
+        /// </summary>
+        /// <param name="services">The IServiceCollection to add the database context to.</param>
+        /// <param name="connection">The connection string for the database.</param>
+        /// <returns>The IServiceCollection with the database context configured.</returns>
         private static IServiceCollection ConfigureDatabase(this IServiceCollection services, string connection)
         {
             services.AddDbContext<ApplicationDbContext>(opt =>
@@ -100,6 +110,11 @@ namespace ANF.Application.Extensions
             return services;
         }
 
+        /// <summary>
+        /// Adds API versioning to the application.
+        /// </summary>
+        /// <param name="services">The IServiceCollection to add API versioning to.</param>
+        /// <returns>The IServiceCollection with API versioning added.</returns>
         private static IServiceCollection AddApiVersioning(this IServiceCollection services)
         {
             services.AddApiVersioning(opt =>
@@ -116,6 +131,20 @@ namespace ANF.Application.Extensions
                 opt.GroupNameFormat = "'v'V";
                 opt.SubstituteApiVersionInUrl = true;
             });
+
+            return services;
+        }
+
+        /// <summary>
+        /// Adds application-specific services to the IServiceCollection.
+        /// </summary>
+        /// <param name="services">The IServiceCollection to add the services to.</param>
+        /// <returns>The IServiceCollection with the application-specific services added.</returns>
+        private static IServiceCollection AddApplicationService(this IServiceCollection services)
+        {
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
