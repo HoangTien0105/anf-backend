@@ -1,10 +1,15 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Services;
 using ANF.Infrastructure;
 using ANF.Service;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -21,9 +26,42 @@ namespace ANF.Application.Extensions
                 opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
             services.AddEndpointsApiExplorer();
-            
+
             var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
-            
+            var jwtOptionsSection = configuration.GetRequiredSection("Jwt");
+            var googleOptionsSection = configuration.GetRequiredSection("Google");
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+                //opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddCookie()
+            .AddGoogle(opt =>
+            {
+                opt.ClientId = googleOptionsSection["ClientId"] ?? string.Empty;
+                opt.ClientSecret = googleOptionsSection["ClientSecret"] ?? string.Empty;
+            })
+            .AddJwtBearer(opt =>
+            {
+                var configKey = jwtOptionsSection["Key"] ?? string.Empty;
+                var key = Encoding.UTF8.GetBytes(configKey);
+
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = jwtOptionsSection["Issuer"],
+                    ValidAudience = jwtOptionsSection["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = false,
+                };
+            });
+            // Options pattern: Must add this line to run for other classes
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.Configure<Core.Commons.GoogleOptions>(configuration.GetSection("Google"));
+
+            services.AddAuthorization();
             services.ConfigureSwagger();
             services.ConfigureCors();
             services.ConfigureDatabase(connectionString);
@@ -55,7 +93,7 @@ namespace ANF.Application.Extensions
             });
             return services;
         }
-                
+
         /// <summary>
         /// Configures Swagger for the application.
         /// </summary>
@@ -143,8 +181,8 @@ namespace ANF.Application.Extensions
         private static IServiceCollection AddApplicationService(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped(typeof(TokenService));
 
             return services;
         }
