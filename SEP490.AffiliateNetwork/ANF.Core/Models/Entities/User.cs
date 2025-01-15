@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 
 namespace ANF.Core.Models.Entities
@@ -26,10 +27,12 @@ namespace ANF.Core.Models.Entities
         public string PasswordHash { get; set; } = null!;
 
         [Timestamp]
-        public byte[]? RowVersion { get; set; }
+        public byte[]? ConcurrencyStamp { get; set; }
         
         public bool? EmailConfirmed { get; set; }
 
         public string? Bio { get; set; }
+
+        public UserRoles Role { get; set; }
     }
 }

@@ -1,10 +1,15 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Services;
 using ANF.Infrastructure;
 using ANF.Service;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -21,11 +26,15 @@ namespace ANF.Application.Extensions
                 opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
             services.AddEndpointsApiExplorer();
-            
+            // Options pattern: Must add this line to run for other classes
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+
             var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
+            var jwtConfig = configuration.GetRequiredSection("Jwt");
             
             services.ConfigureSwagger();
             services.ConfigureCors();
+            services.ConfigureAuthentication(jwtConfig);
             services.ConfigureDatabase(connectionString);
 
             services.AddAutoMapper(typeof(MappingProfileExtension));
@@ -143,8 +152,35 @@ namespace ANF.Application.Extensions
         private static IServiceCollection AddApplicationService(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped(typeof(TokenService));
+
+            return services;
+        }
+
+        private static IServiceCollection ConfigureAuthentication(this IServiceCollection services, 
+            IConfigurationSection jwtSection)
+        {
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(opt =>
+            {
+                var configKey = jwtSection["Key"] ?? string.Empty;
+                var key = Encoding.UTF8.GetBytes(configKey);
+
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = jwtSection["Issuer"],
+                    ValidAudience = jwtSection["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = false,
+                };
+            });
 
             return services;
         }

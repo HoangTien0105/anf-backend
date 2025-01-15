@@ -7,9 +7,9 @@
     public record ApiResponse<T>
     {
         /// <summary>
-        /// Gets or sets the status code of the response.
+        /// Gets or sets the status of the response.
         /// </summary>
-        public int StatusCode { get; set; }
+        public bool IsSuccess { get; set; }
 
         /// <summary>
         /// Gets or sets the message of the response.
