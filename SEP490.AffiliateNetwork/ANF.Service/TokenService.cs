@@ -10,7 +10,7 @@ namespace ANF.Service
 {
     public sealed class TokenService(IOptions<JwtOptions> jwtOptions)
     {
-        private readonly JwtOptions _jwtOptions = jwtOptions.Value ?? 
+        private readonly JwtOptions _jwtOptions = jwtOptions.Value ??
             throw new ArgumentNullException(nameof(jwtOptions));
 
         public string GenerateToken(User user)

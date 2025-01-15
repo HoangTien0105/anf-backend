@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250114144929_ChangeColumnNames")]
+    [Migration("20250115143455_ChangeColumnNames")]
     partial class ChangeColumnNames
     {
         /// <inheritdoc />
@@ -44,7 +44,7 @@ namespace ANF.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("ConcurrenyStamp")
+                    b.Property<byte[]>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");

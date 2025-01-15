@@ -13,7 +13,7 @@ namespace ANF.Infrastructure.Migrations
             migrationBuilder.RenameColumn(
                 name: "RowVersion",
                 table: "Users",
-                newName: "ConcurrenyStamp");
+                newName: "ConcurrencyStamp");
 
             migrationBuilder.AddColumn<int>(
                 name: "Role",
@@ -31,7 +31,7 @@ namespace ANF.Infrastructure.Migrations
                 table: "Users");
 
             migrationBuilder.RenameColumn(
-                name: "ConcurrenyStamp",
+                name: "ConcurrencyStamp",
                 table: "Users",
                 newName: "RowVersion");
         }

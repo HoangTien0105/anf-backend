@@ -27,7 +27,7 @@ namespace ANF.Core.Models.Entities
         public string PasswordHash { get; set; } = null!;
 
         [Timestamp]
-        public byte[]? ConcurrenyStamp { get; set; }
+        public byte[]? ConcurrencyStamp { get; set; }
         
         public bool? EmailConfirmed { get; set; }
 

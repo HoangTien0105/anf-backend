@@ -7,6 +7,6 @@ namespace ANF.Core.Services
     {
         Task<LoginResponse> Login(string email, string password);
 
-        Task<bool> CreateUser(PublisherCreateRequest request);
+        Task<bool> RegisterPublisher(PublisherCreateRequest request);
     }
 }

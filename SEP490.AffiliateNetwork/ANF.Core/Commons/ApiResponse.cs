@@ -6,6 +6,9 @@
     /// <typeparam name="T">The type of the value being returned.</typeparam>
     public record ApiResponse<T>
     {
+        /// <summary>
+        /// Gets or sets the status of the response.
+        /// </summary>
         public bool IsSuccess { get; set; }
 
         /// <summary>

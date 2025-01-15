@@ -8,6 +8,8 @@
 
         public string LastName { get; set; } = null!;
 
+        //public string Role { get; set; }
+
         public string AccessToken { get; set; } = null!;
     }
 }

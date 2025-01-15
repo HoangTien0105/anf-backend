@@ -5,7 +5,7 @@ using ANF.Infrastructure;
 using ANF.Service;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
@@ -26,44 +26,15 @@ namespace ANF.Application.Extensions
                 opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
             services.AddEndpointsApiExplorer();
-
-            var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
-            var jwtOptionsSection = configuration.GetRequiredSection("Jwt");
-            var googleOptionsSection = configuration.GetRequiredSection("Google");
-            services.AddAuthentication(opt =>
-            {
-                opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                opt.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-                //opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddCookie()
-            .AddGoogle(opt =>
-            {
-                opt.ClientId = googleOptionsSection["ClientId"] ?? string.Empty;
-                opt.ClientSecret = googleOptionsSection["ClientSecret"] ?? string.Empty;
-            })
-            .AddJwtBearer(opt =>
-            {
-                var configKey = jwtOptionsSection["Key"] ?? string.Empty;
-                var key = Encoding.UTF8.GetBytes(configKey);
-
-                opt.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidIssuer = jwtOptionsSection["Issuer"],
-                    ValidAudience = jwtOptionsSection["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = false,
-                };
-            });
             // Options pattern: Must add this line to run for other classes
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
-            services.Configure<Core.Commons.GoogleOptions>(configuration.GetSection("Google"));
 
-            services.AddAuthorization();
+            var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
+            var jwtConfig = configuration.GetRequiredSection("Jwt");
+            
             services.ConfigureSwagger();
             services.ConfigureCors();
+            services.ConfigureAuthentication(jwtConfig);
             services.ConfigureDatabase(connectionString);
 
             services.AddAutoMapper(typeof(MappingProfileExtension));
@@ -93,7 +64,7 @@ namespace ANF.Application.Extensions
             });
             return services;
         }
-
+                
         /// <summary>
         /// Configures Swagger for the application.
         /// </summary>
@@ -183,6 +154,33 @@ namespace ANF.Application.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(TokenService));
+
+            return services;
+        }
+
+        private static IServiceCollection ConfigureAuthentication(this IServiceCollection services, 
+            IConfigurationSection jwtSection)
+        {
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(opt =>
+            {
+                var configKey = jwtSection["Key"] ?? string.Empty;
+                var key = Encoding.UTF8.GetBytes(configKey);
+
+                opt.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidIssuer = jwtSection["Issuer"],
+                    ValidAudience = jwtSection["Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = false,
+                };
+            });
 
             return services;
         }

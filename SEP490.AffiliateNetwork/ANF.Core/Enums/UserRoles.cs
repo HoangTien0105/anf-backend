@@ -2,8 +2,8 @@
 {
     public enum UserRoles
     {
-        Admin,
         Advertiser,
-        Publisher
+        Publisher,
+        Admin
     }
 }

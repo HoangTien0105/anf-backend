@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Exceptions;
 using System.Net;
 
 namespace ANF.Application.Middlewares
@@ -64,6 +65,12 @@ namespace ANF.Application.Middlewares
                     break;
                 case UnauthorizedAccessException:
                     statusCode = HttpStatusCode.Unauthorized;
+                    break;
+                case ForbiddenException:
+                    statusCode = HttpStatusCode.Forbidden;
+                    break;
+                case DuplicatedException:
+                    statusCode = HttpStatusCode.BadRequest;
                     break;
                 default:
                     break;
