@@ -7,6 +7,8 @@ namespace ANF.Core.Services
     {
         Task<LoginResponse> Login(string email, string password);
 
+        LoginResponse LoginForAdmin(string email, string password);
+
         Task<bool> RegisterPublisher(PublisherCreateRequest request);
     }
 }

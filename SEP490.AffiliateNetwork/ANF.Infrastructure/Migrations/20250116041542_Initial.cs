@@ -25,9 +25,10 @@ namespace ANF.Infrastructure.Migrations
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
+                    ConcurrencyStamp = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "bit", nullable: true),
-                    Bio = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Role = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {

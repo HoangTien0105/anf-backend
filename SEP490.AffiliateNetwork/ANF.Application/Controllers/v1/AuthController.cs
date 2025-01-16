@@ -57,5 +57,22 @@ namespace ANF.Application.Controllers.v1
                 Value = user
             });
         }
+
+        [HttpPost("users/admin/login")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ApiResponse<LoginResponse>> LoginForAdmin([FromBody] LoginRequest value)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            var user = _userService.LoginForAdmin(value.Email, value.Password);
+            return Ok(new ApiResponse<LoginResponse>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = user
+            });
+        }
     }
 }
