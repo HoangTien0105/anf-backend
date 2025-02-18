@@ -3,7 +3,10 @@ using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -74,5 +77,6 @@ namespace ANF.Application.Controllers.v1
                 Value = user
             });
         }
+        
     }
 }

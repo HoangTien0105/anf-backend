@@ -14,7 +14,7 @@ namespace ANF.Service
             CreateMap<User, LoginResponse>();
 
             CreateMap<PublisherCreateRequest, User>()
-                .ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => PasswordHasher.HashPassword(src.Password)))
+                //.ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => PasswordHasher.HashPassword(src.Password)))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRoles.Publisher));
         }
     }
