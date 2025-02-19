@@ -4,6 +4,7 @@ using ANF.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250219145647_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,6 +145,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("cate_id");
 
+                    b.Property<long?>("CategoryId")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
@@ -152,6 +158,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("cate_name");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("Categories");
                 });
@@ -463,12 +471,19 @@ namespace ANF.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("ANF.Core.Models.Entities.Category", "Category")
-                        .WithMany("Campaigns")
+                        .WithMany()
                         .HasForeignKey("CategoryId");
 
                     b.Navigation("Advertiser");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.Category", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.Category", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("CategoryId");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Image", b =>
@@ -545,7 +560,7 @@ namespace ANF.Infrastructure.Migrations
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Category", b =>
                 {
-                    b.Navigation("Campaigns");
+                    b.Navigation("Categories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>

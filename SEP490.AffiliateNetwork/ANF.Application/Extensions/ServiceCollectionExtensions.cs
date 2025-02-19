@@ -5,6 +5,7 @@ using ANF.Infrastructure;
 using ANF.Service;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -31,7 +32,8 @@ namespace ANF.Application.Extensions
 
             var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
             var jwtConfig = configuration.GetRequiredSection("Jwt");
-            
+            //var googleConfig = configuration.GetRequiredSection("Google");
+
             services.ConfigureSwagger();
             services.ConfigureCors();
             services.ConfigureAuthentication(jwtConfig);
@@ -163,10 +165,11 @@ namespace ANF.Application.Extensions
         {
             services.AddAuthentication(opt =>
             {
-                opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(opt =>
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
             {
                 var configKey = jwtSection["Key"] ?? string.Empty;
                 var key = Encoding.UTF8.GetBytes(configKey);
@@ -180,8 +183,7 @@ namespace ANF.Application.Extensions
                     ValidateAudience = true,
                     ValidateLifetime = false,
                 };
-            });
-
+            });  // NOTE: Can add more authentication schema with configurations
             return services;
         }
     }
