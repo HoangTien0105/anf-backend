@@ -9,31 +9,31 @@ namespace ANF.Core.Models.Entities
     /// </summary>
     public class PublisherSource : IEntity
     {
-        [Column("")]
+        [Column("pubs_no")]
         public long Id { get; set; }
 
-        [Column("")]
+        [Column("publisher_id")]
         public long PublisherId { get; set; }
 
         /// <summary>
         /// The name of the source's provider, like Facebook, Instagram, Tiktok, etc.
         /// </summary>
-        [Column("")]
+        [Column("provider")]
         public string? Provider { get; set; }
 
-        [Column("")]
+        [Column("soruce_url")]
         public string SourceUrl { get; set; } = null!;
 
-        [Column("")]
+        [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
-        [Column("")]
+        [Column("type")]
         public string? Type { get; set; }
 
         /// <summary>
         /// Affiliate source status
         /// </summary>
-        [Column("")]
+        [Column("status")]
         public AffSourceStatus Status { get; set; }
 
         public User Publisher { get; set; } = null!;

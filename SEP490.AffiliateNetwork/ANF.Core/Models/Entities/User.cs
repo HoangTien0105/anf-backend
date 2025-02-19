@@ -54,6 +54,12 @@ namespace ANF.Core.Models.Entities
 
         public ICollection<SubPurchase> SubPurchases { get; set; } = new List<SubPurchase>();
 
-        public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
+        // TODO: Remove the comment when interacting with Offers table
+        //public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
+
+        // Navigation properties for one-to-one relationships
+        public PublisherProfile PublisherProfile { get; set; } = null!;
+
+        public AdvertiserProfile AdvertiserProfile { get; set; } = null!;
     }
 }

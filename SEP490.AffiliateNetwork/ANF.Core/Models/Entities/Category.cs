@@ -17,6 +17,6 @@ namespace ANF.Core.Models.Entities
         [Column("description")]
         public string? Description { get; set; }
 
-        public ICollection<Category>? Categories { get; set; }
+        public ICollection<Campaign>? Campaigns { get; set; }
     }
 }

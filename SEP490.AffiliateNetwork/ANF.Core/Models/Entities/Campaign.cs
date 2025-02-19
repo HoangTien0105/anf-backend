@@ -53,5 +53,7 @@ namespace ANF.Core.Models.Entities
         public User Advertiser { get; set; } = null!;
 
         public Category? Category { get; set; }
+
+        public ICollection<Image>? Images { get; set; }
     }
 }

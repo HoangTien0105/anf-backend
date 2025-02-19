@@ -28,5 +28,7 @@ namespace ANF.Core.Models.Entities
         public byte[] ConcurrencyStamp { get; set; } = null!;
 
         public Campaign Campaign { get; set; } = null!;
+
+        public ICollection<Image>? Images { get; set; }
     }
 }
