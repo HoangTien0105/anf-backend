@@ -1,5 +1,6 @@
 ﻿using ANF.Core.Models.Entities;
 using ANF.Infrastructure.Configs;
+using ANF.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -66,6 +67,10 @@ namespace ANF.Infrastructure
                 .Property(c => c.Id).ValueGeneratedNever();
             builder.Entity<User>()
                 .Property(u => u.Id).ValueGeneratedNever();
+            
+            #region Data seeding
+            builder.SeedDataForUsers();
+            #endregion
         }
     }
 }

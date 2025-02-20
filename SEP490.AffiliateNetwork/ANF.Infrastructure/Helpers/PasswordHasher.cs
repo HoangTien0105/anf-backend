@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace ANF.Infrastructure
+namespace ANF.Infrastructure.Helpers
 {
     /// <summary>
     /// Provides methods for hashing and verifying passwords.
