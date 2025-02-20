@@ -48,6 +48,9 @@ namespace ANF.Service
                     throw new ArgumentException("Passwords do not match.");
                 if (!Enum.TryParse<UserRoles>(request.Role, true, out _))
                     throw new ArgumentException("Invalid user role. Please check again!");
+                var age = DateTime.Today.Year - request.DateOfBirth.Year;
+                if (age < 18)
+                    throw new ArgumentException("You must be at least 18 years old to register!");
                 var duplicatedUser = await userRepository.GetAll()
                     .AsNoTracking()
                     .AnyAsync(u => u.Email == request.Email);

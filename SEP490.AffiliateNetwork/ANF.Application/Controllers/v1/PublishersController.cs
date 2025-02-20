@@ -1,10 +1,14 @@
-﻿using Asp.Versioning;
+﻿using ANF.Core.Commons;
+using ANF.Core.Models.Requests;
+using ANF.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
 {
-    public class PublishersController : BaseApiController
+    public class PublishersController(IPublisherService publisherService) : BaseApiController
     {
+        private readonly IPublisherService _publisherService = publisherService;
+
         // GET: api/<PublishersController>
         [HttpGet]
         public IEnumerable<string> Get()
@@ -20,20 +24,24 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Create advertiser
+        /// Add profile to new publisher
         /// </summary>
-        /// <param name="value">Value</param>
-        [HttpPost("advertiser-account")]
-        [MapToApiVersion(1)]
-        public async Task<IActionResult> CreateAdvertiserAccount([FromBody] string value)
+        /// <param name="id">Publisher's id</param>
+        /// <param name="value">Data</param>
+        /// <returns></returns>
+        [HttpPost("publisher-profile/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AddProfile(long id, [FromBody] PublisherProfileRequest value)
         {
-            return Ok();
-        }
-
-        // PUT api/<PublishersController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
+            if (id != value.PublisherId) return BadRequest();
+            var result = await _publisherService.AddProfile(value);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
         }
 
         // DELETE api/<PublishersController>/5
