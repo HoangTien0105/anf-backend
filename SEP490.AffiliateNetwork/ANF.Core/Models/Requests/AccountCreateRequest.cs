@@ -3,9 +3,9 @@
 namespace ANF.Core.Models.Requests
 {
     /// <summary>
-    /// Request model for creating a new publisher.
+    /// Request model for creating a new account
     /// </summary>
-    public class PublisherCreateRequest
+    public class AccountCreateRequest
     {
         [Required(ErrorMessage = "First name is required.", AllowEmptyStrings = false)]
         public string FirstName { get; set; } = null!;
@@ -17,7 +17,10 @@ namespace ANF.Core.Models.Requests
         public string PhoneNumber { get; set; } = null!;
 
         [Required(ErrorMessage = "Citizen number is required.", AllowEmptyStrings = false)]
-        public string CitizenNo { get; set; } = null!;
+        public string CitizenId { get; set; } = null!;
+
+        [Required(ErrorMessage = "Date of birth is required.")]
+        public DateTime DateOfBirth { get; set; }
 
         [Required(ErrorMessage = "Email is required.", AllowEmptyStrings = false)]
         [DataType(DataType.EmailAddress)]
@@ -28,5 +31,7 @@ namespace ANF.Core.Models.Requests
 
         [Required(ErrorMessage = "Please re-enter the password again.", AllowEmptyStrings = false)]
         public string PasswordConfirmed { get; set; } = null!;
+
+        public string Role { get; set; } = null!;
     }
 }

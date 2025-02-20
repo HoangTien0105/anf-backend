@@ -2,7 +2,7 @@
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
-using ANF.Infrastructure;
+using ANF.Infrastructure.Helpers;
 using AutoMapper;
 
 namespace ANF.Service
@@ -13,9 +13,11 @@ namespace ANF.Service
         {
             CreateMap<User, LoginResponse>();
 
-            CreateMap<PublisherCreateRequest, User>()
-                //.ForMember(dest => dest.PasswordHash, opt => opt.MapFrom(src => PasswordHasher.HashPassword(src.Password)))
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => UserRoles.Publisher));
+            CreateMap<AccountCreateRequest, User>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => Enum.Parse<UserRoles>(src.Role, true))) //Case-insensitive parsing
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Pending))
+                .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
         }
     }
 }
