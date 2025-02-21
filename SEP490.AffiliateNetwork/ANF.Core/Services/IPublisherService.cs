@@ -4,6 +4,6 @@ namespace ANF.Core.Services
 {
     public interface IPublisherService
     {
-        Task<bool> AddProfile(PublisherProfileRequest value);
+        Task<bool> AddProfile(long publisherId, PublisherProfileRequest value);
     }
 }

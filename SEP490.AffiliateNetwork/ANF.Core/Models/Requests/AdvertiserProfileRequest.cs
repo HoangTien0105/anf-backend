@@ -2,9 +2,14 @@
 
 namespace ANF.Core.Models.Requests
 {
-    public class PublisherProfileRequest
+    /// <summary>
+    /// Model to create advertiser profile
+    /// </summary>
+    public class AdvertiserProfileRequest
     {
-        public string? Specialization { get; set; }
+        public string? CompanyName { get; set; }
+
+        public string? Industry { get; set; }
 
         public string? ImageUrl { get; set; }
 
@@ -16,7 +21,7 @@ namespace ANF.Core.Models.Requests
 
         public string? Bio { get; set; }
 
-        [Required(ErrorMessage = "Publisher's id is required.")]
-        public long PublisherId { get; set; }
+        [Required(ErrorMessage = "Advertiser's id is required.")]
+        public long AdvertiserId { get; set; }
     }
 }

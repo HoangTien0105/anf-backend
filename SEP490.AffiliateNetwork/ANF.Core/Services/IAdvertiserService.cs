@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ANF.Core.Models.Requests;
 
 namespace ANF.Core.Services
 {
-    internal interface IAdvertiserService
+    public interface IAdvertiserService
     {
+        Task<bool> AddProfile(long advertiserId, AdvertiserProfileRequest profile);
     }
 }

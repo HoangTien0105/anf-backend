@@ -43,9 +43,13 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ApiResponse<LoginResponse>>> Login([FromBody] LoginRequest value)
+        public async Task<IActionResult> Login([FromBody] LoginRequest value)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
             var user = await _userService.Login(value.Email, value.Password);
             return Ok(new ApiResponse<LoginResponse>
             {
@@ -114,9 +118,13 @@ namespace ANF.Application.Controllers.v1
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ApiResponse<string>>> RegisterAccount(AccountCreateRequest value)
+        public async Task<IActionResult> RegisterAccount(AccountCreateRequest value)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
             var result = await _userService.RegisterAccount(value);
             if (!result) return BadRequest();
 

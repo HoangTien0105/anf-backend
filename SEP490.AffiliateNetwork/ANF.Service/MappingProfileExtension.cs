@@ -18,6 +18,9 @@ namespace ANF.Service
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => Enum.Parse<UserRoles>(src.Role, true))) //Case-insensitive parsing
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Pending))
                 .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
+
+            CreateMap<PublisherProfileRequest, PublisherProfile>();
+            CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
         }
     }
 }
