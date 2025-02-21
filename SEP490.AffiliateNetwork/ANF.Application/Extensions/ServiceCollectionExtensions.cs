@@ -7,8 +7,10 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -29,6 +31,12 @@ namespace ANF.Application.Extensions
             services.AddEndpointsApiExplorer();
             // Options pattern: Must add this line to run for other classes
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            
+            // Disable automatic 400 response for all controllers
+            services.Configure<ApiBehaviorOptions>(opt =>
+            {
+                opt.SuppressModelStateInvalidFilter = true;
+            });
 
             var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
             var jwtConfig = configuration.GetRequiredSection("Jwt");
@@ -76,19 +84,19 @@ namespace ANF.Application.Extensions
         {
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
                     Title = "SEP490.AffiliateNetwork",
                     Description = "API for ANF Application",
                     TermsOfService = new Uri("https://example.com/terms"),
-                    Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                    Contact = new OpenApiContact
                     {
                         Name = "Support",
                         Email = "support@example.com",
                         Url = new Uri("https://example.com/contact")
                     },
-                    License = new Microsoft.OpenApi.Models.OpenApiLicense
+                    License = new OpenApiLicense
                     {
                         Name = "Use under LICX",
                         Url = new Uri("https://example.com/license")
@@ -98,6 +106,32 @@ namespace ANF.Application.Extensions
                 // using System.Reflection;
                 var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+                // Define JWT Bearer Token support
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter your JWT token in the format: `Bearer {token}`"
+                });
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>() // No specific scopes required
+                    }
+                });
             });
 
             return services;
@@ -155,6 +189,8 @@ namespace ANF.Application.Extensions
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IPublisherService, PublisherService>();
+            services.AddScoped<IAdvertiserService, AdvertiserService>();
             services.AddScoped(typeof(TokenService));
 
             return services;
