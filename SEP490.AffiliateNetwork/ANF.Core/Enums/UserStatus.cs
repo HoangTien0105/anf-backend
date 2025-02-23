@@ -4,6 +4,7 @@
     {
         Pending,
         Active,
-        Deactive
+        Deactive,
+        Deleted
     }
 }

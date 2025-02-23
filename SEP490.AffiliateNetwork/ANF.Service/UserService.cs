@@ -29,10 +29,7 @@ namespace ANF.Service
             {
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
             }
-            if (user.Status == UserStatus.Pending)
-            {
-                throw new UnauthorizedAccessException("Cannot login to the platform. Account's status is pending.");
-            }
+
             var response = _mapper.Map<LoginResponse>(user);
             response.AccessToken = _tokenService.GenerateToken(user);
             return response;
@@ -43,7 +40,7 @@ namespace ANF.Service
             try
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
-                if (request is null) throw new ArgumentException("Invalid request data. Please check again!");
+                if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
                 if (request.Password != request.PasswordConfirmed)
                     throw new ArgumentException("Passwords do not match.");
                 if (!Enum.TryParse<UserRoles>(request.Role, true, out _))
@@ -55,11 +52,38 @@ namespace ANF.Service
                     .AsNoTracking()
                     .AnyAsync(u => u.Email == request.Email);
                 if (duplicatedUser) throw new DuplicatedException("User already exists.");
-                
+
                 var user = _mapper.Map<User>(request);
                 userRepository.Add(user);
                 var affectedRows = await _unitOfWork.SaveAsync();
                 return affectedRows > 0;
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<UserStatusResponse> UpdateAccountStatus(long userId, string status)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                if (!Enum.TryParse<UserStatus>(status, true, out _))
+                    throw new ArgumentException("Invalid user's status. Please check again!");
+                var user = await userRepository.FindByIdAsync(userId);
+                if (user is null)
+                    throw new KeyNotFoundException("User does not exist!");
+
+                user.Status = Enum.Parse<UserStatus>(status, true);
+                userRepository.Update(user);
+                await _unitOfWork.SaveAsync();
+                return new UserStatusResponse
+                {
+                    UserId = user.Id,
+                    Status = user.Status.ToString(),
+                };
             }
             catch
             {

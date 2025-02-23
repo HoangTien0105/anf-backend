@@ -4,6 +4,7 @@ using ANF.Core.Commons;
 using ANF.Core.Models.Requests;
 using Asp.Versioning;
 using ANF.Core.Models.Responses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -59,12 +60,31 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        // GET: api/Users
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        //{
-        //    return await _context.Users.ToListAsync();
-        //}
+        /// <summary>
+        /// Change user's account status 
+        /// </summary>
+        /// <returns></returns>
+        //[Authorize(Roles = "Admin")]
+        [HttpPatch("users/{id}/status")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ChangeAccountStatus(long id, string status)
+        {
+            var result = await _userService.UpdateAccountStatus(id, status);
+            if (result is not null)
+            {
+                return Ok(new ApiResponse<UserStatusResponse>
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                    Value = result
+                });
+            }
+            else return BadRequest();
+            
+        }
 
         // GET: api/Users/5
         //[HttpGet("{id}")]
@@ -131,7 +151,7 @@ namespace ANF.Application.Controllers.v1
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
-                Message = "Register account successfully. Please wait a while for admin to accept the registration."
+                Message = "Register account successfully. Please wait for admin to accept the registration."
             });
         }
 

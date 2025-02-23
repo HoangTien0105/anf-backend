@@ -8,5 +8,7 @@ namespace ANF.Core.Services
         Task<LoginResponse> Login(string email, string password);
 
         Task<bool> RegisterAccount(AccountCreateRequest request);
+
+        Task<UserStatusResponse> UpdateAccountStatus(long userId, string status);
     }
 }
