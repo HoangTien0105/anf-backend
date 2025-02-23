@@ -23,6 +23,7 @@ namespace ANF.Service
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
 
             CreateMap<User, UserResponse>();
+            CreateMap<User, PublisherResponse>();
         }
     }
 }

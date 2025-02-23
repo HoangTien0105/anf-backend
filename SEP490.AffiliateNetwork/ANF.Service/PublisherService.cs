@@ -1,6 +1,7 @@
 ﻿using ANF.Core;
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
+using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +44,20 @@ namespace ANF.Service
                 //await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<PublisherResponse> GetPublisherProfile(long publisherId)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var publisher = await userRepository.GetAll()
+                .AsNoTracking()
+                .Include(p => p.PublisherProfile)
+                .Where(p => p.Role == Core.Enums.UserRoles.Publisher && p.Id == publisherId)
+                .FirstOrDefaultAsync();
+            if (publisher is null)
+                throw new KeyNotFoundException("Publisher does not exist!");
+            var response = _mapper.Map<PublisherResponse>(publisher);
+            return response;
         }
     }
 }
