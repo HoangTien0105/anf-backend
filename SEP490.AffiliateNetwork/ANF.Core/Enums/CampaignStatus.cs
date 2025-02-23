@@ -2,9 +2,10 @@
 {
     public enum CampaignStatus
     {
+        Drafted,
         Pending,
         Verified,
-        Canceled, 
+        Started, 
         Ended
     }
 }

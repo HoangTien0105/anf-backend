@@ -5,8 +5,8 @@
     /// </summary>
     public enum AffSourceStatus
     {
+        Draft,
         Pending,
-        Verified,
-        Deactive
+        Verified
     }
 }

@@ -1,7 +1,9 @@
 ﻿using ANF.Core.Commons;
 using ANF.Core.Models.Requests;
+using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
@@ -17,11 +19,20 @@ namespace ANF.Application.Controllers.v1
             return new string[] { "value1", "value2" };
         }
 
-        // GET api/<PublishersController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("publishers/{id}")]
+        //[Authorize(Roles = "Publisher")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPublisher(long id)
         {
-            return "value";
+            var publisher = await _publisherService.GetPublisherProfile(id);
+            return Ok(new ApiResponse<PublisherResponse>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = publisher
+            });
         }
 
         /// <summary>

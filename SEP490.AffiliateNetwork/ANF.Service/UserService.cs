@@ -18,6 +18,93 @@ namespace ANF.Service
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
 
+        public async Task<bool> DeleteUser(long id)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var user = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .Include(u => u.PublisherProfile)
+                    .Include(u => u.AdvertiserProfile)
+                    .Include(u => u.AffiliateSources)
+                    .Include(u => u.Campaigns)
+                    .Include(u => u.SubPurchases)
+                    .FirstOrDefaultAsync(u => u.Id == id);
+                if (user is not null)
+                {
+                    if (user.Status == UserStatus.Deleted && user.Role == UserRoles.Publisher)
+                    {
+                        if (user.AffiliateSources.Any())
+                        {
+                            var pubSrcRepository = _unitOfWork.GetRepository<PublisherSource>();
+                            pubSrcRepository.DeleteRange(user.AffiliateSources);
+                        }
+                        if (user.PublisherProfile is not null)
+                        {
+                            var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
+                            pubProfileRepository.Delete(user.PublisherProfile);
+                        }
+                        //TODO: Manually delete other data of other tables to avoid FK conflict.
+                        userRepository.Delete(user);
+                        return await _unitOfWork.SaveAsync() > 0;
+                    }
+                    else if (user.Status == UserStatus.Deleted && user.Role == UserRoles.Advertiser)
+                    {
+                        if (user.AdvertiserProfile is not null)
+                        {
+                            var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
+                            advProfileRepository.Delete(user.AdvertiserProfile);
+                        }
+                        if (user.Campaigns.Any())
+                        {
+                            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                            campaignRepository.DeleteRange(user.Campaigns);
+                        }
+                        if (user.SubPurchases.Any())
+                        {
+                            var subPurchaseRepository = _unitOfWork.GetRepository<SubPurchase>();
+                            subPurchaseRepository.DeleteRange(user.SubPurchases);
+                        }
+                        //TODO: Manually delete other data of other tables to avoid FK conflict.
+                        userRepository.Delete(user);
+                        return await _unitOfWork.SaveAsync() > 0;
+                    }
+                    else
+                    {
+                        //TODO: Change the message and exception type
+                        throw new Exception("Exception.");
+                    }
+                }
+                else
+                {
+                    throw new KeyNotFoundException("User does not exist!");
+                }
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var users = await userRepository.GetAll()
+                .AsNoTracking()
+                .Where(u => u.Role == UserRoles.Publisher || u.Role == UserRoles.Advertiser)
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!users.Any())
+                throw new KeyNotFoundException("No data for users!");
+            var totalCount = users.Count();
+
+            var data = _mapper.Map<List<UserResponse>>(users);
+            return new PaginationResponse<UserResponse>(data, totalCount, request.pageNumber, request.pageSize);
+        }
+
         public async Task<LoginResponse> Login(string email, string password)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
@@ -29,10 +116,7 @@ namespace ANF.Service
             {
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
             }
-            if (user.Status == UserStatus.Pending)
-            {
-                throw new UnauthorizedAccessException("Cannot login to the platform. Account's status is pending.");
-            }
+
             var response = _mapper.Map<LoginResponse>(user);
             response.AccessToken = _tokenService.GenerateToken(user);
             return response;
@@ -43,7 +127,7 @@ namespace ANF.Service
             try
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
-                if (request is null) throw new ArgumentException("Invalid request data. Please check again!");
+                if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
                 if (request.Password != request.PasswordConfirmed)
                     throw new ArgumentException("Passwords do not match.");
                 if (!Enum.TryParse<UserRoles>(request.Role, true, out _))
@@ -55,11 +139,38 @@ namespace ANF.Service
                     .AsNoTracking()
                     .AnyAsync(u => u.Email == request.Email);
                 if (duplicatedUser) throw new DuplicatedException("User already exists.");
-                
+
                 var user = _mapper.Map<User>(request);
                 userRepository.Add(user);
                 var affectedRows = await _unitOfWork.SaveAsync();
                 return affectedRows > 0;
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<UserStatusResponse> UpdateAccountStatus(long userId, string status)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                if (!Enum.TryParse<UserStatus>(status, true, out _))
+                    throw new ArgumentException("Invalid user's status. Please check again!");
+                var user = await userRepository.FindByIdAsync(userId);
+                if (user is null)
+                    throw new KeyNotFoundException("User does not exist!");
+
+                user.Status = Enum.Parse<UserStatus>(status, true);
+                userRepository.Update(user);
+                await _unitOfWork.SaveAsync();
+                return new UserStatusResponse
+                {
+                    UserId = user.Id,
+                    Status = user.Status.ToString(),
+                };
             }
             catch
             {

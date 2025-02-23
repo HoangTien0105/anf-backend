@@ -4,6 +4,7 @@ using ANF.Core.Commons;
 using ANF.Core.Models.Requests;
 using Asp.Versioning;
 using ANF.Core.Models.Responses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -40,6 +41,7 @@ namespace ANF.Application.Controllers.v1
         /// </remarks>
         [HttpPost("users/login")]
         [MapToApiVersion(1)]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,62 +61,55 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        // GET: api/Users
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        //{
-        //    return await _context.Users.ToListAsync();
-        //}
+        /// <summary>
+        /// Change user's account status 
+        /// </summary>
+        /// <returns></returns>
+        //[Authorize(Roles = "Admin")]
+        [HttpPatch("users/{id}/status")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ChangeAccountStatus(long id, string status)
+        {
+            var result = await _userService.UpdateAccountStatus(id, status);
+            if (result is not null)
+            {
+                return Ok(new ApiResponse<UserStatusResponse>
+                {
+                    IsSuccess = true,
+                    Message = "Success.",
+                    Value = result
+                });
+            }
+            else return BadRequest();
+            
+        }
 
-        // GET: api/Users/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<User>> GetUser(Guid id)
-        //{
-        //    var user = await _context.Users.FindAsync(id);
-
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return user;
-        //}
-
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutUser(Guid id, User user)
-        //{
-        //    if (id != user.Id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _context.Entry(user).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!UserExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
-
+        /// <summary>
+        /// Get all users
+        /// </summary>
+        /// <param name="request">Pagination request model</param>
+        /// <returns></returns>
+        [HttpGet("users")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetUsers([FromQuery] PaginationRequest request)
+        {
+            var users = await _userService.GetUsers(request);
+            return Ok(users);
+        }
+        
         /// <summary>
         /// Create new account
         /// </summary>
         /// <param name="value">Account data</param>
         /// <returns></returns>
         [HttpPost("users/account")]
+        [AllowAnonymous]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -131,24 +126,25 @@ namespace ANF.Application.Controllers.v1
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
-                Message = "Register account successfully. Please wait a while for admin to accept the registration."
+                Message = "Register account successfully. Please wait for admin to accept the registration."
             });
         }
 
         // DELETE: api/Users/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteUser(Guid id)
-        //{
-        //    var user = await _context.Users.FindAsync(id);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Users.Remove(user);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
+        [HttpDelete("users/{id}")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteUser(long id)
+        {
+            var result = await _userService.DeleteUser(id);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
+        }
     }
 }

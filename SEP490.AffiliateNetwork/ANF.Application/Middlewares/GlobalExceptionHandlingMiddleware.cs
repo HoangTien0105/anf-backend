@@ -60,7 +60,7 @@ namespace ANF.Application.Middlewares
                 case ArgumentException:
                     statusCode = HttpStatusCode.BadRequest;
                     break;
-                case NullReferenceException:
+                case NullReferenceException:    //TODO: Recheck the status code for this exception
                     statusCode = HttpStatusCode.BadRequest;
                     break;
                 case UnauthorizedAccessException:
@@ -70,7 +70,7 @@ namespace ANF.Application.Middlewares
                     statusCode = HttpStatusCode.Forbidden;
                     break;
                 case DuplicatedException:
-                    statusCode = HttpStatusCode.BadRequest;
+                    statusCode = HttpStatusCode.Conflict;
                     break;
                 default:
                     break;

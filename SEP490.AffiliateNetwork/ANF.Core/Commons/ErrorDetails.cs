@@ -7,6 +7,8 @@ namespace ANF.Core.Commons
     /// </summary>
     public class ErrorDetail
     {
+        public bool IsSuccess { get; set; } = false;
+
         public int StatusCode { get; set; }
 
         public string Message { get; set; } = null!;
