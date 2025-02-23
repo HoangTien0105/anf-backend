@@ -61,5 +61,7 @@ namespace ANF.Core.Models.Entities
         public PublisherProfile PublisherProfile { get; set; } = null!;
 
         public AdvertiserProfile AdvertiserProfile { get; set; } = null!;
+
+        public ICollection<Campaign> Campaigns { get; set; } = new List<Campaign>();
     }
 }

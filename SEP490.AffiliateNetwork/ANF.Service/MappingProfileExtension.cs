@@ -21,6 +21,8 @@ namespace ANF.Service
 
             CreateMap<PublisherProfileRequest, PublisherProfile>();
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
+
+            CreateMap<User, UserResponse>();
         }
     }
 }

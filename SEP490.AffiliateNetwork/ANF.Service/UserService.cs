@@ -18,6 +18,93 @@ namespace ANF.Service
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
 
+        public async Task<bool> DeleteUser(long id)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var user = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .Include(u => u.PublisherProfile)
+                    .Include(u => u.AdvertiserProfile)
+                    .Include(u => u.AffiliateSources)
+                    .Include(u => u.Campaigns)
+                    .Include(u => u.SubPurchases)
+                    .FirstOrDefaultAsync(u => u.Id == id);
+                if (user is not null)
+                {
+                    if (user.Status == UserStatus.Deleted && user.Role == UserRoles.Publisher)
+                    {
+                        if (user.AffiliateSources.Any())
+                        {
+                            var pubSrcRepository = _unitOfWork.GetRepository<PublisherSource>();
+                            pubSrcRepository.DeleteRange(user.AffiliateSources);
+                        }
+                        if (user.PublisherProfile is not null)
+                        {
+                            var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
+                            pubProfileRepository.Delete(user.PublisherProfile);
+                        }
+                        //TODO: Manually delete other data of other tables to avoid FK conflict.
+                        userRepository.Delete(user);
+                        return await _unitOfWork.SaveAsync() > 0;
+                    }
+                    else if (user.Status == UserStatus.Deleted && user.Role == UserRoles.Advertiser)
+                    {
+                        if (user.AdvertiserProfile is not null)
+                        {
+                            var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
+                            advProfileRepository.Delete(user.AdvertiserProfile);
+                        }
+                        if (user.Campaigns.Any())
+                        {
+                            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                            campaignRepository.DeleteRange(user.Campaigns);
+                        }
+                        if (user.SubPurchases.Any())
+                        {
+                            var subPurchaseRepository = _unitOfWork.GetRepository<SubPurchase>();
+                            subPurchaseRepository.DeleteRange(user.SubPurchases);
+                        }
+                        //TODO: Manually delete other data of other tables to avoid FK conflict.
+                        userRepository.Delete(user);
+                        return await _unitOfWork.SaveAsync() > 0;
+                    }
+                    else
+                    {
+                        //TODO: Change the message and exception type
+                        throw new Exception("Exception.");
+                    }
+                }
+                else
+                {
+                    throw new KeyNotFoundException("User does not exist!");
+                }
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var users = await userRepository.GetAll()
+                .AsNoTracking()
+                .Where(u => u.Role == UserRoles.Publisher || u.Role == UserRoles.Advertiser)
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!users.Any())
+                throw new KeyNotFoundException("No data for users!");
+            var totalCount = users.Count();
+
+            var data = _mapper.Map<List<UserResponse>>(users);
+            return new PaginationResponse<UserResponse>(data, totalCount, request.pageNumber, request.pageSize);
+        }
+
         public async Task<LoginResponse> Login(string email, string password)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
