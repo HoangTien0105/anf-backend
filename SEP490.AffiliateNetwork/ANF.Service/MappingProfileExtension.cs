@@ -24,6 +24,13 @@ namespace ANF.Service
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>();
+
+            CreateMap<CategoryCreateRequest, Category>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()));
+            CreateMap<CategoryUpdateRequest, Category>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            CreateMap<Category, CategoryResponse>();
         }
     }
 }
