@@ -2,116 +2,127 @@
 using Microsoft.EntityFrameworkCore;
 using ANF.Core.Models.Entities;
 using ANF.Infrastructure;
+using ANF.Core.Services;
+using ANF.Core.Models.Requests;
+using Asp.Versioning;
+using ANF.Core.Commons;
+using ANF.Core.Models.Responses;
+using System.Security.Policy;
+using ANF.Service;
+using Newtonsoft.Json.Linq;
 
 namespace ANF.Application.Controllers.v1
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class SubscriptionsController : ControllerBase
+    public class SubscriptionsController(ISubscriptionService subscriptionService) : BaseApiController
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISubscriptionService _subscriptionService = subscriptionService;
 
-        public SubscriptionsController(ApplicationDbContext context)
+        /// <summary>
+        /// Get all subscriptions
+        /// </summary>
+        /// <param name="request">Pagination request model</param>
+        /// <returns></returns>
+        [HttpGet("subscriptions")]
+        //[Authorize(Roles = "Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSubscriptions([FromQuery] PaginationRequest request)
         {
-            _context = context;
+            var subscriptions = await _subscriptionService.GetSubscriptions(request);
+            return Ok(subscriptions);
         }
 
-        // GET: api/Subscriptions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Subscription>>> GetSubscriptions()
+        /// <summary>
+        /// Get subscription by id
+        /// </summary>
+        /// <param name="id">Subscription id</param>
+        /// <returns></returns>
+        [HttpGet("subscriptions/{id}")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSubscription(long id)
         {
-            return await _context.Subscriptions.ToListAsync();
+            var subscription = await _subscriptionService.GetSubscription(id);
+            return Ok(new ApiResponse<SubscriptionResponse>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = subscription
+            });
         }
 
-        // GET: api/Subscriptions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Subscription>> GetSubscription(long id)
+        /// <summary>
+        /// Update subscription
+        /// </summary>
+        /// <param name="id">Subscription id</param>
+        /// <param name="request">Subscription data</param>
+        /// <returns></returns>
+        [HttpPut("subscriptions/{id}")]
+        public async Task<IActionResult> PutSubscription(long id, SubscriptionRequest request)
         {
-            var subscription = await _context.Subscriptions.FindAsync(id);
-
-            if (subscription == null)
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
             {
-                return NotFound();
+                return validationResult;
             }
 
-            return subscription;
+            var result = await _subscriptionService.UpdateSubscription(id, request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update successfully"
+            });
         }
 
-        // PUT: api/Subscriptions/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutSubscription(long id, Subscription subscription)
+        /// <summary>
+        /// Create new subscription
+        /// </summary>
+        /// <param name="request">Subscription data</param>
+        /// <returns></returns>
+        [HttpPost("subscriptions")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PostSubscription(SubscriptionRequest request)
         {
-            if (id != subscription.Id)
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
             {
-                return BadRequest();
+                return validationResult;
             }
+            var result = await _subscriptionService.CreateSubscription(request);
+            if (!result) return BadRequest();
 
-            _context.Entry(subscription).State = EntityState.Modified;
-
-            try
+            return Ok(new ApiResponse<string>
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!SubscriptionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+                IsSuccess = true,
+                Message = "Create subscription successfully"
+            });
         }
 
-        // POST: api/Subscriptions
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Subscription>> PostSubscription(Subscription subscription)
-        {
-            _context.Subscriptions.Add(subscription);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (SubscriptionExists(subscription.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetSubscription", new { id = subscription.Id }, subscription);
-        }
-
-        // DELETE: api/Subscriptions/5
-        [HttpDelete("{id}")]
+        /// <summary>
+        /// Delete subscriptions (need to review this flow)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("subscriptions/{id}")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteSubscription(long id)
         {
-            var subscription = await _context.Subscriptions.FindAsync(id);
-            if (subscription == null)
+            var result = await _subscriptionService.DeleteSubscriptions(id);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
             {
-                return NotFound();
-            }
-
-            _context.Subscriptions.Remove(subscription);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool SubscriptionExists(long id)
-        {
-            return _context.Subscriptions.Any(e => e.Id == id);
+                IsSuccess = true,
+                Message = "Delete success."
+            });
         }
     }
 }

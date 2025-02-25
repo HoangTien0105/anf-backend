@@ -19,11 +19,15 @@ namespace ANF.Service
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Pending))
                 .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
 
+            CreateMap<SubscriptionRequest, Subscription>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()));
+
             CreateMap<PublisherProfileRequest, PublisherProfile>();
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>();
+            CreateMap<Subscription, SubscriptionResponse>();
         }
     }
 }
