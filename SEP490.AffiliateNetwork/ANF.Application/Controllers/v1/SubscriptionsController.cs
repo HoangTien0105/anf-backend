@@ -23,7 +23,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
         [HttpGet("subscriptions")]
-        //[Authorize(Roles = "Advertiser")]
+        //[Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -44,6 +44,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Subscription id</param>
         /// <returns></returns>
         [HttpGet("subscriptions/{id}")]
+        //[Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -65,6 +66,11 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Subscription data</param>
         /// <returns></returns>
         [HttpPut("subscriptions/{id}")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateSubscription(long id, SubscriptionRequest request)
         {
             var validationResult = HandleValidationErrors();
