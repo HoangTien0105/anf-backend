@@ -1,7 +1,7 @@
 ﻿namespace ANF.Core.Models.Responses
 {
     /// <summary>
-    /// Response model for user (admin role)
+    /// Response model for campagin 
     /// </summary>
     public class UserResponse
     {

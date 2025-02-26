@@ -29,6 +29,7 @@ namespace ANF.Service
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>();
             CreateMap<Subscription, SubscriptionResponse>();
+            CreateMap<Campaign, CampaignResponse>();
         }
     }
 }
