@@ -1,117 +1,137 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ANF.Core.Models.Entities;
-using ANF.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
+using ANF.Core.Models.Requests;
+using ANF.Core.Services;
+using ANF.Core.Commons;
+using ANF.Core.Models.Responses;
+using Asp.Versioning;
 
 namespace ANF.Application.Controllers.v1
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController : BaseApiController
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(ApplicationDbContext context)
+        public CategoriesController(ICategoryService categoryService)
         {
-            _context = context;
+            _categoryService = categoryService;
         }
 
-        // GET: api/Categories
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        /// <summary>
+        /// Get categories
+        /// </summary>
+        /// <param name="request">Pagination model</param>
+        /// <returns></returns>
+        [HttpGet("categories")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCategories([FromQuery] PaginationRequest request)
         {
-            return await _context.Categories.ToListAsync();
+            var data = await _categoryService.GetCategories(request);
+            return Ok(new ApiResponse<PaginationResponse<CategoryResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = data
+            });
         }
 
-        // GET: api/Categories/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(long id)
+        /// <summary>
+        /// Get category
+        /// </summary>
+        /// <param name="id">Category's id</param>
+        /// <returns></returns>
+        [HttpGet("categories/{id}")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCategory(long id)
         {
-            var category = await _context.Categories.FindAsync(id);
-
-            if (category == null)
+            var category = await _categoryService.GetCategory(id);
+            return Ok(new ApiResponse<CategoryResponse>
             {
-                return NotFound();
+                IsSuccess = true,
+                Message = "Success.",
+                Value = category
+            });
+        }
+        
+        /// <summary>
+        /// Update category
+        /// </summary>
+        /// <param name="id">Category's id</param>
+        /// <param name="category">Data to update existed category</param>
+        /// <returns></returns>
+        [HttpPut("category/{id}")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateCategory(long id, [FromBody] CategoryUpdateRequest category)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
             }
-
-            return category;
+            var result = await _categoryService.UpdateCategory(id, category);
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
         }
 
-        // PUT: api/Categories/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(long id, Category category)
+        /// <summary>
+        /// Create category
+        /// </summary>
+        /// <param name="request">Model to create category</param>
+        /// <returns></returns>
+        [HttpPost("category")]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateRequest request)
         {
-            if (id != category.Id)
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
             {
-                return BadRequest();
+                return validationResult;
             }
-
-            _context.Entry(category).State = EntityState.Modified;
-
-            try
+            var result = await _categoryService.AddCategory(request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+                IsSuccess = true,
+                Message = "Success."
+            });
         }
 
-        // POST: api/Categories
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
-        {
-            _context.Categories.Add(category);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (CategoryExists(category.Id))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
-        }
-
-        // DELETE: api/Categories/5
-        [HttpDelete("{id}")]
+        /// <summary>
+        /// Delete category
+        /// </summary>
+        /// <param name="id">Category's id</param>
+        /// <returns></returns>
+        [HttpDelete("category/{id}")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCategory(long id)
         {
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
+            var result = await _categoryService.DeleteCategory(id);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
             {
-                return NotFound();
-            }
-
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                IsSuccess = true,
+                Message = "Success."
+            });
         }
-
-        private bool CategoryExists(long id)
-        {
-            return _context.Categories.Any(e => e.Id == id);
-        }
+        
     }
 }
