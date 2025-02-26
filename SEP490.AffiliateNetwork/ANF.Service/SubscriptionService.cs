@@ -32,6 +32,10 @@ namespace ANF.Service
                 if (duplicatedSub) throw new DuplicatedException("Description already exists");
 
                 var subscription = _mapper.Map<Subscription>(request);
+                var duplicatedSubId = await subscriptionRepository.GetAll()
+                                        .AsNoTracking()
+                                        .AnyAsync(e => e.Id == subscription.Id);
+                if (duplicatedSubId) throw new DuplicatedException("Something went wrong. Please try to submit again!");
                 subscriptionRepository.Add(subscription);
                 var affectedRows = await _unitOfWork.SaveAsync();
                 return affectedRows > 0;
@@ -55,11 +59,7 @@ namespace ANF.Service
                 if (subscription is not null)
                 {
                     if (subscription.SubPurchases.Any())
-                    {
-                        // Need to review this flow
-                        var subPurchases = _unitOfWork.GetRepository<SubPurchase>();
-                        subPurchases.DeleteRange(subscription.SubPurchases);
-                    }
+                        throw new InvalidOperationException("Subscription already has purchases.");
                     subscriptionRepository.Delete(subscription);
                     return await _unitOfWork.SaveAsync() > 0;
                 }
@@ -118,7 +118,7 @@ namespace ANF.Service
 
                     subscription.Name = request.Name;
                     subscription.Description = request.Description;
-                    subscription.Price = request.Price; 
+                    subscription.Price = Math.Floor(request.Price); 
                     subscription.Duration = request.Duration;
 
                     subscriptionRepository.Update(subscription);

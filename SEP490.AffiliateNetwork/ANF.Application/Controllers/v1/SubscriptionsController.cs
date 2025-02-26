@@ -30,7 +30,12 @@ namespace ANF.Application.Controllers.v1
         public async Task<IActionResult> GetSubscriptions([FromQuery] PaginationRequest request)
         {
             var subscriptions = await _subscriptionService.GetSubscriptions(request);
-            return Ok(subscriptions);
+            return Ok(new ApiResponse<PaginationResponse<SubscriptionResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = subscriptions
+            });
         }
 
         /// <summary>
@@ -60,7 +65,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Subscription data</param>
         /// <returns></returns>
         [HttpPut("subscriptions/{id}")]
-        public async Task<IActionResult> PutSubscription(long id, SubscriptionRequest request)
+        public async Task<IActionResult> UpdateSubscription(long id, SubscriptionRequest request)
         {
             var validationResult = HandleValidationErrors();
             if (validationResult is not null)
@@ -87,7 +92,7 @@ namespace ANF.Application.Controllers.v1
         //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> PostSubscription(SubscriptionRequest request)
+        public async Task<IActionResult> CreateSubscription(SubscriptionRequest request)
         {
             var validationResult = HandleValidationErrors();
             if (validationResult is not null)
