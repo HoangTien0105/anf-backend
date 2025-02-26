@@ -187,6 +187,7 @@ namespace ANF.Application.Extensions
         private static IServiceCollection AddApplicationService(this IServiceCollection services)
         {
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
