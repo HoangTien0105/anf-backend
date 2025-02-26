@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ANF.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using ANF.Core.Models.Requests;
 using ANF.Core.Services;
@@ -9,14 +8,12 @@ using Asp.Versioning;
 
 namespace ANF.Application.Controllers.v1
 {
-    public class CategoriesController : ControllerBase
+    public class CategoriesController : BaseApiController
     {
-        private readonly ApplicationDbContext _context;
         private readonly ICategoryService _categoryService;
 
-        public CategoriesController(ApplicationDbContext context, ICategoryService categoryService)
+        public CategoriesController(ICategoryService categoryService)
         {
-            _context = context;
             _categoryService = categoryService;
         }
 
@@ -76,6 +73,11 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCategory(long id, [FromBody] CategoryUpdateRequest category)
         {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
             var result = await _categoryService.UpdateCategory(id, category);
             return Ok(new ApiResponse<string>
             {
@@ -96,6 +98,11 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> CreateCategory([FromBody] CategoryCreateRequest request)
         {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
             var result = await _categoryService.AddCategory(request);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
