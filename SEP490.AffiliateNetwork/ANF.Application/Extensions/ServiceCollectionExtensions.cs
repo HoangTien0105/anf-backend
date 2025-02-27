@@ -5,7 +5,6 @@ using ANF.Infrastructure;
 using ANF.Service;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -88,19 +87,19 @@ namespace ANF.Application.Extensions
                 {
                     Version = "v1",
                     Title = "SEP490.AffiliateNetwork",
-                    Description = "API for ANF Application",
-                    TermsOfService = new Uri("https://example.com/terms"),
+                    Description = "API for Affiliate Network Platform",
+                    //TermsOfService = new Uri("https://example.com/terms"),
                     Contact = new OpenApiContact
                     {
                         Name = "Support",
                         Email = "support@example.com",
                         Url = new Uri("https://example.com/contact")
                     },
-                    License = new OpenApiLicense
-                    {
-                        Name = "Use under LICX",
-                        Url = new Uri("https://example.com/license")
-                    }
+                    //License = new OpenApiLicense
+                    //{
+                    //    Name = "Use under LICX",
+                    //    Url = new Uri("https://example.com/license")
+                    //}
                 });
 
                 // using System.Reflection;
@@ -193,6 +192,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
+            services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped(typeof(TokenService));
 
             return services;

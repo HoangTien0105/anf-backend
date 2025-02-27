@@ -98,7 +98,7 @@ namespace ANF.Service
                 .Take(request.pageSize)
                 .ToListAsync();
             if (!users.Any())
-                throw new KeyNotFoundException("No data for users!");
+                throw new NoDataRetrievalException("No data for users!");
             var totalCount = users.Count();
 
             var data = _mapper.Map<List<UserResponse>>(users);

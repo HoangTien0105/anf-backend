@@ -54,6 +54,9 @@ namespace ANF.Application.Middlewares
                 case KeyNotFoundException:
                     statusCode = HttpStatusCode.NotFound;
                     break;
+                case NoDataRetrievalException:
+                    statusCode = HttpStatusCode.NotFound;
+                    break;
                 case NotSupportedException:
                     statusCode = HttpStatusCode.NotImplemented;
                     break;
