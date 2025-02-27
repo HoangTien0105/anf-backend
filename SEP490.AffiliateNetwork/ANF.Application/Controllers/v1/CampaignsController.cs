@@ -3,6 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using ANF.Core.Models.Entities;
 using ANF.Infrastructure;
 using ANF.Core.Services;
+using Asp.Versioning;
+using ANF.Core.Models.Responses;
+using ANF.Core.Models.Requests;
+using ANF.Core.Commons;
+using ANF.Service;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -10,12 +16,68 @@ namespace ANF.Application.Controllers.v1
     {
         private readonly ICampaignService _campaignService = campaignService;
 
-        // GET: api/Campaigns
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<Campaign>>> GetCampaigns()
-        //{
-        //    return await _context.Campaigns.ToListAsync();
-        //}
+        /// <summary>
+        /// Get all campaigns
+        /// </summary>
+        /// <param name="request">Pagination data</param>
+        /// <returns></returns>
+        [HttpGet("campaigns")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCampaigns([FromQuery] PaginationRequest request)
+        {
+            var campaigns = await _campaignService.GetCampaigns(request);
+            return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = campaigns
+            });
+        }
+
+        /// <summary>
+        /// Get all campaigns with offers
+        /// </summary>
+        /// <param name="request">Pagination data</param>
+        /// <returns></returns>
+        [HttpGet("campaigns/offers")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCampaignsWithOffers([FromQuery] PaginationRequest request)
+        {
+            var campaigns = await _campaignService.GetCampaignsWithOffers(request);
+            return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = campaigns
+            });
+        }
+
+        /// <summary>
+        /// Get all campaigns with offers by advertiser id
+        /// </summary>
+        /// <param name="id">Advertiser id</param>
+        /// <param name="request">Pagination data</param>
+        /// <returns></returns>
+        [HttpGet("campaigns/advertisers/{id}/offers/")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, long id)
+        {
+            var campaigns = await _campaignService.GetCampaignsByAdvertisersWithOffers(request, id);
+            return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = campaigns
+            });
+        }
 
         //// GET: api/Campaigns/5
         //[HttpGet("{id}")]

@@ -36,9 +36,10 @@ namespace ANF.Core.Models.Responses
         public string Status { get; set; } = null!;
         public byte[] ConcurrencyStamp { get; set; } = null!;
 
-        public User Advertiser { get; set; } = null!;
+        public UserResponse Advertiser { get; set; } = null!;
 
         public Category? Category { get; set; }
+        public ICollection<OfferResponse>? Offers { get; set; }
 
         public ICollection<Image>? Images { get; set; }
     }
