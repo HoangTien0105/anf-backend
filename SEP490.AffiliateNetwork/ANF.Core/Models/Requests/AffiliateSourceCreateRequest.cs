@@ -7,8 +7,6 @@ namespace ANF.Core.Models.Requests
     /// </summary>
     public class AffiliateSourceCreateRequest
     {
-        public long PublisherId { get; set; }
-
         [Required(ErrorMessage = "Provider must be specified!", AllowEmptyStrings = false)]
         public string? Provider { get; set; }
 

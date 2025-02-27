@@ -19,7 +19,7 @@ namespace ANF.Service
         {
             try
             {
-                if (requests.Any())
+                if (!requests.Any())
                     throw new ArgumentException("Request data is invalid. Please check again!");
                 var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
                 var userRepository = _unitOfWork.GetRepository<User>();
@@ -29,12 +29,8 @@ namespace ANF.Service
                 {
                     throw new KeyNotFoundException("Publisher does not exist!");
                 }
-                // Mapping publisher's id into sources
-                foreach (var publisherSource in requests)
-                {
-                    publisherSource.PublisherId = publisherId;
-                }
-                var sources = _mapper.Map<List<PublisherSource>>(requests);
+                // Pass publisherId to AutoMapper via Items dictionary
+                var sources = _mapper.Map<List<PublisherSource>>(requests, opts => opts.Items["PublisherId"] = publisherId);
                 pubSourceRepository.AddRange(sources);
                 return await _unitOfWork.SaveAsync() > 0;
             }
@@ -88,6 +84,8 @@ namespace ANF.Service
                     .FirstOrDefaultAsync(s => s.Id == sourceId);
                 if (source is null)
                     throw new KeyNotFoundException("Source does not exist!");
+                if (source.Status == AffSourceStatus.Verified)
+                    throw new ArgumentException("The source cannot update because it's verified in system!");
                 pubSourceRepository.Delete(source);
                 return await _unitOfWork.SaveAsync() > 0;
             }
@@ -102,6 +100,8 @@ namespace ANF.Service
         {
             try
             {
+                if (!sourceIds.Any())
+                    throw new ArgumentException("Request data is invalid. Please check again!");
                 var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
                 foreach (var id in sourceIds)
                 {
@@ -110,6 +110,8 @@ namespace ANF.Service
                         .FirstOrDefaultAsync(s => s.Id == id);
                     if (affiliateSource is null)
                         throw new KeyNotFoundException("Source does not exist!");
+                    if (affiliateSource.Status == AffSourceStatus.Verified)
+                        throw new ArgumentException("The source cannot update because it's verified in system!");
                     pubSourceRepository.Delete(affiliateSource);
                 }
                 return await _unitOfWork.SaveAsync() > 0;
