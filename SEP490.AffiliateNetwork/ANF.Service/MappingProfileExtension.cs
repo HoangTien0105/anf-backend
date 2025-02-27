@@ -19,12 +19,17 @@ namespace ANF.Service
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Pending))
                 .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
 
+            CreateMap<SubscriptionRequest, Subscription>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => Math.Floor(src.Price)));
+
             CreateMap<PublisherProfileRequest, PublisherProfile>();
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>();
                 //.ForMember(dest => dest.AffiliateSourceResponses, opt => opt.MapFrom(src => src.AffiliateSources));   //TODO: Review the mapping, current it is not used
+
 
             CreateMap<CategoryCreateRequest, Category>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()));
@@ -44,6 +49,7 @@ namespace ANF.Service
                 .ForMember(dest => dest.Status, opt => opt.Ignore());
 
             CreateMap<PublisherSource, AffiliateSourceResponse>();
+            CreateMap<Subscription, SubscriptionResponse>();
         }
     }
 }
