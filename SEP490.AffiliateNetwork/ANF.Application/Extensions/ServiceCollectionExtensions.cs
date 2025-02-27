@@ -188,6 +188,7 @@ namespace ANF.Application.Extensions
         {
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ISubscriptionService, SubscriptionService>();
+            services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();

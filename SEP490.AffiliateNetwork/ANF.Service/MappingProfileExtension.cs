@@ -50,6 +50,8 @@ namespace ANF.Service
 
             CreateMap<PublisherSource, AffiliateSourceResponse>();
             CreateMap<Subscription, SubscriptionResponse>();
+            CreateMap<Campaign, CampaignResponse>();
+            CreateMap<Offer, OfferResponse>();
         }
     }
 }
