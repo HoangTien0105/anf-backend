@@ -24,6 +24,7 @@ namespace ANF.Service
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>();
+                //.ForMember(dest => dest.AffiliateSourceResponses, opt => opt.MapFrom(src => src.AffiliateSources));   //TODO: Review the mapping, current it is not used
 
             CreateMap<CategoryCreateRequest, Category>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()));
@@ -31,6 +32,18 @@ namespace ANF.Service
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
             CreateMap<Category, CategoryResponse>();
+
+
+            CreateMap<AffiliateSourceCreateRequest, PublisherSource>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(_ => IdHelper.GenerateRandomLong()))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => AffSourceStatus.Pending))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.Now));
+
+            CreateMap<AffiliateSourceUpdateRequest, PublisherSource>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.Status, opt => opt.Ignore());
+
+            CreateMap<PublisherSource, AffiliateSourceResponse>();
         }
     }
 }
