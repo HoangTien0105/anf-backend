@@ -66,7 +66,7 @@ namespace ANF.Application.Extensions
             {
                 opt.AddPolicy("ANF", builder =>
                 {
-                    builder.WithOrigins("local-port", "production-port")
+                    builder.WithOrigins("http://localhost:3000", "production-port")
                         .AllowAnyMethod()
                         .AllowAnyHeader();
                 });
@@ -193,6 +193,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IImageService, ImageService>();
             services.AddScoped(typeof(TokenService));
 
             return services;

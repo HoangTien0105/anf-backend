@@ -8,6 +8,7 @@
 
 	<ItemGroup>
 	  <PackageReference Include="AutoMapper" Version="13.0.1" />
+	  <PackageReference Include="AWSSDK.S3" Version="3.7.415.8" />
 	</ItemGroup>
 
 	<ItemGroup>
