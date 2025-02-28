@@ -12,12 +12,12 @@ builder.Services.Register(builder.Configuration);
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
 // Configure Cloudflare R2 (S3-compatible)
-var credentials = new BasicAWSCredentials(CloudflareR2Constants.AccessKey, CloudflareR2Constants.SecretKey);
+var credentials = new BasicAWSCredentials(CloudflareR2Constants.AccessKeyId, CloudflareR2Constants.SecretAccessKey);
 var s3Config = new AmazonS3Config
 {
     ServiceURL = CloudflareR2Constants.BaseUrl,
-    //SignatureVersion = "4",
     ForcePathStyle = true,
+    RegionEndpoint = RegionEndpoint.APSoutheast1
 };
 
 builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(credentials, s3Config));

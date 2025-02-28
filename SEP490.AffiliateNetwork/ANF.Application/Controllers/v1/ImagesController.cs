@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1

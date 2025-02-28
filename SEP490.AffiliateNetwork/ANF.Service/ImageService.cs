@@ -9,8 +9,7 @@ namespace ANF.Service
     public class ImageService(IAmazonS3 amazonS3) : IImageService
     {
         private readonly IAmazonS3 _amazonS3 = amazonS3;
-        private readonly string _bucketName = "sep490-affiliate-network";
-
+        
         public async Task<string> UploadImageAsync(IFormFile file)
         {
             // Generate unique file name
@@ -20,18 +19,17 @@ namespace ANF.Service
             using var stream = file.OpenReadStream();
             var putRequest = new PutObjectRequest
             {
-                BucketName = _bucketName,
+                BucketName = CloudflareR2Constants.BucketName,
                 Key = fileName,
                 InputStream = stream,
                 ContentType = file.ContentType,
-                DisablePayloadSigning = true,
+                //DisablePayloadSigning = true,
             };
 
-            // Chạy line này xong sẽ error: The request signature we calculated does not match the signature you provided. Check your secret access key and signing method.
             await _amazonS3.PutObjectAsync(putRequest);
 
             // Construct the URL (đã enable endpoint của dev)
-            var imageUrl = $"{CloudflareR2Constants.DevUrl}/{fileName}";
+            var imageUrl = $"{CloudflareR2Constants.BaseUrl}/{CloudflareR2Constants.BucketName}/{fileName}";
             return imageUrl;
         }
     }
