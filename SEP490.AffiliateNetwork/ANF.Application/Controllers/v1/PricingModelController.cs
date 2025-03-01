@@ -1,7 +1,5 @@
 ﻿using ANF.Core;
 using ANF.Core.Commons;
-using ANF.Core.Models.Entities;
-using ANF.Core.Models.Responses;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +15,7 @@ namespace ANF.Application.Controllers.v1
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetPricingModels()
+        public IActionResult GetPricingModels()
         {
             var pricingModels = PricingModelConstant.pricingModels;
             return Ok(new ApiResponse<List<PricingModel>>
@@ -37,7 +35,7 @@ namespace ANF.Application.Controllers.v1
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetPricingModel(long id)
+        public IActionResult GetPricingModel(long id)
         {
             var pricingModel = PricingModelConstant.pricingModels.Where(e => e.Id == id).FirstOrDefault();
             return Ok(new ApiResponse<PricingModel>

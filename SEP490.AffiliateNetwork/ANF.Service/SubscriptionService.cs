@@ -6,11 +6,6 @@ using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ANF.Service
 {
@@ -29,7 +24,7 @@ namespace ANF.Service
                 var duplicatedSub = await subscriptionRepository.GetAll()
                                         .AsNoTracking()
                                         .AnyAsync(e => e.Name == request.Name && e.Description.Trim() == request.Description.Trim());
-                if (duplicatedSub) throw new DuplicatedException("Description already exists");
+                if (duplicatedSub) throw new DuplicatedException("Subscription already exists");
 
                 var subscription = _mapper.Map<Subscription>(request);
                 var duplicatedSubId = await subscriptionRepository.GetAll()

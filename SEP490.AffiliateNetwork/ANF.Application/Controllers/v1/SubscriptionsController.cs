@@ -1,15 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ANF.Core.Models.Entities;
-using ANF.Infrastructure;
 using ANF.Core.Services;
 using ANF.Core.Models.Requests;
 using Asp.Versioning;
 using ANF.Core.Commons;
 using ANF.Core.Models.Responses;
-using System.Security.Policy;
-using ANF.Service;
-using Newtonsoft.Json.Linq;
 
 namespace ANF.Application.Controllers.v1
 {
