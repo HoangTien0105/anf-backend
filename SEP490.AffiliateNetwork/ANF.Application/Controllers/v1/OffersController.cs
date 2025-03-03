@@ -1,71 +1,99 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ANF.Core.Services;
+﻿using ANF.Core.Commons;
 using ANF.Core.Models.Requests;
-using Asp.Versioning;
-using ANF.Core.Commons;
 using ANF.Core.Models.Responses;
+using ANF.Core.Services;
+using Asp.Versioning;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
 {
-    public class SubscriptionsController(ISubscriptionService subscriptionService) : BaseApiController
+    public class OffersController(IOfferService offerService) : BaseApiController
     {
-        private readonly ISubscriptionService _subscriptionService = subscriptionService;
+        private readonly IOfferService _offerService = offerService;
 
         /// <summary>
-        /// Get all subscriptions
+        /// Get all offers
         /// </summary>
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
-        [HttpGet("subscriptions")]
+        [HttpGet("offers")]
         //[Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetSubscriptions([FromQuery] PaginationRequest request)
+        public async Task<IActionResult> GetOffers([FromQuery] PaginationRequest request)
         {
-            var subscriptions = await _subscriptionService.GetSubscriptions(request);
-            return Ok(new ApiResponse<PaginationResponse<SubscriptionResponse>>
+            var offers = await _offerService.GetOffers(request);
+            return Ok(new ApiResponse<PaginationResponse<OfferResponse>>
             {
                 IsSuccess = true,
                 Message = "Success.",
-                Value = subscriptions
+                Value = offers
             });
         }
 
         /// <summary>
-        /// Get subscription by id
+        /// Get offer by id
         /// </summary>
-        /// <param name="id">Subscription id</param>
+        /// <param name="id">Offer id</param>
         /// <returns></returns>
-        [HttpGet("subscriptions/{id}")]
+        [HttpGet("offers/{id}")]
         //[Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetSubscription(long id)
+        public async Task<IActionResult> GetOffer(long id)
         {
-            var subscription = await _subscriptionService.GetSubscription(id);
-            return Ok(new ApiResponse<SubscriptionResponse>
+            var offer = await _offerService.GetOffer(id);
+            return Ok(new ApiResponse<OfferResponse>
             {
                 IsSuccess = true,
                 Message = "Success.",
-                Value = subscription
+                Value = offer
+            });
+        }
+
+        
+        /// <summary>
+        /// Create offers
+        /// </summary>
+        /// <param name="request">Offer data</param>
+        /// <returns></returns>
+        [HttpPost("offers")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateOffer(OfferCreateRequest request)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
+            var result = await _offerService.CreateOffer(request);
+            if (!result) return BadRequest();
+
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Create offer successfully"
             });
         }
 
         /// <summary>
-        /// Update subscription
+        /// Update offer
         /// </summary>
-        /// <param name="id">Subscription id</param>
-        /// <param name="request">Subscription data</param>
+        /// <param name="id">Offer id</param>
+        /// <param name="request">Offer data</param>
         /// <returns></returns>
-        [HttpPut("subscriptions/{id}")]
+        [HttpPut("offers/{id}")]
         [MapToApiVersion(1)]
         //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateSubscription(long id, SubscriptionRequest request)
+        public async Task<IActionResult> UpdateOffer(long id, OfferUpdateRequest request)
         {
             var validationResult = HandleValidationErrors();
             if (validationResult is not null)
@@ -73,7 +101,7 @@ namespace ANF.Application.Controllers.v1
                 return validationResult;
             }
 
-            var result = await _subscriptionService.UpdateSubscription(id, request);
+            var result = await _offerService.UpdateOffer(id, request);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {
@@ -83,45 +111,18 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Create new subscription
-        /// </summary>
-        /// <param name="request">Subscription data</param>
-        /// <returns></returns>
-        [HttpPost("subscriptions")]
-        [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateSubscription(SubscriptionRequest request)
-        {
-            var validationResult = HandleValidationErrors();
-            if (validationResult is not null)
-            {
-                return validationResult;
-            }
-            var result = await _subscriptionService.CreateSubscription(request);
-            if (!result) return BadRequest();
-
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Create subscription successfully"
-            });
-        }
-
-        /// <summary>
-        /// Delete subscriptions
+        /// Delete offer
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("subscriptions/{id}")]
+        [HttpDelete("offer/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteSubscription(long id)
+        public async Task<IActionResult> DeleteOffer(long id)
         {
-            var result = await _subscriptionService.DeleteSubscriptions(id);
+            var result = await _offerService.DeleteOffer(id);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {

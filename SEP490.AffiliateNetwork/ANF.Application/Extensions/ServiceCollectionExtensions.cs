@@ -193,6 +193,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IOfferService, OfferService>();
             services.AddScoped(typeof(TokenService));
 
             return services;

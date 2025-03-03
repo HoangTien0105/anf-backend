@@ -48,6 +48,11 @@ namespace ANF.Service
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.Status, opt => opt.Ignore());
 
+            CreateMap<OfferUpdateRequest, Offer>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CampaignId, opt => opt.Ignore());
+
+            CreateMap<OfferCreateRequest, Offer>();
             CreateMap<PublisherSource, AffiliateSourceResponse>();
             CreateMap<Subscription, SubscriptionResponse>();
             CreateMap<Campaign, CampaignResponse>();

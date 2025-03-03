@@ -1,13 +1,4 @@
-﻿using ANF.Core.Enums;
-using ANF.Core.Models.Entities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using ANF.Core.Models.Entities;
 namespace ANF.Core.Models.Responses
 {
     public class CampaignResponse
@@ -34,7 +25,6 @@ namespace ANF.Core.Models.Responses
         public long? CategoryId { get; set; }
 
         public string Status { get; set; } = null!;
-        public byte[] ConcurrencyStamp { get; set; } = null!;
 
         public UserResponse Advertiser { get; set; } = null!;
 
