@@ -28,10 +28,11 @@ namespace ANF.Application.Extensions
                 opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
             services.AddEndpointsApiExplorer();
-            // Options pattern: Must add this line to run for other classes
+            // Options pattern: Must add this line to run properly when injecting the configuration class
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             
-            // Disable automatic 400 response for all controllers
+            // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>
             {
                 opt.SuppressModelStateInvalidFilter = true;
@@ -66,7 +67,7 @@ namespace ANF.Application.Extensions
             {
                 opt.AddPolicy("ANF", builder =>
                 {
-                    builder.WithOrigins("local-port", "production-port")
+                    builder.WithOrigins("http://localhost:3000", "production-port")
                         .AllowAnyMethod()
                         .AllowAnyHeader();
                 });
@@ -193,6 +194,8 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
 
             return services;
