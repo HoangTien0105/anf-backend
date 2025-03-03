@@ -14,5 +14,11 @@ namespace ANF.Core.Services
         Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request);
 
         Task<bool> DeleteUser(long id);
+
+        Task<bool> ChangeEmailStatus(long userId);
+
+        Task<bool> ChangePassword(string email);
+
+        Task<bool> UpdatePassword(string token, long userId, UpdatePasswordRequest request);
     }
 }
