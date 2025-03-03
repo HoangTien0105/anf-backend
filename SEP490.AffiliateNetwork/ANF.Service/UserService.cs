@@ -1,4 +1,5 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
@@ -7,16 +8,78 @@ using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using MimeKit;
 
 namespace ANF.Service
 {
     public class UserService(IUnitOfWork unitOfWork,
                              TokenService tokenService,
-                             IMapper mapper) : IUserService
+                             IMapper mapper, IEmailService emailService) : IUserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
+        private readonly IEmailService _emailService = emailService;
+        //NOTE: Change the application host when deploying successfully!
+        private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
+
+        public async Task<bool> ChangeEmailStatus(long userId)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var user = await userRepository.FindByIdAsync(userId);
+                if (user is null)
+                    throw new KeyNotFoundException("User does not exist!");
+                if (user.EmailConfirmed == true)
+                    throw new Exception("The email has already confirmed by the user!");    //TODO: Change the exception type
+                // Email verification success
+                user.EmailConfirmed = true;
+                userRepository.Update(user);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> ChangePassword(string email)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var user = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Email == email);
+                if (user is null)
+                    throw new KeyNotFoundException("User does not exist!");
+                if (!string.IsNullOrEmpty(user.ResetPasswordToken))
+                    throw new Exception("Fatal error! Reset token is not empty.");  //TODO: Change the exception type
+
+                var token = Guid.NewGuid().ToString();
+                user.ResetPasswordToken = token;
+                user.ExpiryDate = DateTime.UtcNow.AddHours(1);
+                userRepository.Update(user);
+
+                var url = $"{_appBaseUrl}/users/{user.Id}/reset-token/{token}";
+                var message = new EmailMessage
+                {
+                    To = user.Email,
+                    Subject = "Reset password"
+                };
+                var result = await _emailService.SendTokenForResetPassword(message, url);
+                if (result)
+                    return await _unitOfWork.SaveAsync() > 0;
+                else throw new Exception("Failed to send email for reset password!");
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
 
         public async Task<bool> DeleteUser(long id)
         {
@@ -142,8 +205,18 @@ namespace ANF.Service
 
                 var user = _mapper.Map<User>(request);
                 userRepository.Add(user);
-                var affectedRows = await _unitOfWork.SaveAsync();
-                return affectedRows > 0;
+
+                // Send email verification to user
+                var verificationUrl = @$"{_appBaseUrl}/users/{user.Id}/verify-account";
+                var msg = new EmailMessage
+                {
+                    To = user.Email,
+                    Subject = "Account verification."
+                };
+                var verificationResult = await _emailService.SendVerificationEmail(msg, verificationUrl);
+                if (verificationResult)
+                    return await _unitOfWork.SaveAsync() > 0;
+                else throw new Exception("Email sending failure!");
             }
             catch
             {
@@ -171,6 +244,33 @@ namespace ANF.Service
                     UserId = user.Id,
                     Status = user.Status.ToString(),
                 };
+            }
+            catch
+            {
+                //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdatePassword(string token, long userId, UpdatePasswordRequest request)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                if (request.NewPassword.Trim().ToLower() != request.ConfirmedPassword.Trim().ToLower())
+                    throw new ArgumentException("Password does not match!");
+                var user = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == userId && u.ResetPasswordToken == token);
+                if (user is null)
+                    throw new KeyNotFoundException("User does not exist!");
+                if (DateTime.UtcNow > user.ExpiryDate)
+                    throw new Exception("Reset token is expired!");
+
+                // Update the new password, reset the value of token and expiry time
+                _ = _mapper.Map(request, user);
+                userRepository.Update(user);
+                return await _unitOfWork.SaveAsync() > 0;
             }
             catch
             {

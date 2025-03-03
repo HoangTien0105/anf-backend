@@ -28,8 +28,12 @@ namespace ANF.Service
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>();
-                //.ForMember(dest => dest.AffiliateSourceResponses, opt => opt.MapFrom(src => src.AffiliateSources));   //TODO: Review the mapping, current it is not used
+            //.ForMember(dest => dest.AffiliateSourceResponses, opt => opt.MapFrom(src => src.AffiliateSources));   //TODO: Review the mapping, current it is not used
 
+            CreateMap<UpdatePasswordRequest, User>()
+                .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.NewPassword))
+                .ForMember(dest => dest.ResetPasswordToken, opt => opt.MapFrom(_ => string.Empty))
+                .ForMember(dest => dest.ExpiryDate, opt => opt.MapFrom(_ => DateTime.MinValue));
 
             CreateMap<CategoryCreateRequest, Category>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()));

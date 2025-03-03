@@ -46,6 +46,15 @@ namespace ANF.Core.Models.Entities
         [Column("user_role")]
         public UserRoles Role { get; set; }
 
+        [Column("reset_password_token")]
+        public string? ResetPasswordToken { get; set; }
+
+        /// <summary>
+        /// Reset password token's expiried date
+        /// </summary>
+        [Column("expiry_date")]
+        public DateTime? ExpiryDate { get; set; }
+
         [Column("concurrency_stamp")]
         [Timestamp]
         public byte[] ConcurrencyStamp { get; set; } = null!;

@@ -146,5 +146,71 @@ namespace ANF.Application.Controllers.v1
                 Message = "Success."
             });
         }
+
+        /// <summary>
+        /// Verify user's account
+        /// </summary>
+        /// <param name="id">User's id</param>
+        /// <returns></returns>
+        [HttpPatch("users/{id}/verify-account")]
+        [MapToApiVersion(1)]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> VerifyUserAccount(long id)
+        {
+            var result = await _userService.ChangeEmailStatus(id);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
+        }
+
+        /// <summary>
+        /// Reset passsword for user
+        /// </summary>
+        /// <param name="id">User's id</param>
+        /// <param name="token">Reset token</param>
+        /// <param name="request">Data to reset the password</param>
+        /// <returns></returns>
+        [HttpPatch("users/{id}/reset-token/{token}")]
+        [MapToApiVersion(1)]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdatePassword(long id, string token, UpdatePasswordRequest request)
+        {
+            var result = await _userService.UpdatePassword(token, id, request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
+        }
+
+        /// <summary>
+        /// Send email to user to get the link to reset the password
+        /// </summary>
+        /// <param name="email">User's email</param>
+        /// <returns></returns>
+        [HttpPost("users/{email}")]
+        [MapToApiVersion(1)]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SendEmailForForgetPassword(string email)
+        {
+            var result = await _userService.ChangePassword(email);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "An email for reset the password is sent to you. Please check the inbox and spam email to get the link!"
+            });
+        }
     }
 }

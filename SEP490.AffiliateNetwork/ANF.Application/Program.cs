@@ -1,9 +1,10 @@
-using Amazon;
-using Amazon.Runtime;
-using Amazon.S3;
 using ANF.Application.Extensions;
 using ANF.Application.Middlewares;
 using ANF.Core.Commons;
+using Microsoft.Extensions.Options;
+using R2.NET;
+using R2.NET.Configuration;
+using R2.NET.Factories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,16 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Register(builder.Configuration);
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
 
-// Configure Cloudflare R2 (S3-compatible)
-var credentials = new BasicAWSCredentials(CloudflareR2Constants.AccessKeyId, CloudflareR2Constants.SecretAccessKey);
-var s3Config = new AmazonS3Config
-{
-    ServiceURL = CloudflareR2Constants.BaseUrl,
-    ForcePathStyle = true,
-    RegionEndpoint = RegionEndpoint.APSoutheast1
-};
+// Configure Cloudflare R2
+//builder.Services.Configure<CloudflareR2Constants>(builder.Configuration.GetSection(CloudflareR2Options.SettingsName));
+//builder.Services.AddSingleton<ICloudflareR2ClientFactory, CloudflareR2ClientFactory>();
+//builder.Services.AddSingleton(provider =>
+//{
+//    var options = provider.GetRequiredService<IOptions<CloudflareR2Options>>();
+//    var logger = provider.GetRequiredService<ILogger<CloudflareR2Client>>();
 
-builder.Services.AddSingleton<IAmazonS3>(new AmazonS3Client(credentials, s3Config));
+//    return new CloudflareR2Client("r2-client", options, logger);
+//});
 
 var app = builder.Build();
 
