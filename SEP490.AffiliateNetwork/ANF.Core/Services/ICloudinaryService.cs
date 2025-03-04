@@ -2,7 +2,7 @@
 
 namespace ANF.Core.Services
 {
-    public interface IImageService
+    public interface ICloudinaryService
     {
         Task<string> UploadImageAsync(IFormFile file);
     }

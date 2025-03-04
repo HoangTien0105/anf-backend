@@ -197,7 +197,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<ICategoryService, CategoryService>();
 
             services.AddScoped<IOfferService, OfferService>();
-            services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
 
