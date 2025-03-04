@@ -31,6 +31,7 @@ namespace ANF.Application.Extensions
             // Options pattern: Must add this line to run properly when injecting the configuration class
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             
             // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>
@@ -196,7 +197,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<ICategoryService, CategoryService>();
 
             services.AddScoped<IOfferService, OfferService>();
-            services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
 

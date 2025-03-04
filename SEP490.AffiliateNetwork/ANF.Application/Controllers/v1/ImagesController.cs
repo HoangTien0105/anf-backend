@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
 {
+    /// <summary>
+    /// Test cloudinary service
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class ImagesController : ControllerBase
     {
-        private readonly IImageService _imageService;
+        private readonly ICloudinaryService _imageService;
 
-        public ImagesController(IImageService imageService)
+        public ImagesController(ICloudinaryService imageService)
         {
             _imageService = imageService;
         }
@@ -18,9 +21,6 @@ namespace ANF.Application.Controllers.v1
         [HttpPost("upload")]
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded");
-
             try
             {
                 var imageUrl = await _imageService.UploadImageAsync(file);
