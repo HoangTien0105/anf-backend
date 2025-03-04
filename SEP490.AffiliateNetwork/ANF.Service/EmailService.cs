@@ -2,7 +2,6 @@
 using ANF.Core.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -24,9 +23,17 @@ namespace ANF.Service
 
                 mimeMessage.Body = new TextPart("html")
                 {
-                    Text = $@"<h2>Reset password</h2>
-                        <p>Please click the link below to reset the password:</p>
-                        <a href='{resetUrl}'>Reset password</a>"
+                    Text = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); background-color: #f9f9f9;'>
+                            <h2 style='color: #d9534f; text-align: center;'>Reset Your Password</h2>
+                            <p style='font-size: 16px; color: #555; text-align: center;'>We received a request to reset your password. Click the button below to proceed.</p>
+                            <div style='text-align: center; margin-top: 20px;'>
+                                <a href='{resetUrl}' style='display: inline-block; padding: 12px 24px; font-size: 16px; color: #fff; background-color: #d9534f; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                    Reset Password
+                                </a>
+                            </div>
+                            <p style='font-size: 14px; color: #888; text-align: center; margin-top: 20px;'>If you did not request a password reset, please ignore this email.</p>
+                        </div>"
                 };
 
                 using var client = new SmtpClient();
@@ -57,9 +64,17 @@ namespace ANF.Service
 
                 mimeMessage.Body = new TextPart("html")
                 {
-                    Text = $@"<h2>Account Verification</h2>
-                        <p>Please click the link below to verify your account:</p>
-                        <a href='{verificationUrl}'>Verify account</a>"
+                    Text = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1);'>
+                            <h2 style='color: #4CAF50; text-align: center;'>Account Verification</h2>
+                            <p style='font-size: 16px; color: #555; text-align: center;'>You're almost there! Click the button below to verify your account and get started.</p>
+                            <div style='text-align: center; margin-top: 20px;'>
+                                <a href='{verificationUrl}' style='display: inline-block; padding: 12px 24px; font-size: 16px; color: #fff; background-color: #4CAF50; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                    Verify Account
+                                </a>
+                            </div>
+                            <p style='font-size: 14px; color: #888; text-align: center; margin-top: 20px;'>If you did not request this, please ignore this email.</p>
+                        </div>"
                 };
 
                 using var client = new SmtpClient();
