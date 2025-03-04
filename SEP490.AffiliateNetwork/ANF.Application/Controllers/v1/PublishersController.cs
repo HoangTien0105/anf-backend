@@ -38,7 +38,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="id">Publisher's id</param>
         /// <returns></returns>
-        [HttpGet("publishers/{id}")]
+        [HttpGet("publishers/{id}/profile")]
         //[Authorize(Roles = "Publisher")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -60,7 +60,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Publisher's id</param>
         /// <param name="value">Data</param>
         /// <returns></returns>
-        [HttpPost("publisher-profile/{id}")]
+        [HttpPost("publisher/{id}/profile")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
