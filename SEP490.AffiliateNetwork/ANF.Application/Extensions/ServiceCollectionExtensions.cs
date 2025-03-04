@@ -194,6 +194,8 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
             services.AddScoped<ICategoryService, CategoryService>();
+
+            services.AddScoped<IOfferService, OfferService>();
             services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
