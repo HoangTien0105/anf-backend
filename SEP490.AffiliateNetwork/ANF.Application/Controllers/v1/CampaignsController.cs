@@ -17,9 +17,9 @@ namespace ANF.Application.Controllers.v1
         private readonly ICampaignService _campaignService = campaignService;
 
         /// <summary>
-        /// Get all campaigns
+        /// Get campaigns with verified status
         /// </summary>
-        /// <param name="request">Pagination data</param>
+        /// <param name="request">Pagination request model</param>
         /// <returns></returns>
         [HttpGet("campaigns")]
         [MapToApiVersion(1)]
@@ -37,11 +37,11 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get all campaigns with offers
+        /// Get campaigns including offers for admin with all status
         /// </summary>
-        /// <param name="request">Pagination data</param>
+        /// <param name="request">Pagination request model</param>
         /// <returns></returns>
-        [HttpGet("campaigns/offers")]
+        [HttpGet("campaigns/admin/offers")]
         [MapToApiVersion(1)]
         //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -58,12 +58,12 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get all campaigns with offers by advertiser id
+        /// Get campaigns including offers for an advertiser with all status
         /// </summary>
         /// <param name="id">Advertiser id</param>
         /// <param name="request">Pagination data</param>
         /// <returns></returns>
-        [HttpGet("campaigns/advertisers/{id}/offers/")]
+        [HttpGet("campaigns/advertisers/{id}/offers")]
         [MapToApiVersion(1)]
         //[Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]

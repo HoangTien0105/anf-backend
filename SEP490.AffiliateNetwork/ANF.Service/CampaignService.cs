@@ -43,7 +43,7 @@ namespace ANF.Service
             var offerRepository = _unitOfWork.GetRepository<Offer>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
-                            .Where(e => e.AdvertiserId ==  id)
+                            .Where(e => e.AdvertiserId == id)
                             .Include(e => e.Advertiser)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
@@ -92,7 +92,7 @@ namespace ANF.Service
                 campaign.Offers = _mapper.Map<List<OfferResponse>>(offers);
             }   
 
-            var totalCounts = campaigns.Count();
+            var totalCounts = data.Count();
 
             return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
