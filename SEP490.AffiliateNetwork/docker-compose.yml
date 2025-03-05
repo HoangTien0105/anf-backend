@@ -1,0 +1,11 @@
+services:
+  anf.application:
+    image: longv102/anf-webapi:production 
+    build:
+      context: .
+      dockerfile: ANF.Application/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production

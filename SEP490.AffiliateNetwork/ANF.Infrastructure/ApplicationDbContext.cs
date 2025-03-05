@@ -32,11 +32,20 @@ namespace ANF.Infrastructure
         
         public DbSet<Image> Images { get; set; } = null!;
 
+        /// <summary>
+        /// Get connection string from appsettings.json
+        /// </summary>
+        /// <returns>The database connection string</returns>
+        // NOTE: Can be removed the method and not call it in OnConfiguring(),
+        // because it has already configured in Program.cs
         private string GetConnectionString()
         {
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, false)
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{env}.json", true, true)
                 .Build();
 
             return configuration.GetConnectionString("Default") ?? string.Empty;
