@@ -1,6 +1,8 @@
 using ANF.Application.Extensions;
 using ANF.Application.Middlewares;
 
+// The CreateBuilder method already sets up configuration with environment support, 
+// but you can customize it if needed
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.

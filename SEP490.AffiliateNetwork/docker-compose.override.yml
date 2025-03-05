@@ -1,0 +1,11 @@
+services:
+  anf.application:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080  # Fixed syntax
+    ports:
+      - "8080"  # Maps host 8080 to container 8080
+      - "8081"  # Maps host 8081 to container 8081
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
