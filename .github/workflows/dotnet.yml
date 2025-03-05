@@ -18,28 +18,15 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
-    - name: Create minimal appsettings.json
-      run: |
-        echo '{
-          "ConnectionStrings": {
-            "Default": "Server=localhost;Database=TestDb;Trusted_Connection=True;"
-          },
-          "Logging": {
-            "LogLevel": {
-              "Default": "Information"
-            }
-          }
-        }' > SEP490.AffiliateNetwork/appsettings.json
-    
+          
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore SEP490.AffiliateNetwork.sln
       working-directory: SEP490.AffiliateNetwork
     
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build SEP490.AffiliateNetwork.sln --no-restore
       working-directory: SEP490.AffiliateNetwork
     
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test SEP490.AffiliateNetwork.sln --no-build --verbosity normal
       working-directory: SEP490.AffiliateNetwork
