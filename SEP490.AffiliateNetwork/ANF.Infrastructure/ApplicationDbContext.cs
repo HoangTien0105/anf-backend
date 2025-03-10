@@ -30,7 +30,17 @@ namespace ANF.Infrastructure
         
         public DbSet<Offer> Offers { get; set; } = null!;
         
-        public DbSet<Image> Images { get; set; } = null!;
+        public DbSet<CampaignImage> CampaignImages { get; set; } = null!;
+
+        public DbSet<PublisherOffer> PublisherOffers { get; set; } = null!;
+
+        public DbSet<PostbackData> PostbackData { get; set; } = null!;
+
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
+
+        public DbSet<Wallet> Wallets { get; set; } = null!;
+        
+        public DbSet<WalletHistory> WalletHistories { get; set; } = null!;
 
         /// <summary>
         /// Get connection string from appsettings.json
@@ -65,8 +75,15 @@ namespace ANF.Infrastructure
             new AdvertiserProfileTypeConfig().Configure(builder.Entity<AdvertiserProfile>());
             new PublisherProfileTypeConfig().Configure(builder.Entity<PublisherProfile>());
             new PublisherSourceTypeConfig().Configure(builder.Entity<PublisherSource>());
-            new ImageTypeConfig().Configure(builder.Entity<Image>());
+            new CampaignImageTypeConfig().Configure(builder.Entity<CampaignImage>());
             new SubPurchaseTypeConfig().Configure(builder.Entity<SubPurchase>());
+
+            new WalletHistoryTypeConfig().Configure(builder.Entity<WalletHistory>());
+            new PaymentTransactionTypeConfig().Configure(builder.Entity<PaymentTransaction>());
+            new WalletTypeConfig().Configure(builder.Entity<Wallet>());
+            new PublisherOfferTypeConfig().Configure(builder.Entity<PublisherOffer>());
+            new PostbackDataTypeConfig().Configure(builder.Entity<PostbackData>());
+
 
             builder.Entity<Subscription>()
                 .Property(s => s.Id).ValueGeneratedNever();
