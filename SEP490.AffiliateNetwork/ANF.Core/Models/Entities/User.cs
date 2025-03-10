@@ -55,6 +55,9 @@ namespace ANF.Core.Models.Entities
         [Column("expiry_date")]
         public DateTime? ExpiryDate { get; set; }
 
+        [Column("reject_reason")]
+        public string? RejectReason { get; set; }
+
         [Column("concurrency_stamp")]
         [Timestamp]
         public byte[] ConcurrencyStamp { get; set; } = null!;
@@ -63,13 +66,16 @@ namespace ANF.Core.Models.Entities
 
         public ICollection<SubPurchase> SubPurchases { get; set; } = new List<SubPurchase>();
 
-        // TODO: Remove the comment when interacting with Offers table
-        //public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
+        public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
+
+        public ICollection<PaymentTransaction>? PaymentTransactions { get; set; }
 
         // Navigation properties for one-to-one relationships
         public PublisherProfile PublisherProfile { get; set; } = null!;
 
         public AdvertiserProfile AdvertiserProfile { get; set; } = null!;
+
+        public Wallet Wallet { get; set; } = null!;
 
         public ICollection<Campaign> Campaigns { get; set; } = new List<Campaign>();
     }

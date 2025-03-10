@@ -16,6 +16,6 @@ namespace ANF.Core.Models.Responses
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
-        public ICollection<Image>? Images { get; set; }
+        public ICollection<CampaignImage>? Images { get; set; }
     }
 }

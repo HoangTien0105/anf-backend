@@ -4,14 +4,17 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace ANF.Core.Models.Entities
 {
     /// <summary>
-    /// Data sent back to the system by advertiser
+    /// Handling fraud data from tracking event table
     /// </summary>
-    public class PostbackData : IEntity
+    public class FraudDetection : IEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        [Column("pbd_no")]
+        [Column("fraud_id")]
         public long Id { get; set; }
 
+        /// <summary>
+        /// Unique, one-to-one relationship with tracking event
+        /// </summary>
         [Column("click_id")]
         public Guid ClickId { get; set; }
 
@@ -21,13 +24,10 @@ namespace ANF.Core.Models.Entities
         [Column("publisher_id")]
         public long PublisherId { get; set; }
 
-        [Column("amount")]
-        public double? Amount { get; set; }
+        [Column("reason")]
+        public string? Reason { get; set; }
 
-        //TODO: Define status for postback
-        [Column("status")]
-        public int Status { get; set; }
-
-        public Offer Offer { get; set; } = null!;
+        [Column("detected_time")]
+        public DateTime DetectedTime { get; set; }
     }
 }
