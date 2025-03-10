@@ -69,59 +69,60 @@ namespace ANF.Service
 
         public async Task<bool> DeleteOffer(long id)
         {
-            try
-            {
-                var offerRepository = _unitOfWork.GetRepository<Offer>();
-                var imageRepository = _unitOfWork.GetRepository<Image>();
-                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
-                var offer = await offerRepository.GetAll()
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Id == id);
-                if (offer is not null)
-                {
-                    var campaign = await campaignRepository.GetAll()
-                            .AsNoTracking()
-                            .Where(e => e.Id == offer.CampaignId)
-                            .FirstOrDefaultAsync();
-                    if (campaign is not null)
-                    {
-                        if (campaign.Status != CampaignStatus.Pending)
-                        {
-                            throw new InvalidOperationException("Campaign status must be Pending to delete offer");
-                        }
-                        else
-                        {
+            //try
+            //{
+            //    var offerRepository = _unitOfWork.GetRepository<Offer>();
+            //    var imageRepository = _unitOfWork.GetRepository<Image>();
+            //    var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            //    var offer = await offerRepository.GetAll()
+            //        .AsNoTracking()
+            //        .FirstOrDefaultAsync(u => u.Id == id);
+            //    if (offer is not null)
+            //    {
+            //        var campaign = await campaignRepository.GetAll()
+            //                .AsNoTracking()
+            //                .Where(e => e.Id == offer.CampaignId)
+            //                .FirstOrDefaultAsync();
+            //        if (campaign is not null)
+            //        {
+            //            if (campaign.Status != CampaignStatus.Pending)
+            //            {
+            //                throw new InvalidOperationException("Campaign status must be Pending to delete offer");
+            //            }
+            //            else
+            //            {
 
-                            var imageUrl = await imageRepository.GetAll()
-                                    .AsNoTracking()
-                                    .Where(u => u.OfferId == offer.Id)
-                                    .ToListAsync();
+            //                var imageUrl = await imageRepository.GetAll()
+            //                        .AsNoTracking()
+            //                        .Where(u => u.OfferId == offer.Id)
+            //                        .ToListAsync();
 
-                            if (imageUrl.Any())
-                            {
-                                imageRepository.DeleteRange(imageUrl);
-                            }
+            //                if (imageUrl.Any())
+            //                {
+            //                    imageRepository.DeleteRange(imageUrl);
+            //                }
 
 
-                            offerRepository.Delete(offer);
-                            return await _unitOfWork.SaveAsync() > 0;
-                        }
+            //                offerRepository.Delete(offer);
+            //                return await _unitOfWork.SaveAsync() > 0;
+            //            }
 
-                    }
-                    else
-                    {
-                        throw new KeyNotFoundException("Campaign does not exists");
-                    }
-                }
-                else
-                {
-                    throw new KeyNotFoundException("Offer does not exist!");
-                }
-            }
-            catch (Exception)
-            {
-                throw;
-            }
+            //        }
+            //        else
+            //        {
+            //            throw new KeyNotFoundException("Campaign does not exists");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        throw new KeyNotFoundException("Offer does not exist!");
+            //    }
+            //}
+            //catch (Exception)
+            //{
+            //    throw;
+            //}
+            throw new NotImplementedException();
         }
 
         public async Task<OfferResponse> GetOffer(long offerId)
@@ -136,7 +137,7 @@ namespace ANF.Service
 
         public async Task<PaginationResponse<OfferResponse>> GetOffers(PaginationRequest request)
         {
-            var offerRepository = _unitOfWork.GetRepository<Offer>();
+            /*var offerRepository = _unitOfWork.GetRepository<Offer>();
             var offers = await offerRepository.GetAll()
                             .AsNoTracking()
                             .Include(e => e.Images)
@@ -148,7 +149,8 @@ namespace ANF.Service
             var totalCounts = offers.Count();
 
             var data = _mapper.Map<List<OfferResponse>>(offers);
-            return new PaginationResponse<OfferResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<OfferResponse>(data, totalCounts, request.pageNumber, request.pageSize);*/
+            throw new NotImplementedException();
         }
 
         public async Task<bool> UpdateOffer(long id, OfferUpdateRequest request)

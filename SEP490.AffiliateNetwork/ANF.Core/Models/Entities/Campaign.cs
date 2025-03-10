@@ -20,7 +20,7 @@ namespace ANF.Core.Models.Entities
         public string Name { get; set; } = null!;
 
         [Column("description")]
-        public string? Description { get; set; }
+        public string Description { get; set; } = null!;
 
         [Column("start_date")]
         public DateTime StartDate { get; set; }
@@ -28,17 +28,20 @@ namespace ANF.Core.Models.Entities
         [Column("end_date")]
         public DateTime EndDate { get; set; }
 
-        [Column("budget")]
-        public double Budget { get; set; }
-
+        /// <summary>
+        /// Balance = Sum of offers' budget
+        /// </summary>
         [Column("balance")]
-        public double Balance { get; set; }
+        public double? Balance { get; set; }
 
         [Column("product_url")]
         public string ProductUrl { get; set; } = null!;
 
         [Column("tracking_params", TypeName = "text")]
         public string? TrackingParams { get; set; }
+
+        [Column("reject_reason")]
+        public string? RejectReason { get; set; }
 
         [Column("cate_id")]
         public long? CategoryId { get; set; }
@@ -54,8 +57,8 @@ namespace ANF.Core.Models.Entities
 
         public Category? Category { get; set; }
 
-        public ICollection<Offer>? Offers { get; set; }
+        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
         
-        public ICollection<Image>? Images { get; set; }
+        public ICollection<CampaignImage>? Images { get; set; }
     }
 }

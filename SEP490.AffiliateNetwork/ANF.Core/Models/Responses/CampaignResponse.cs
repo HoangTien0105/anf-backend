@@ -31,6 +31,6 @@ namespace ANF.Core.Models.Responses
         public Category? Category { get; set; }
         public ICollection<OfferResponse>? Offers { get; set; }
 
-        public ICollection<Image>? Images { get; set; }
+        public ICollection<CampaignImage>? Images { get; set; }
     }
 }

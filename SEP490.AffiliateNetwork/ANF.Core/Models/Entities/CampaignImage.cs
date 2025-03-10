@@ -3,29 +3,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
 {
-    /// <summary>
-    /// Table to store images of campaigns and offers
-    /// </summary>
-    public class Image : IEntity
+    public class CampaignImage : IEntity
     {
-        [Column("img_no")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Column("img_no")]
         public long Id { get; set; }
 
-        [Column("offer_id")]
-        public long? OfferId { get; set; }
-
-        [Column("campaign_id")]
+        [Column("camp_id")]
         public long? CampaignId { get; set; }
-
-        [Column("thumbnail")]
-        public string? Thumbnail { get; set; }
 
         [Column("img_url")]
         public string? ImageUrl { get; set; }
+        
+        [Column("added_at")]
+        public DateTime AddedAt { get; set; }
 
         public Campaign? Campaign { get; set; }
-
-        public Offer? Offer { get; set; }
     }
 }
