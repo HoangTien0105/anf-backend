@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace ANF.Core.Models.Requests
 {
-    public class ImageCreateRequest
+    public class CampaignImgCreateRequest
     {
-        public long? OfferId { get; set; }
         public long? CampaignId { get; set; }
         [Required(ErrorMessage = "ImageUrl is required.")]
         public string ImageUrl { get; set; } = null!;
