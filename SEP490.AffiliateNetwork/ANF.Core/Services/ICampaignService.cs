@@ -1,11 +1,5 @@
 ﻿using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ANF.Core.Services
 {
@@ -15,5 +9,6 @@ namespace ANF.Core.Services
         Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request);
         Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, long id);
         Task<bool> CreateCampaign(CampaignCreateRequest request);
+        Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request);
     }
 }
