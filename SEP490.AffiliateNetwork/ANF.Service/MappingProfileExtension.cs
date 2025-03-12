@@ -58,7 +58,21 @@ namespace ANF.Service
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CampaignId, opt => opt.Ignore());
 
-            CreateMap<OfferCreateRequest, Offer>();
+            CreateMap<CampaignCreateRequest, Campaign>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => CampaignStatus.Pending))
+                .ForMember(dest => dest.AdvertiserCode, opt => opt.MapFrom(src => src.AdvertiserCode))
+                .ForMember(dest => dest.Offers, opt => opt.Ignore());
+
+            CreateMap<CampaignImgCreateRequest, CampaignImage>()
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+            CreateMap<OfferForCampaignCreateRequest, OfferCreateRequest>();
+
+            CreateMap<OfferCreateRequest, Offer>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
+
             CreateMap<PublisherSource, AffiliateSourceResponse>();
             CreateMap<Subscription, SubscriptionResponse>();
             CreateMap<Campaign, CampaignResponse>();

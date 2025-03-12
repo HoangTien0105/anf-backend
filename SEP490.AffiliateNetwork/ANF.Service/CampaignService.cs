@@ -3,23 +3,137 @@ using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
-using ANF.Infrastructure;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ANF.Core.Enums;
 
 namespace ANF.Service
 {
     public class CampaignService(IUnitOfWork unitOfWork,
+                                 ICloudinaryService cloudinaryService,
                                  IMapper mapper) : ICampaignService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
+        private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+
+        public async Task<bool> CreateCampaign(CampaignCreateRequest request)
+        {
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var offerRepository = _unitOfWork.GetRepository<Offer>();
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var categoryRepository = _unitOfWork.GetRepository<Category>();
+            var imageRepository = _unitOfWork.GetRepository<CampaignImage>();
+            
+            try
+            {
+                if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
+
+                var advertiser = await userRepository.GetAll()
+                                            .AsNoTracking()
+                                            .Where(e => e.UserCode.ToString() == request.AdvertiserCode && e.Role == UserRoles.Advertiser)
+                                            .FirstOrDefaultAsync();
+                if (advertiser is null) throw new KeyNotFoundException("Advertiser does not exists");
+
+                if (request.CategoryId.HasValue)
+                {
+                    var category = await categoryRepository.GetAll()
+                                .AsNoTracking()
+                                .Where(e => e.Id == request.CategoryId)
+                                .FirstOrDefaultAsync();
+                    if (category is null) throw new KeyNotFoundException("Category does not exists");
+
+                }
+
+                if (request.StartDate <= DateTime.UtcNow.AddDays(1))
+                    throw new ArgumentOutOfRangeException("Campaign start date must be after today atleast 1");
+
+                if (request.EndDate <= request.StartDate)
+                    throw new ArgumentOutOfRangeException("End date must be after start date");
+
+                if (!Uri.TryCreate(request.ProductUrl, UriKind.Absolute, out var uriResult) ||
+                    (uriResult != null && uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
+                    throw new ArgumentException("ProductUrl must be a valid URL with http or https scheme (e.g., http://example.com or https://example.com).");
+
+                if (request.ProductUrl.EndsWith("/"))
+                    throw new ArgumentException("ProductUrl must not end with a trailing slash (/).");
+
+                if (!request.Offers.Any())
+                    throw new InvalidOperationException("At least 1 offer required");
+
+                if (!request.ImgFiles.Any())
+                    throw new InvalidOperationException("At least 1 images required");
+
+                var campaign = _mapper.Map<Campaign>(request);
+
+                campaign.Balance = request.Offers.Sum(e => e.Budget);
+
+                campaignRepository.Add(campaign);
+
+                var offersRequest = _mapper.Map<List<OfferCreateRequest>>(request.Offers);
+
+                var isDuplicateOffer = offersRequest.GroupBy(o => 
+                                        new {o.PricingModel, o.Description, o.StepInfo,o.StartDate, o.EndDate}).Any(g => g.Count() > 1);
+                if(isDuplicateOffer)
+                    throw new InvalidOperationException("Offers can't be the same");
+
+                foreach (var offer in offersRequest)
+                {
+                    offer.CampaignId = campaign.Id;
+
+                    var validModel = PricingModelConstant.pricingModels.Any(e => e.Name.Trim() == offer.PricingModel.Trim());
+                    if (!validModel) throw new KeyNotFoundException("Pricing model does not exists");
+
+                    if (offer.StartDate < campaign.StartDate || offer.StartDate > campaign.EndDate)
+                        throw new ArgumentOutOfRangeException("Offer start date must be between start and end date of campaign");
+
+                    if (offer.EndDate < campaign.StartDate || offer.EndDate > campaign.EndDate)
+                        throw new ArgumentOutOfRangeException("Offer end date must be between start and end date of campaign");
+
+                    if (offer.EndDate <= offer.StartDate)
+                        throw new ArgumentOutOfRangeException("End date must be after start date");
+
+                    if(offer.Bid >= offer.Budget)
+                        throw new ArgumentOutOfRangeException("Offer bid can't be higher than offer budget");
+
+                    var offerData = _mapper.Map<Offer>(offer);
+
+                    offerRepository.Add(offerData);
+                }
+
+                var allowedImagesTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+
+                foreach (var image in request.ImgFiles)
+                {
+                    if (!allowedImagesTypes.Contains(image.ContentType))
+                    {
+                        throw new ArgumentException($"File {image.FileName} is not an allowed image format! Only JPEG, PNG, GIF, and WebP are supported.");
+                    }
+
+                    var imageUrl = await _cloudinaryService.UploadImageAsync(image);
+                    if (imageUrl != null)
+                    {
+                        CampaignImgCreateRequest imageCreateRequest = new CampaignImgCreateRequest
+                        {
+                            CampaignId = campaign.Id,
+                            ImageUrl = imageUrl,
+                        };
+
+                        var imageData = _mapper.Map<CampaignImage>(imageCreateRequest);
+                        imageRepository.Add(imageData);
+                    } 
+                }
+
+                var affectedRows = await _unitOfWork.SaveAsync();
+                return affectedRows > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
@@ -86,16 +200,43 @@ namespace ANF.Service
             foreach (var campaign in data)
             {
                 var offers = await offerRepository.GetAll()
-                            .AsNoTracking()
-                            .Where(e => e.CampaignId == campaign.Id)
-                            .ToListAsync();
+                             .AsNoTracking()
+                             .Where(e => e.CampaignId == campaign.Id)
+                             .ToListAsync();
 
                 campaign.Offers = _mapper.Map<List<OfferResponse>>(offers);
-            }   
+            }
 
             var totalCounts = data.Count();
 
             return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+        }
+
+        public async Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request)
+        {
+            try
+            {
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                if(request is null)
+                    throw new ArgumentException("Invalid data request. Please check again!");
+                var campaign = await campaignRepository.GetAll()
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(e => e.Id == id);
+
+                if(campaign is null)
+                    throw new KeyNotFoundException("Campaign does not exist!");
+                
+                if(campaign.Status != CampaignStatus.Pending)
+                    throw new ArgumentException("Can't update this campaign");
+
+                return true;
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
     }
 }
