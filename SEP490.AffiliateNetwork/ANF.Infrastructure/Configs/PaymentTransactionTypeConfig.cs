@@ -10,7 +10,8 @@ namespace ANF.Infrastructure.Configs
         {
             builder.HasOne(pt => pt.User)
                 .WithMany(u => u.PaymentTransactions)
-                .HasForeignKey(pt => pt.UserId)
+                .HasForeignKey(pt => pt.UserCode)
+                .HasPrincipalKey(u  => u.UserCode)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(pt => pt.Wallet)

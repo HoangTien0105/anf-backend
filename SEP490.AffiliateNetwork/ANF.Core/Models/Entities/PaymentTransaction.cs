@@ -4,15 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
 {
-    // TODO: Add relationship for this entity
     public class PaymentTransaction : IEntity
     {
         [Column("trans_id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        [Column("user_id")]
-        public long UserId { get; set; }
+        [Column("user_code")]
+        public Guid UserCode { get; set; }
 
         [Column("wallet_id")]
         public long WalletId { get; set; }
@@ -28,6 +27,8 @@ namespace ANF.Core.Models.Entities
         /// </summary>
         [Column("payment_status")]
         public PaymentStatus Status { get; set; }
+
+        public ICollection<WalletHistory>? WalletHistories { get; set; }
 
         public Wallet? Wallet { get; set; }
 

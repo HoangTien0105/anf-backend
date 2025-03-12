@@ -13,6 +13,13 @@ namespace ANF.Core.Models.Entities
         [Column("user_id")]
         public long Id { get; set; }
 
+        /// <summary>
+        /// User's code for identifying the user
+        /// UNIQUE value
+        /// </summary>
+        [Column("user_code")]
+        public Guid UserCode { get; set; }
+
         [Column("first_name")]
         public string? FirstName { get; set; }
 
@@ -31,6 +38,9 @@ namespace ANF.Core.Models.Entities
         [Column("date_of_birth")]
         public DateTime? DateOfBirth { get; set; }
 
+        /// <summary>
+        /// UNIQUE value
+        /// </summary>
         [Column("user_email")]
         public string Email { get; set; } = null!;
 
@@ -69,6 +79,8 @@ namespace ANF.Core.Models.Entities
         public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
 
         public ICollection<PaymentTransaction>? PaymentTransactions { get; set; }
+
+        public ICollection<UserBank>? UserBanks { get; set; }
 
         // Navigation properties for one-to-one relationships
         public PublisherProfile PublisherProfile { get; set; } = null!;

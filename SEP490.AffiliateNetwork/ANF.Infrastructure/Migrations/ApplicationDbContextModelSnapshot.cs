@@ -74,9 +74,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("camp_id");
 
-                    b.Property<long>("AdvertiserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("advertiser_id");
+                    b.Property<Guid>("AdvertiserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("advertiser_code");
 
                     b.Property<double?>("Balance")
                         .HasColumnType("float")
@@ -130,7 +130,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdvertiserId");
+                    b.HasIndex("AdvertiserCode");
 
                     b.HasIndex("CategoryId");
 
@@ -275,9 +275,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("payment_status");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
+                    b.Property<Guid>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
 
                     b.Property<long>("WalletId")
                         .HasColumnType("bigint")
@@ -285,7 +285,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserCode");
 
                     b.HasIndex("WalletId");
 
@@ -345,9 +345,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("offer_id");
 
-                    b.Property<long>("PublisherId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("publisher_id");
+                    b.Property<Guid>("PublisherCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("publisher_code");
 
                     b.Property<string>("RejectReason")
                         .HasColumnType("nvarchar(max)")
@@ -360,7 +360,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("OfferId");
 
-                    b.HasIndex("PublisherId");
+                    b.HasIndex("PublisherCode");
 
                     b.ToTable("PublisherOffers");
                 });
@@ -457,9 +457,9 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AdvertiserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("advertiser_id");
+                    b.Property<Guid?>("AdvertiserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("advertiser_code");
 
                     b.Property<double>("CurrentPrice")
                         .HasColumnType("float")
@@ -473,13 +473,13 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("purchased_at");
 
-                    b.Property<long>("SubscriptionId")
+                    b.Property<long?>("SubscriptionId")
                         .HasColumnType("bigint")
                         .HasColumnName("sub_id");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdvertiserId");
+                    b.HasIndex("AdvertiserCode");
 
                     b.HasIndex("SubscriptionId");
 
@@ -541,7 +541,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("user_email");
 
                     b.Property<bool?>("EmailConfirmed")
@@ -585,46 +585,52 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("user_status");
 
+                    b.Property<Guid>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("Email")
+                        .IsUnique();
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 100L,
-                            CitizenId = "JS123456789",
-                            Email = "john.smith@email.com",
-                            EmailConfirmed = true,
-                            FirstName = "John",
-                            LastName = "Smith",
-                            Password = "hashed_password_1",
-                            PhoneNumber = "555-0123",
-                            Role = 2,
-                            Status = 1
-                        },
-                        new
-                        {
-                            Id = 101L,
-                            CitizenId = "SJ987654321",
-                            Email = "sarah.j@email.com",
-                            EmailConfirmed = true,
-                            FirstName = "Sarah",
-                            LastName = "Johnson",
-                            Password = "hashed_password_2",
-                            PhoneNumber = "555-0124",
-                            Role = 1,
-                            Status = 1
-                        },
-                        new
-                        {
-                            Id = 103L,
-                            Email = "saffiliatenetwork@gmail.com",
-                            EmailConfirmed = true,
-                            Password = "superstrongpassword123@",
-                            Role = 0,
-                            Status = 1
-                        });
+                    b.HasIndex("UserCode")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.UserBank", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ub_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("added_date");
+
+                    b.Property<int>("BankingNo")
+                        .HasColumnType("int")
+                        .HasColumnName("banking_no");
+
+                    b.Property<string>("BankingProvider")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("banking_provider");
+
+                    b.Property<Guid?>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserCode");
+
+                    b.ToTable("UserBank");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Wallet", b =>
@@ -644,13 +650,13 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("is_active");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
+                    b.Property<Guid>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
+                    b.HasIndex("UserCode")
                         .IsUnique();
 
                     b.ToTable("Wallets");
@@ -658,20 +664,27 @@ namespace ANF.Infrastructure.Migrations
 
             modelBuilder.Entity("ANF.Core.Models.Entities.WalletHistory", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("bigint")
                         .HasColumnName("wh_id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<double>("Amount")
                         .HasColumnType("float")
                         .HasColumnName("amount");
 
-                    b.Property<long?>("OfferId")
+                    b.Property<long?>("CampaignId")
                         .HasColumnType("bigint")
-                        .HasColumnName("offer_id");
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTime>("ChangedTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("changed_time");
+
+                    b.Property<long?>("PaymentTransactionId")
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("SubscriptionId")
                         .HasColumnType("bigint")
@@ -685,11 +698,21 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("type");
 
+                    b.Property<double>("WalletBalance")
+                        .HasColumnType("float")
+                        .HasColumnName("wallet_balance");
+
                     b.Property<long>("WalletId")
                         .HasColumnType("bigint")
                         .HasColumnName("wallet_id");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("PaymentTransactionId");
+
+                    b.HasIndex("SubscriptionId");
 
                     b.HasIndex("WalletId");
 
@@ -709,8 +732,9 @@ namespace ANF.Infrastructure.Migrations
                 {
                     b.HasOne("ANF.Core.Models.Entities.User", "Advertiser")
                         .WithMany("Campaigns")
-                        .HasForeignKey("AdvertiserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("AdvertiserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ANF.Core.Models.Entities.Category", "Category")
@@ -747,7 +771,8 @@ namespace ANF.Infrastructure.Migrations
                 {
                     b.HasOne("ANF.Core.Models.Entities.User", "User")
                         .WithMany("PaymentTransactions")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserCode")
+                        .HasPrincipalKey("UserCode")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -783,7 +808,8 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasOne("ANF.Core.Models.Entities.User", "Publisher")
                         .WithMany("PublisherOffers")
-                        .HasForeignKey("PublisherId")
+                        .HasForeignKey("PublisherCode")
+                        .HasPrincipalKey("UserCode")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -816,37 +842,66 @@ namespace ANF.Infrastructure.Migrations
                 {
                     b.HasOne("ANF.Core.Models.Entities.User", "Advertiser")
                         .WithMany("SubPurchases")
-                        .HasForeignKey("AdvertiserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .HasForeignKey("AdvertiserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ANF.Core.Models.Entities.Subscription", "Subscription")
                         .WithMany("SubPurchases")
                         .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Advertiser");
 
                     b.Navigation("Subscription");
                 });
 
+            modelBuilder.Entity("ANF.Core.Models.Entities.UserBank", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.User", "User")
+                        .WithMany("UserBanks")
+                        .HasForeignKey("UserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("ANF.Core.Models.Entities.Wallet", b =>
                 {
                     b.HasOne("ANF.Core.Models.Entities.User", "User")
                         .WithOne("Wallet")
-                        .HasForeignKey("ANF.Core.Models.Entities.Wallet", "UserId");
+                        .HasForeignKey("ANF.Core.Models.Entities.Wallet", "UserCode")
+                        .HasPrincipalKey("ANF.Core.Models.Entities.User", "UserCode");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.WalletHistory", b =>
                 {
+                    b.HasOne("ANF.Core.Models.Entities.Campaign", "Campaign")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("CampaignId");
+
+                    b.HasOne("ANF.Core.Models.Entities.PaymentTransaction", "PaymentTransaction")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("PaymentTransactionId");
+
+                    b.HasOne("ANF.Core.Models.Entities.Subscription", "Subscription")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("SubscriptionId");
+
                     b.HasOne("ANF.Core.Models.Entities.Wallet", "Wallet")
                         .WithMany("WalletHistories")
                         .HasForeignKey("WalletId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("PaymentTransaction");
+
+                    b.Navigation("Subscription");
 
                     b.Navigation("Wallet");
                 });
@@ -856,6 +911,8 @@ namespace ANF.Infrastructure.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Offers");
+
+                    b.Navigation("WalletHistories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Category", b =>
@@ -870,9 +927,16 @@ namespace ANF.Infrastructure.Migrations
                     b.Navigation("PublisherOffers");
                 });
 
+            modelBuilder.Entity("ANF.Core.Models.Entities.PaymentTransaction", b =>
+                {
+                    b.Navigation("WalletHistories");
+                });
+
             modelBuilder.Entity("ANF.Core.Models.Entities.Subscription", b =>
                 {
                     b.Navigation("SubPurchases");
+
+                    b.Navigation("WalletHistories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.User", b =>
@@ -892,6 +956,8 @@ namespace ANF.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("SubPurchases");
+
+                    b.Navigation("UserBanks");
 
                     b.Navigation("Wallet")
                         .IsRequired();

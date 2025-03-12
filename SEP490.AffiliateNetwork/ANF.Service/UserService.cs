@@ -6,9 +6,9 @@ using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
+using ANF.Infrastructure.Helpers;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using MimeKit;
 
 namespace ANF.Service
 {
@@ -40,7 +40,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -76,7 +76,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -146,7 +146,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -190,6 +190,7 @@ namespace ANF.Service
             try
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
                 if (request.Password != request.PasswordConfirmed)
                     throw new ArgumentException("Passwords do not match.");
@@ -205,7 +206,6 @@ namespace ANF.Service
 
                 var user = _mapper.Map<User>(request);
                 userRepository.Add(user);
-
                 // Send email verification to user
                 var verificationUrl = @$"{_appBaseUrl}/users/{user.Id}/verify-account";
                 var msg = new EmailMessage
@@ -215,12 +215,21 @@ namespace ANF.Service
                 };
                 var verificationResult = await _emailService.SendVerificationEmail(msg, verificationUrl);
                 if (verificationResult)
-                    return await _unitOfWork.SaveAsync() > 0;
+                {
+                    await _unitOfWork.SaveAsync();  // Save user's information into database to store user's wallet info
+                }
                 else throw new Exception("Email sending failure!");
+                //Enable user's wallet
+                var wallet = new Wallet
+                {
+                    UserCode = user.UserCode,
+                };
+                walletRepository.Add(wallet);
+                return await _unitOfWork.SaveAsync() > 0;   // Save user's wallet information
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -247,7 +256,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -274,7 +283,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
