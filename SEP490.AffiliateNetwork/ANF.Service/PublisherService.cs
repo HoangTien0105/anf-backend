@@ -41,6 +41,39 @@ namespace ANF.Service
             }
         }
 
+        public async Task<bool> AddBankingInformation(Guid publisherCode, List<UserBankCreateRequest> requests)
+        {
+            try
+            {
+                try
+                {
+                    var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+                    if (!requests.Any())
+                        throw new ArgumentException("Invalid requested data!");
+                    foreach (var item in requests)
+                    {
+                        var isDuplicate = await userBankRepository.GetAll()
+                            .AsNoTracking()
+                            .AnyAsync(ub => ub.UserCode == publisherCode && ub.BankingNo == item.BankingNo);
+                        if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
+                    }
+                    var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = publisherCode);
+                    userBankRepository.AddRange(banks);
+                    return await _unitOfWork.SaveAsync() > 0;
+                }
+                catch
+                {
+                    await _unitOfWork.RollbackAsync();
+                    throw;
+                }
+            }
+            catch
+            {
+                await _unitOfWork.SaveAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> AddProfile(long publisherId, PublisherProfileRequest value)
         {
             try
@@ -123,6 +156,32 @@ namespace ANF.Service
             }
         }
 
+        public async Task<bool> DeleteBankingInformation(List<long> ubIds)
+        {
+            try
+            {
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+                var isFound = false;
+                foreach (var item in ubIds)
+                {
+                    var bankingInfo = await userBankRepository.FindByIdAsync(item);
+                    if (bankingInfo is not null)
+                    {
+                        userBankRepository.Delete(bankingInfo);
+                        isFound = true;
+                    }
+                }
+                if (!isFound)
+                    throw new KeyNotFoundException("Banking information does not exist!");
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<List<AffiliateSourceResponse>> GetAffiliateSourceOfPublisher(long publisherId)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
@@ -148,7 +207,8 @@ namespace ANF.Service
             var publisher = await userRepository.GetAll()
                 .AsNoTracking()
                 .Include(p => p.PublisherProfile)
-                .Where(p => p.Role == Core.Enums.UserRoles.Publisher && p.Id == publisherId 
+                .Include(p => p.UserBanks)
+                .Where(p => p.Role == UserRoles.Publisher && p.Id == publisherId 
                     && p.Status == UserStatus.Active) 
                 .FirstOrDefaultAsync();
             if (publisher is null)
@@ -157,7 +217,6 @@ namespace ANF.Service
             return response;
         }
 
-        
         public async Task<bool> UpdateAffiliateSource(long sourceId, AffiliateSourceUpdateRequest request)
         {
             try
@@ -180,6 +239,29 @@ namespace ANF.Service
             catch
             {
                 //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request)
+        {
+            try
+            {
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+                if (request is null)
+                    throw new ArgumentException("Invalid requested data!");
+                var bank = await userBankRepository.FindByIdAsync(userBankId);
+                if (bank is null)
+                    throw new KeyNotFoundException("Banking information does not exist!");
+                if (bank.BankingNo == request.BankingNo && bank.BankingProvider == request.BankingProvider)
+                    throw new DuplicatedException("No changes detected. Banking information is identical!");
+                _ = _mapper.Map(request, bank);
+                userBankRepository.Update(bank);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }

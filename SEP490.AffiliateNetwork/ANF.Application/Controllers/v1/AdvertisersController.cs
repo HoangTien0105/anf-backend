@@ -2,6 +2,7 @@
 using ANF.Core.Models.Requests;
 using ANF.Core.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
@@ -24,8 +25,15 @@ namespace ANF.Application.Controllers.v1
         //    return "value";
         //}
         
-        [HttpPost("advertiser-profile/{id}")]
+        /// <summary>
+        /// Add profile of an advertiser
+        /// </summary>
+        /// <param name="id">Advertiser's id</param>
+        /// <param name="value">Profile data</param>
+        /// <returns></returns>
+        [HttpPost("advertiser/{id}/profile")]
         [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AddProfile(long id, [FromBody] AdvertiserProfileRequest value)

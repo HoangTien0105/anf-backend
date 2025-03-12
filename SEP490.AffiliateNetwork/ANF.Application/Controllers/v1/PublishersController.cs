@@ -19,7 +19,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("publisher/{id}/affiliate-sources")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAffiliateSourceOfPublisher(long id)
@@ -39,7 +39,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Publisher's id</param>
         /// <returns></returns>
         [HttpGet("publishers/{id}/profile")]
-        //[Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,6 +62,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPost("publisher/{id}/profile")]
         [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AddProfile(long id, [FromBody] PublisherProfileRequest value)
@@ -88,7 +89,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPost("publisher/{id}/affiliate-sources")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -116,7 +117,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPut("affiliate-source/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -143,7 +144,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpDelete("affiliate-source/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAffiliateSource(long id)
@@ -164,7 +165,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpDelete("affiliate-sources")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteAffiliateSources(List<long> sourceIds)
