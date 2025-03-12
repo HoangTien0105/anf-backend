@@ -49,12 +49,11 @@ namespace ANF.Infrastructure
         /// <returns>The database connection string</returns>
         private string GetConnectionString()
         {
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
+            //var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env}.json", true, true)
+                //.AddJsonFile($"appsettings.{env}.json", true, true)
                 .Build();
 
             return configuration.GetConnectionString("Default") ?? string.Empty;

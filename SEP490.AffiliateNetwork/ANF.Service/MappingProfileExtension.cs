@@ -15,6 +15,7 @@ namespace ANF.Service
 
             CreateMap<AccountCreateRequest, User>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
+                .ForMember(dest => dest.UserCode, opt => opt.MapFrom(_ => Guid.NewGuid()))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => Enum.Parse<UserRoles>(src.Role, true))) //Case-insensitive parsing
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Pending))
                 .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
@@ -27,7 +28,8 @@ namespace ANF.Service
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
 
             CreateMap<User, UserResponse>();
-            CreateMap<User, PublisherResponse>();
+            CreateMap<User, PublisherResponse>()
+                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode));
             //.ForMember(dest => dest.AffiliateSourceResponses, opt => opt.MapFrom(src => src.AffiliateSources));   //TODO: Review the mapping, current it is not used
 
             CreateMap<UpdatePasswordRequest, User>()
