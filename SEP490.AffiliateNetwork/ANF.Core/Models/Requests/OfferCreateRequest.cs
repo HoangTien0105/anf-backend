@@ -26,13 +26,12 @@ namespace ANF.Core.Models.Requests
         public DateTime EndDate { get; set; }
 
         [Required(ErrorMessage = "Bid is required")]
-        [Range(1, double.MaxValue, ErrorMessage = "Bid is not negative")]
+        [Range(1000, double.MaxValue, ErrorMessage = "Bid is not negative")]
         public double Bid { get; set; }
 
         [Required(ErrorMessage = "Budget is required")]
-        [Range(1, double.MaxValue, ErrorMessage = "Budget is not negative")]
+        [Range(1000, double.MaxValue, ErrorMessage = "Budget is not negative")]
         public double Budget { get; set; }
-
-        public IFormFile OfferImages { get; set; }
+        public IFormFile? OfferImages { get; set; }
     }
 }

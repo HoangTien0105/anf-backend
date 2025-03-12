@@ -53,19 +53,20 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        
+
         /// <summary>
         /// Create offers
         /// </summary>
-        /// <param name="request">Offer data</param>
+        /// <param name="request">Offer data json</param>
         /// <returns></returns>
         [HttpPost("offers")]
-        //[Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Advertiser")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateOffer(OfferCreateRequest request)
+        public async Task<IActionResult> CreateOffer([FromForm] OfferCreateRequest request)
         {
+
             var validationResult = HandleValidationErrors();
             if (validationResult is not null)
             {
@@ -115,7 +116,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("offer/{id}")]
+        [HttpDelete("offers/{id}")]
         [MapToApiVersion(1)]
         //[Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]

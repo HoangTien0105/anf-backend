@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations;
 
 namespace ANF.Core.Models.Requests
 {
@@ -6,7 +7,12 @@ namespace ANF.Core.Models.Requests
     {
         [Required(ErrorMessage = "Pricing model is required.", AllowEmptyStrings = false)]
         public string PricingModel { get; set; } = null!;
-        public string? Note { get; set; }
+
+        [Required(ErrorMessage = "Description model is required.", AllowEmptyStrings = false)]
+        public string Description { get; set; } = null!;
+
+        [Required(ErrorMessage = "StepInfo is required.", AllowEmptyStrings = false)]
+        public string StepInfo { get; set; } = null!;
 
         [DataType(DataType.DateTime)]
         [Required(ErrorMessage = "Start date is required")]
@@ -15,5 +21,13 @@ namespace ANF.Core.Models.Requests
         [DataType(DataType.DateTime)]
         [Required(ErrorMessage = "End date is required")]
         public DateTime EndDate { get; set; }
+        [Required(ErrorMessage = "Bid is required")]
+        [Range(1, double.MaxValue, ErrorMessage = "Bid is not negative")]
+        public double Bid { get; set; }
+
+        [Required(ErrorMessage = "Budget is required")]
+        [Range(1, double.MaxValue, ErrorMessage = "Budget is not negative")]
+        public double Budget { get; set; }
+        public IFormFile? OfferImages { get; set; }
     }
 }
