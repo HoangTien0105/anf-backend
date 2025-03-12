@@ -13,8 +13,8 @@ namespace ANF.Core.Models.Entities
         [Column("offer_id")]
         public long OfferId { get; set; }
 
-        [Column("publisher_id")]
-        public long PublisherId { get; set; }
+        [Column("publisher_code")]
+        public Guid PublisherCode { get; set; }
 
         [Column("joining_date")]
         public DateTime JoiningDate { get; set; }

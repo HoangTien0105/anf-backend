@@ -11,12 +11,12 @@ namespace ANF.Infrastructure.Configs
             builder.HasOne(p => p.Subscription)
                 .WithMany(c => c.SubPurchases)
                 .HasForeignKey(p => p.SubscriptionId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasOne(p => p.Advertiser)
                 .WithMany(c => c.SubPurchases)
-                .HasForeignKey(p => p.AdvertiserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .HasForeignKey(p => p.AdvertiserCode)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

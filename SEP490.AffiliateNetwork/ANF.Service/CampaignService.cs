@@ -39,7 +39,7 @@ namespace ANF.Service
 
         public async Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, long id)
         {
-            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            /*var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
@@ -65,7 +65,8 @@ namespace ANF.Service
 
             var totalCounts = campaigns.Count();
 
-            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);*/
+            throw new NotImplementedException();
         }
 
         public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request)

@@ -10,7 +10,7 @@ namespace ANF.Infrastructure.Configs
         {
             builder.HasOne(po => po.Publisher)
                 .WithMany(p => p.PublisherOffers)
-                .HasForeignKey(po => po.PublisherId)
+                .HasForeignKey(po => po.PublisherCode)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(po => po.Offer)

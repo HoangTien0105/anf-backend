@@ -10,10 +10,10 @@ namespace ANF.Infrastructure.Configs
         {
             builder.HasOne(w => w.User)
                 .WithOne(u => u.Wallet)
-                .HasForeignKey<Wallet>(w => w.UserId)
+                .HasForeignKey<Wallet>(w => w.UserCode)
                 .IsRequired(false);
 
-            builder.HasIndex(w => w.UserId)
+            builder.HasIndex(w => w.UserCode)
                 .IsUnique();
         }
     }

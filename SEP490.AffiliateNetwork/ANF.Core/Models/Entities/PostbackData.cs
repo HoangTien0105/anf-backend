@@ -18,6 +18,7 @@ namespace ANF.Core.Models.Entities
         [Column("offer_id")]
         public long OfferId { get; set; }
 
+        //TODO: Review the field again. Use publisher_id or publisher_code?
         [Column("publisher_id")]
         public long PublisherId { get; set; }
 

@@ -83,16 +83,17 @@ namespace ANF.Infrastructure
             new WalletTypeConfig().Configure(builder.Entity<Wallet>());
             new PublisherOfferTypeConfig().Configure(builder.Entity<PublisherOffer>());
             new PostbackDataTypeConfig().Configure(builder.Entity<PostbackData>());
-
-
+            
+            new UserTypeConfig().Configure(builder.Entity<User>());
+            new UserBankTypeConfig().Configure(builder.Entity<UserBank>());
+            
+            // Other configurations
             builder.Entity<Subscription>()
                 .Property(s => s.Id).ValueGeneratedNever();
             builder.Entity<Campaign>()
                 .Property(c => c.Id).ValueGeneratedNever();
             builder.Entity<Category>()
                 .Property(c => c.Id).ValueGeneratedNever();
-            builder.Entity<User>()
-                .Property(u => u.Id).ValueGeneratedNever();
             
             #region Data seeding
             builder.SeedDataForUsers();
