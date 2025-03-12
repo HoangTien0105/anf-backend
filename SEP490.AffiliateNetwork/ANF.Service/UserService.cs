@@ -190,6 +190,7 @@ namespace ANF.Service
             try
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
+                //var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
                 if (request.Password != request.PasswordConfirmed)
                     throw new ArgumentException("Passwords do not match.");
@@ -220,7 +221,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }

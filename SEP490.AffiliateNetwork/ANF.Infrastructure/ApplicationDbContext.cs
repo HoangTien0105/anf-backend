@@ -85,6 +85,7 @@ namespace ANF.Infrastructure
             
             new UserTypeConfig().Configure(builder.Entity<User>());
             new UserBankTypeConfig().Configure(builder.Entity<UserBank>());
+            new CampaignTypeConfig().Configure(builder.Entity<Campaign>());
 
             #region Other type configurations
             builder.Entity<Subscription>()

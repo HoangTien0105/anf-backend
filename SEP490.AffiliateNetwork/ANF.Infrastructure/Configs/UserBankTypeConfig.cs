@@ -11,6 +11,7 @@ namespace ANF.Infrastructure.Configs
             builder.HasOne(ub => ub.User)
                 .WithMany(u => u.UserBanks)
                 .HasForeignKey(ub => ub.UserCode)
+                .HasPrincipalKey(u => u.UserCode)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

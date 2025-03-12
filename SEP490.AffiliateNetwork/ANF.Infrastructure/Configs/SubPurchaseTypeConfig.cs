@@ -16,6 +16,7 @@ namespace ANF.Infrastructure.Configs
             builder.HasOne(p => p.Advertiser)
                 .WithMany(c => c.SubPurchases)
                 .HasForeignKey(p => p.AdvertiserCode)
+                .HasPrincipalKey(u => u.UserCode)
                 .OnDelete(DeleteBehavior.SetNull);
         }
     }

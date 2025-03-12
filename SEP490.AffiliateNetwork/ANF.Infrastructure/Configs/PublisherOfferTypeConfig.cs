@@ -11,6 +11,7 @@ namespace ANF.Infrastructure.Configs
             builder.HasOne(po => po.Publisher)
                 .WithMany(p => p.PublisherOffers)
                 .HasForeignKey(po => po.PublisherCode)
+                .HasPrincipalKey(u => u.UserCode)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasOne(po => po.Offer)

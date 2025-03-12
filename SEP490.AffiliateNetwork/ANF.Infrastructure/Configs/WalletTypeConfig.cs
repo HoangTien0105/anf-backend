@@ -11,6 +11,7 @@ namespace ANF.Infrastructure.Configs
             builder.HasOne(w => w.User)
                 .WithOne(u => u.Wallet)
                 .HasForeignKey<Wallet>(w => w.UserCode)
+                .HasPrincipalKey<User>(u => u.UserCode)
                 .IsRequired(false);
 
             builder.HasIndex(w => w.UserCode)
