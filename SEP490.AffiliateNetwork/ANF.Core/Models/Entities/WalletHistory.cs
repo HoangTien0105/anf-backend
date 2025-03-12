@@ -1,35 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using ANF.Core.Commons;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
 {
-    // TODO: Add relationship for this entity
-    public class WalletHistory
+    public class WalletHistory : IEntity
     {
         [Column("wh_id")]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
-        [Column("amount")]
-        public double Amount { get; set; }
-
-        /// <summary>
-        /// Type of transaction - DEPOSIT (TRANSACTION), WITHDRAW, OFFER FEE, SUBSCRIPTION
-        /// </summary>
-        [Column("type")]
-        public string? Type { get; set; }
-
-        [Column("transaction_id")]
         public long? TransactionId { get; set; }
 
-        [Column("offer_id")]
-        public long? OfferId { get; set; }
+        /// <summary>
+        /// Current wallet balance at the time when transaction occurs
+        /// </summary>
+        public double? CurrentBalance { get; set; }
 
-        [Column("subscription_id")]
-        public long? SubscriptionId { get; set; }
+        /// <summary>
+        /// Money changes: if current_balance > balance then money is decreased otherwise.
+        /// </summary>
+        public bool BalanceType { get; set; }
 
-        [Column("wallet_id")]
-        public long WalletId { get; set; }
-
-        public Wallet? Wallet { get; set; }
+        public Transaction? Transaction { get; set; }
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250303144501_AddFieldsTblUsers")]
-    partial class AddFieldsTblUsers
+    [Migration("20250312082544_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -77,17 +77,13 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("camp_id");
 
-                    b.Property<long>("AdvertiserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("advertiser_id");
+                    b.Property<Guid>("AdvertiserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("advertiser_code");
 
-                    b.Property<double>("Balance")
+                    b.Property<double?>("Balance")
                         .HasColumnType("float")
                         .HasColumnName("balance");
-
-                    b.Property<double>("Budget")
-                        .HasColumnType("float")
-                        .HasColumnName("budget");
 
                     b.Property<long?>("CategoryId")
                         .HasColumnType("bigint")
@@ -101,6 +97,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("description");
 
@@ -118,6 +115,10 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("product_url");
 
+                    b.Property<string>("RejectReason")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("reject_reason");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("start_date");
@@ -132,11 +133,39 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdvertiserId");
+                    b.HasIndex("AdvertiserCode");
 
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Campaigns");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.CampaignImage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("img_no");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("added_at");
+
+                    b.Property<long?>("CampaignId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("camp_id");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("img_url");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("CampaignImages");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Category", b =>
@@ -159,40 +188,6 @@ namespace ANF.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("ANF.Core.Models.Entities.Image", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("img_no");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long?>("CampaignId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("campaign_id");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("img_url");
-
-                    b.Property<long?>("OfferId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("offer_id");
-
-                    b.Property<string>("Thumbnail")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("thumbnail");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CampaignId");
-
-                    b.HasIndex("OfferId");
-
-                    b.ToTable("Images");
-                });
-
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>
                 {
                     b.Property<long>("Id")
@@ -202,23 +197,45 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<double>("Bid")
+                        .HasColumnType("float")
+                        .HasColumnName("bid");
+
+                    b.Property<double>("Budget")
+                        .HasColumnType("float")
+                        .HasColumnName("budget");
+
                     b.Property<long>("CampaignId")
                         .HasColumnType("bigint")
                         .HasColumnName("camp_id");
+
+                    b.Property<double?>("CommissionRate")
+                        .HasColumnType("float")
+                        .HasColumnName("commission_rate");
 
                     b.Property<byte[]>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
+                        .HasColumnType("rowversion")
+                        .HasColumnName("concurrency_stamp");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("offer_description");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2")
                         .HasColumnName("end_date");
 
-                    b.Property<string>("Note")
+                    b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)")
-                        .HasColumnName("offer_note");
+                        .HasColumnName("img_url");
+
+                    b.Property<string>("OrderReturnTime")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("order_return_time");
 
                     b.Property<string>("PricingModel")
                         .HasColumnType("nvarchar(max)")
@@ -228,11 +245,127 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("start_date");
 
+                    b.Property<string>("StepInfo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("step_info");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CampaignId");
 
                     b.ToTable("Offers");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PaymentTransaction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("trans_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("created_at");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("payment_status");
+
+                    b.Property<Guid>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
+
+                    b.Property<long>("WalletId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("wallet_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserCode");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("PaymentTransactions");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PostbackData", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("pbd_no");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double?>("Amount")
+                        .HasColumnType("float")
+                        .HasColumnName("amount");
+
+                    b.Property<Guid>("ClickId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("click_id");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("offer_id");
+
+                    b.Property<long>("PublisherId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("publisher_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId");
+
+                    b.ToTable("PostbackData");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PublisherOffer", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("po_no");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("JoiningDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("joining_date");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("offer_id");
+
+                    b.Property<Guid>("PublisherCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("publisher_code");
+
+                    b.Property<string>("RejectReason")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("reject_reason");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId");
+
+                    b.HasIndex("PublisherCode");
+
+                    b.ToTable("PublisherOffers");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.PublisherProfile", b =>
@@ -327,9 +460,9 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AdvertiserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("advertiser_id");
+                    b.Property<Guid?>("AdvertiserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("advertiser_code");
 
                     b.Property<double>("CurrentPrice")
                         .HasColumnType("float")
@@ -343,13 +476,13 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("purchased_at");
 
-                    b.Property<long>("SubscriptionId")
+                    b.Property<long?>("SubscriptionId")
                         .HasColumnType("bigint")
                         .HasColumnName("sub_id");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdvertiserId");
+                    b.HasIndex("AdvertiserCode");
 
                     b.HasIndex("SubscriptionId");
 
@@ -411,7 +544,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("user_email");
 
                     b.Property<bool?>("EmailConfirmed")
@@ -439,6 +572,10 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("phone_number");
 
+                    b.Property<string>("RejectReason")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("reject_reason");
+
                     b.Property<string>("ResetPasswordToken")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("reset_password_token");
@@ -451,46 +588,138 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("user_status");
 
+                    b.Property<Guid>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("Email")
+                        .IsUnique();
 
-                    b.HasData(
-                        new
-                        {
-                            Id = 100L,
-                            CitizenId = "JS123456789",
-                            Email = "john.smith@email.com",
-                            EmailConfirmed = true,
-                            FirstName = "John",
-                            LastName = "Smith",
-                            Password = "hashed_password_1",
-                            PhoneNumber = "555-0123",
-                            Role = 2,
-                            Status = 1
-                        },
-                        new
-                        {
-                            Id = 101L,
-                            CitizenId = "SJ987654321",
-                            Email = "sarah.j@email.com",
-                            EmailConfirmed = true,
-                            FirstName = "Sarah",
-                            LastName = "Johnson",
-                            Password = "hashed_password_2",
-                            PhoneNumber = "555-0124",
-                            Role = 1,
-                            Status = 1
-                        },
-                        new
-                        {
-                            Id = 103L,
-                            Email = "saffiliatenetwork@gmail.com",
-                            EmailConfirmed = true,
-                            Password = "superstrongpassword123@",
-                            Role = 0,
-                            Status = 1
-                        });
+                    b.HasIndex("UserCode")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.UserBank", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("ub_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("added_date");
+
+                    b.Property<int>("BankingNo")
+                        .HasColumnType("int")
+                        .HasColumnName("banking_no");
+
+                    b.Property<string>("BankingProvider")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("banking_provider");
+
+                    b.Property<Guid?>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserCode");
+
+                    b.ToTable("UserBank");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.Wallet", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double>("Balance")
+                        .HasColumnType("float")
+                        .HasColumnName("balance");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_active");
+
+                    b.Property<Guid>("UserCode")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("user_code");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserCode")
+                        .IsUnique();
+
+                    b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.WalletHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("wh_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float")
+                        .HasColumnName("amount");
+
+                    b.Property<long?>("CampaignId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("campaign_id");
+
+                    b.Property<DateTime>("ChangedTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("changed_time");
+
+                    b.Property<long?>("PaymentTransactionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("SubscriptionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("subscription_id");
+
+                    b.Property<long?>("TransactionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("transaction_id");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("type");
+
+                    b.Property<double>("WalletBalance")
+                        .HasColumnType("float")
+                        .HasColumnName("wallet_balance");
+
+                    b.Property<long>("WalletId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("wallet_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("PaymentTransactionId");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("WalletHistories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.AdvertiserProfile", b =>
@@ -506,8 +735,9 @@ namespace ANF.Infrastructure.Migrations
                 {
                     b.HasOne("ANF.Core.Models.Entities.User", "Advertiser")
                         .WithMany("Campaigns")
-                        .HasForeignKey("AdvertiserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("AdvertiserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ANF.Core.Models.Entities.Category", "Category")
@@ -519,21 +749,14 @@ namespace ANF.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("ANF.Core.Models.Entities.Image", b =>
+            modelBuilder.Entity("ANF.Core.Models.Entities.CampaignImage", b =>
                 {
                     b.HasOne("ANF.Core.Models.Entities.Campaign", "Campaign")
                         .WithMany("Images")
                         .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("ANF.Core.Models.Entities.Offer", "Offer")
-                        .WithMany("Images")
-                        .HasForeignKey("OfferId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Campaign");
-
-                    b.Navigation("Offer");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>
@@ -545,6 +768,57 @@ namespace ANF.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Campaign");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PaymentTransaction", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.User", "User")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("UserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ANF.Core.Models.Entities.Wallet", "Wallet")
+                        .WithMany("PaymentTransactions")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+
+                    b.Navigation("Wallet");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PostbackData", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.Offer", "Offer")
+                        .WithMany("PostbackData")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Offer");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PublisherOffer", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.Offer", "Offer")
+                        .WithMany("PublisherOffers")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ANF.Core.Models.Entities.User", "Publisher")
+                        .WithMany("PublisherOffers")
+                        .HasForeignKey("PublisherCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Offer");
+
+                    b.Navigation("Publisher");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.PublisherProfile", b =>
@@ -571,19 +845,68 @@ namespace ANF.Infrastructure.Migrations
                 {
                     b.HasOne("ANF.Core.Models.Entities.User", "Advertiser")
                         .WithMany("SubPurchases")
-                        .HasForeignKey("AdvertiserId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .HasForeignKey("AdvertiserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ANF.Core.Models.Entities.Subscription", "Subscription")
                         .WithMany("SubPurchases")
                         .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Advertiser");
 
                     b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.UserBank", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.User", "User")
+                        .WithMany("UserBanks")
+                        .HasForeignKey("UserCode")
+                        .HasPrincipalKey("UserCode")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.Wallet", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.User", "User")
+                        .WithOne("Wallet")
+                        .HasForeignKey("ANF.Core.Models.Entities.Wallet", "UserCode")
+                        .HasPrincipalKey("ANF.Core.Models.Entities.User", "UserCode");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.WalletHistory", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.Campaign", "Campaign")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("CampaignId");
+
+                    b.HasOne("ANF.Core.Models.Entities.PaymentTransaction", "PaymentTransaction")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("PaymentTransactionId");
+
+                    b.HasOne("ANF.Core.Models.Entities.Subscription", "Subscription")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("SubscriptionId");
+
+                    b.HasOne("ANF.Core.Models.Entities.Wallet", "Wallet")
+                        .WithMany("WalletHistories")
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("PaymentTransaction");
+
+                    b.Navigation("Subscription");
+
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Campaign", b =>
@@ -591,6 +914,8 @@ namespace ANF.Infrastructure.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Offers");
+
+                    b.Navigation("WalletHistories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Category", b =>
@@ -600,12 +925,21 @@ namespace ANF.Infrastructure.Migrations
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>
                 {
-                    b.Navigation("Images");
+                    b.Navigation("PostbackData");
+
+                    b.Navigation("PublisherOffers");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.PaymentTransaction", b =>
+                {
+                    b.Navigation("WalletHistories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Subscription", b =>
                 {
                     b.Navigation("SubPurchases");
+
+                    b.Navigation("WalletHistories");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.User", b =>
@@ -617,10 +951,26 @@ namespace ANF.Infrastructure.Migrations
 
                     b.Navigation("Campaigns");
 
+                    b.Navigation("PaymentTransactions");
+
+                    b.Navigation("PublisherOffers");
+
                     b.Navigation("PublisherProfile")
                         .IsRequired();
 
                     b.Navigation("SubPurchases");
+
+                    b.Navigation("UserBanks");
+
+                    b.Navigation("Wallet")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.Wallet", b =>
+                {
+                    b.Navigation("PaymentTransactions");
+
+                    b.Navigation("WalletHistories");
                 });
 #pragma warning restore 612, 618
         }

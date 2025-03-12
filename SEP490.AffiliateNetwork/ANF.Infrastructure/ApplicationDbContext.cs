@@ -1,6 +1,5 @@
 ﻿using ANF.Core.Models.Entities;
 using ANF.Infrastructure.Configs;
-using ANF.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -21,9 +20,7 @@ namespace ANF.Infrastructure
         public DbSet<PublisherSource> PublisherSources { get; set; } = null!;
         
         public DbSet<Subscription> Subscriptions { get; set; } = null!;
-        
-        public DbSet<SubPurchase> SubPurchases { get; set; } = null!;
-        
+                
         public DbSet<Category> Categories { get; set; } = null!;
         
         public DbSet<Campaign> Campaigns { get; set; } = null!;
@@ -36,7 +33,7 @@ namespace ANF.Infrastructure
 
         public DbSet<PostbackData> PostbackData { get; set; } = null!;
 
-        public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
+        public DbSet<Transaction> PaymentTransactions { get; set; } = null!;
 
         public DbSet<Wallet> Wallets { get; set; } = null!;
         
@@ -44,18 +41,17 @@ namespace ANF.Infrastructure
 
         /// <summary>
         /// Get connection string from appsettings.json
+        /// NOTE: Can be removed the method and not call it in OnConfiguring(),
+        /// because it has already configured in Program.cs
         /// </summary>
         /// <returns>The database connection string</returns>
-        // NOTE: Can be removed the method and not call it in OnConfiguring(),
-        // because it has already configured in Program.cs
         private string GetConnectionString()
         {
-            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-
+            //var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env}.json", true, true)
+                //.AddJsonFile($"appsettings.{env}.json", true, true)
                 .Build();
 
             return configuration.GetConnectionString("Default") ?? string.Empty;
@@ -76,26 +72,24 @@ namespace ANF.Infrastructure
             new PublisherProfileTypeConfig().Configure(builder.Entity<PublisherProfile>());
             new PublisherSourceTypeConfig().Configure(builder.Entity<PublisherSource>());
             new CampaignImageTypeConfig().Configure(builder.Entity<CampaignImage>());
-            new SubPurchaseTypeConfig().Configure(builder.Entity<SubPurchase>());
 
             new WalletHistoryTypeConfig().Configure(builder.Entity<WalletHistory>());
-            new PaymentTransactionTypeConfig().Configure(builder.Entity<PaymentTransaction>());
+            new TransactionTypeConfig().Configure(builder.Entity<Transaction>());
             new WalletTypeConfig().Configure(builder.Entity<Wallet>());
             new PublisherOfferTypeConfig().Configure(builder.Entity<PublisherOffer>());
             new PostbackDataTypeConfig().Configure(builder.Entity<PostbackData>());
+            
+            new UserTypeConfig().Configure(builder.Entity<User>());
+            new UserBankTypeConfig().Configure(builder.Entity<UserBank>());
+            new CampaignTypeConfig().Configure(builder.Entity<Campaign>());
 
-
+            #region Other type configurations
             builder.Entity<Subscription>()
                 .Property(s => s.Id).ValueGeneratedNever();
             builder.Entity<Campaign>()
                 .Property(c => c.Id).ValueGeneratedNever();
             builder.Entity<Category>()
                 .Property(c => c.Id).ValueGeneratedNever();
-            builder.Entity<User>()
-                .Property(u => u.Id).ValueGeneratedNever();
-            
-            #region Data seeding
-            builder.SeedDataForUsers();
             #endregion
         }
     }

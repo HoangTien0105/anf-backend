@@ -14,13 +14,11 @@ namespace ANF.Core.Models.Entities
         [Column("is_active")]
         public bool IsActive { get; set; } = false;
 
-        [Column("user_id")]
-        public long UserId { get; set; }
+        [Column("user_code")]
+        public Guid UserCode { get; set; }
 
         public User User { get; set; } = null!;
-
-        public ICollection<WalletHistory> WalletHistories { get; set; } = new List<WalletHistory>();
-
-        public ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+            
+        public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }

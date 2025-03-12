@@ -11,10 +11,11 @@ namespace ANF.Core.Models.Entities
         [Column("click_id")]
         public Guid Id { get; set; }
 
-        [Column("click_id")]
+        [Column("offer_id")]
         public long OfferId { get; set; }
 
-        [Column("click_id")]
+        //TODO: Review the field. Use publisher_id or publisher_code?
+        [Column("publisher_id")]
         public long PublisherId { get; set; }
 
         [Column("ip_address")]

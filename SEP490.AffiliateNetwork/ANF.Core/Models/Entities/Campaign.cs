@@ -13,8 +13,8 @@ namespace ANF.Core.Models.Entities
         [Column("camp_id")]
         public long Id { get; set; }
 
-        [Column("advertiser_id")]
-        public long AdvertiserId { get; set; }
+        [Column("advertiser_code")]
+        public Guid AdvertiserCode { get; set; }
 
         [Column("camp_name")]
         public string Name { get; set; } = null!;
@@ -57,8 +57,10 @@ namespace ANF.Core.Models.Entities
 
         public Category? Category { get; set; }
 
-        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
-        
         public ICollection<CampaignImage>? Images { get; set; }
+
+        public ICollection<Transaction>? Transactions { get; set; }
+
+        public ICollection<Offer> Offers { get; set; } = new List<Offer>();
     }
 }
