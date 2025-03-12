@@ -7,8 +7,9 @@ namespace ANF.Core.Services
     {
         Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request);
         Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request);
-        Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, long id);
+        Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id);
         Task<bool> CreateCampaign(CampaignCreateRequest request);
         Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request);
+        Task<bool> DeleteCampaign(long id);
     }
 }

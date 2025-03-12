@@ -1,13 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ANF.Core.Models.Entities;
-using ANF.Infrastructure;
 using ANF.Core.Services;
 using Asp.Versioning;
 using ANF.Core.Models.Responses;
 using ANF.Core.Models.Requests;
 using ANF.Core.Commons;
-using ANF.Service;
 using Microsoft.AspNetCore.Authorization;
 
 namespace ANF.Application.Controllers.v1
@@ -43,7 +39,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("campaigns/admin/offers")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetCampaignsWithOffers([FromQuery] PaginationRequest request)
@@ -65,10 +61,10 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("campaigns/advertisers/{id}/offers")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, long id)
+        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, string id)
         {
             var campaigns = await _campaignService.GetCampaignsByAdvertisersWithOffers(request, id);
             return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
@@ -79,50 +75,33 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        //// GET: api/Campaigns/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Campaign>> GetCampaign(long id)
-        //{
-        //    var campaign = await _context.Campaigns.FindAsync(id);
+        /// <summary>
+        /// Update campaign
+        /// </summary>
+        /// <param name="id">Campaign Id</param>
+        /// <param name="request">Campaign update request</param>
+        /// <returns></returns>
+        [HttpPut("campaigns/{id}")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin, Advertiser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateCampaign(long id, [FromForm] CampaignUpdateRequest request)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
 
-        //    if (campaign == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return campaign;
-        //}
-
-        //// PUT: api/Campaigns/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutCampaign(long id, Campaign campaign)
-        //{
-        //    if (id != campaign.Id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _context.Entry(campaign).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!CampaignExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return NoContent();
-        //}
+            var result = await _campaignService.UpdateCampaignInformation(id, request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update successfully"
+            });
+        }
 
 
         /// <summary>
@@ -131,7 +110,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Campaign data</param>
         /// <returns></returns>
         [HttpPost("campaigns")]
-        //[Authorize(Roles = "Advertiser")]
+        [Authorize(Roles = "Advertiser")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -152,25 +131,25 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        //// DELETE: api/Campaigns/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteCampaign(long id)
-        //{
-        //    var campaign = await _context.Campaigns.FindAsync(id);
-        //    if (campaign == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.Campaigns.Remove(campaign);
-        //    await _context.SaveChangesAsync();
-
-        //    return NoContent();
-        //}
-
-        //private bool CampaignExists(long id)
-        //{
-        //    return _context.Campaigns.Any(e => e.Id == id);
-        //}
+        /// <summary>
+        /// Delete campaigns
+        /// </summary>
+        /// <param name="id">Campaign id</param>
+        /// <returns></returns>
+        [HttpDelete("campaigns/{id}")]
+        [Authorize(Roles = "Admin, Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeleteCampaign(long id)
+        {
+            var result = await _campaignService.DeleteCampaign(id);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Delete success."
+            });
+        }
     }
-    }
+}
