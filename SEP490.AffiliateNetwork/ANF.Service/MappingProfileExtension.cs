@@ -61,6 +61,7 @@ namespace ANF.Service
             CreateMap<CampaignCreateRequest, Campaign>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => CampaignStatus.Pending))
+                .ForMember(dest => dest.AdvertiserCode, opt => opt.MapFrom(src => src.AdvertiserCode))
                 .ForMember(dest => dest.Offers, opt => opt.Ignore());
 
             CreateMap<CampaignImgCreateRequest, CampaignImage>()

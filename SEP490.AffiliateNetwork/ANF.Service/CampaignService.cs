@@ -31,7 +31,7 @@ namespace ANF.Service
 
                 var advertiser = await userRepository.GetAll()
                                             .AsNoTracking()
-                                            .Where(e => e.Id == request.AdvertiserId && e.Role == UserRoles.Advertiser)
+                                            .Where(e => e.UserCode.ToString() == request.AdvertiserCode && e.Role == UserRoles.Advertiser)
                                             .FirstOrDefaultAsync();
                 if (advertiser is null) throw new KeyNotFoundException("Advertiser does not exists");
 

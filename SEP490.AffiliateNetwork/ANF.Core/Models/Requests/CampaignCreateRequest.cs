@@ -5,8 +5,8 @@ namespace ANF.Core.Models.Requests
 {
     public class CampaignCreateRequest
     {
-        [Required(ErrorMessage = "AdvertiserId is required.")]
-        public long AdvertiserId { get; set; }
+        [Required(ErrorMessage = "AdvertiserCode is required.")]
+        public string AdvertiserCode { get; set; } = null!;
 
         [Required(ErrorMessage = "Name is required.")]
         public string Name { get; set; } = null!;
