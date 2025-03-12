@@ -27,6 +27,8 @@ app.UseAuthorization();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
+app.UseCors("ANF");
+
 app.MapControllers();
 
 app.Run();
