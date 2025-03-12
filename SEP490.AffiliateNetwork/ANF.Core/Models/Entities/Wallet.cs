@@ -18,9 +18,7 @@ namespace ANF.Core.Models.Entities
         public Guid UserCode { get; set; }
 
         public User User { get; set; } = null!;
-
-        public ICollection<WalletHistory> WalletHistories { get; set; } = new List<WalletHistory>();
-
-        public ICollection<PaymentTransaction> PaymentTransactions { get; set; } = new List<PaymentTransaction>();
+            
+        public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }

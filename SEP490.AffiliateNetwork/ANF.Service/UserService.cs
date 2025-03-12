@@ -92,7 +92,6 @@ namespace ANF.Service
                     .Include(u => u.AdvertiserProfile)
                     .Include(u => u.AffiliateSources)
                     .Include(u => u.Campaigns)
-                    .Include(u => u.SubPurchases)
                     .FirstOrDefaultAsync(u => u.Id == id);
                 if (user is not null)
                 {
@@ -124,12 +123,7 @@ namespace ANF.Service
                             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                             campaignRepository.DeleteRange(user.Campaigns);
                         }
-                        if (user.SubPurchases.Any())
-                        {
-                            var subPurchaseRepository = _unitOfWork.GetRepository<SubPurchase>();
-                            subPurchaseRepository.DeleteRange(user.SubPurchases);
-                        }
-                        //TODO: Manually delete other data of other tables to avoid FK conflict.
+                        //TODO: Manually delete other data of other tables to avoid FK conflict. (Transaction is one of the table need to be checked)
                         userRepository.Delete(user);
                         return await _unitOfWork.SaveAsync() > 0;
                     }

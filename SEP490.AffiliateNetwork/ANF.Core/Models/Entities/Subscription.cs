@@ -26,8 +26,6 @@ namespace ANF.Core.Models.Entities
         [Column("duration")]
         public string? Duration { get; set; }
 
-        public ICollection<SubPurchase> SubPurchases { get; set; } = new List<SubPurchase>();
-
-        public ICollection<WalletHistory>? WalletHistories { get; set; }
+        public ICollection<Transaction>? Transactions { get; set; }
     }
 }

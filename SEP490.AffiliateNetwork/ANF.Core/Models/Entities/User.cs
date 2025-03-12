@@ -74,11 +74,9 @@ namespace ANF.Core.Models.Entities
 
         public ICollection<PublisherSource> AffiliateSources { get; set; } = new List<PublisherSource>();
 
-        public ICollection<SubPurchase> SubPurchases { get; set; } = new List<SubPurchase>();
-
         public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
 
-        public ICollection<PaymentTransaction>? PaymentTransactions { get; set; }
+        public ICollection<Transaction>? Transactions { get; set; }
 
         public ICollection<UserBank>? UserBanks { get; set; }
 
