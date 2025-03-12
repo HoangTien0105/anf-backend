@@ -59,7 +59,7 @@ namespace ANF.Core.Models.Entities
 
         public ICollection<CampaignImage>? Images { get; set; }
 
-        public ICollection<WalletHistory>? WalletHistories { get; set; }
+        public ICollection<Transaction>? Transactions { get; set; }
 
         public ICollection<Offer> Offers { get; set; } = new List<Offer>();
     }

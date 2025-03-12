@@ -20,9 +20,7 @@ namespace ANF.Infrastructure
         public DbSet<PublisherSource> PublisherSources { get; set; } = null!;
         
         public DbSet<Subscription> Subscriptions { get; set; } = null!;
-        
-        public DbSet<SubPurchase> SubPurchases { get; set; } = null!;
-        
+                
         public DbSet<Category> Categories { get; set; } = null!;
         
         public DbSet<Campaign> Campaigns { get; set; } = null!;
@@ -35,7 +33,7 @@ namespace ANF.Infrastructure
 
         public DbSet<PostbackData> PostbackData { get; set; } = null!;
 
-        public DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
+        public DbSet<Transaction> PaymentTransactions { get; set; } = null!;
 
         public DbSet<Wallet> Wallets { get; set; } = null!;
         
@@ -74,10 +72,9 @@ namespace ANF.Infrastructure
             new PublisherProfileTypeConfig().Configure(builder.Entity<PublisherProfile>());
             new PublisherSourceTypeConfig().Configure(builder.Entity<PublisherSource>());
             new CampaignImageTypeConfig().Configure(builder.Entity<CampaignImage>());
-            new SubPurchaseTypeConfig().Configure(builder.Entity<SubPurchase>());
 
             new WalletHistoryTypeConfig().Configure(builder.Entity<WalletHistory>());
-            new PaymentTransactionTypeConfig().Configure(builder.Entity<PaymentTransaction>());
+            new TransactionTypeConfig().Configure(builder.Entity<Transaction>());
             new WalletTypeConfig().Configure(builder.Entity<Wallet>());
             new PublisherOfferTypeConfig().Configure(builder.Entity<PublisherOffer>());
             new PostbackDataTypeConfig().Configure(builder.Entity<PostbackData>());

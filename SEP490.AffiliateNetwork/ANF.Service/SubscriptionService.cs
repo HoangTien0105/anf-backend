@@ -44,7 +44,7 @@ namespace ANF.Service
 
         public async Task<bool> DeleteSubscriptions(long id)
         {
-            try
+            /*try
             {
                 var subscriptionRepository = _unitOfWork.GetRepository<Subscription>();
                 var subscription = await subscriptionRepository.GetAll()
@@ -66,7 +66,8 @@ namespace ANF.Service
             catch (Exception)
             {
                 throw;
-            }
+            }*/
+            throw new NotImplementedException();
         }
 
         public async Task<SubscriptionResponse> GetSubscription(long subscriptionId)

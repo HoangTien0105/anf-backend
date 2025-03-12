@@ -8,9 +8,9 @@ namespace ANF.Infrastructure.Configs
     {
         public void Configure(EntityTypeBuilder<WalletHistory> builder)
         {
-            builder.HasOne(wh => wh.Wallet)
-                .WithMany(w => w.WalletHistories)
-                .HasForeignKey(wh => wh.WalletId)
+            builder.HasOne(wh => wh.Transaction)
+                .WithOne(w => w.WalletHistory)
+                .HasForeignKey<WalletHistory>(wh => wh.TransactionId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }
