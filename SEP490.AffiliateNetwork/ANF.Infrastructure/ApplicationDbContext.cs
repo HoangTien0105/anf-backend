@@ -1,6 +1,5 @@
 ﻿using ANF.Core.Models.Entities;
 using ANF.Infrastructure.Configs;
-using ANF.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -44,10 +43,10 @@ namespace ANF.Infrastructure
 
         /// <summary>
         /// Get connection string from appsettings.json
+        /// NOTE: Can be removed the method and not call it in OnConfiguring(),
+        /// because it has already configured in Program.cs
         /// </summary>
         /// <returns>The database connection string</returns>
-        // NOTE: Can be removed the method and not call it in OnConfiguring(),
-        // because it has already configured in Program.cs
         private string GetConnectionString()
         {
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
@@ -86,17 +85,14 @@ namespace ANF.Infrastructure
             
             new UserTypeConfig().Configure(builder.Entity<User>());
             new UserBankTypeConfig().Configure(builder.Entity<UserBank>());
-            
-            // Other configurations
+
+            #region Other type configurations
             builder.Entity<Subscription>()
                 .Property(s => s.Id).ValueGeneratedNever();
             builder.Entity<Campaign>()
                 .Property(c => c.Id).ValueGeneratedNever();
             builder.Entity<Category>()
                 .Property(c => c.Id).ValueGeneratedNever();
-            
-            #region Data seeding
-            builder.SeedDataForUsers();
             #endregion
         }
     }
