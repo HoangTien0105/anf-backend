@@ -10,6 +10,7 @@ namespace ANF.Core.Services
         Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id);
         Task<bool> CreateCampaign(CampaignCreateRequest request);
         Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request);
+        Task<bool> UpdateCampaignStatus(long id, string campaignStatus, string? rejectReason);
         Task<bool> DeleteCampaign(long id);
     }
 }

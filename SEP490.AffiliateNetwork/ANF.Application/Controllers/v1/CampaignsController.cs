@@ -103,6 +103,29 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
+        /// <summary>
+        /// Update cammpaign status
+        /// </summary>
+        /// <param name="id">Campaign id</param>
+        /// <param name="campaignStatus">Campaign status</param>
+        /// <param name="rejectReason">Reject reason</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        [HttpPatch("campaigns/admin/{id}/status")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateCampaignStatus(long id, [FromForm] string campaignStatus, [FromForm] string? rejectReason)
+        {
+            var result = await _campaignService.UpdateCampaignStatus(id, campaignStatus, rejectReason);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update status successfully"
+            });
+        }
 
         /// <summary>
         /// Create campaigns

@@ -349,5 +349,36 @@ namespace ANF.Service
                 throw;
             }
         }
+
+        public async Task<bool> UpdateCampaignStatus(long id, string campaignStatus, string? rejectReason)
+        {
+            try
+            {
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+
+                if(!Enum.TryParse<CampaignStatus>(campaignStatus, true, out var status))
+                    throw new ArgumentException("Invalid campaign's status. Please check again!");
+
+                var campaign = await campaignRepository.GetAll()
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(e => e.Id == id);
+                if(campaign is null)
+                    throw new KeyNotFoundException("Campaign does not exist!");
+
+                if (status != CampaignStatus.Rejected)
+                    rejectReason = String.Empty;
+
+                campaign.Status = status;
+                campaign.RejectReason = rejectReason;
+
+                campaignRepository.Update(campaign);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

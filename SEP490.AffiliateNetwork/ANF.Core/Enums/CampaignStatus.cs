@@ -6,6 +6,7 @@
         Pending,
         Verified,
         Started, 
-        Ended
+        Ended,
+        Rejected
     }
 }
