@@ -27,33 +27,29 @@ namespace ANF.Service
                 if (duplicatedSub) throw new DuplicatedException("Subscription already exists");
 
                 var subscription = _mapper.Map<Subscription>(request);
-                var duplicatedSubId = await subscriptionRepository.GetAll()
-                                        .AsNoTracking()
-                                        .AnyAsync(e => e.Id == subscription.Id);
-                if (duplicatedSubId) throw new DuplicatedException("Something went wrong. Please try to submit again!");
                 subscriptionRepository.Add(subscription);
                 var affectedRows = await _unitOfWork.SaveAsync();
                 return affectedRows > 0;
             }
             catch (Exception)
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
 
         public async Task<bool> DeleteSubscriptions(long id)
         {
-            /*try
+            try
             {
                 var subscriptionRepository = _unitOfWork.GetRepository<Subscription>();
                 var subscription = await subscriptionRepository.GetAll()
                     .AsNoTracking()
-                    .Include(u => u.SubPurchases)
+                    .Include(u => u.Transactions)
                     .FirstOrDefaultAsync(u => u.Id == id);
                 if (subscription is not null)
                 {
-                    if (subscription.SubPurchases.Any())
+                    if (subscription.Transactions.Any())
                         throw new InvalidOperationException("Subscription already has purchases.");
                     subscriptionRepository.Delete(subscription);
                     return await _unitOfWork.SaveAsync() > 0;
@@ -66,8 +62,7 @@ namespace ANF.Service
             catch (Exception)
             {
                 throw;
-            }*/
-            throw new NotImplementedException();
+            }
         }
 
         public async Task<SubscriptionResponse> GetSubscription(long subscriptionId)

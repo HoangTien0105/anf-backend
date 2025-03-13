@@ -4,6 +4,7 @@ using ANF.Core.Models.Requests;
 using Asp.Versioning;
 using ANF.Core.Commons;
 using ANF.Core.Models.Responses;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -17,7 +18,6 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
         [HttpGet("subscriptions")]
-        //[Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,7 +38,6 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Subscription id</param>
         /// <returns></returns>
         [HttpGet("subscriptions/{id}")]
-        //[Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -61,7 +60,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPut("subscriptions/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -89,7 +88,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPost("subscriptions")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateSubscription(SubscriptionRequest request)
@@ -112,11 +111,11 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Delete subscriptions
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">Subscription id</param>
         /// <returns></returns>
         [HttpDelete("subscriptions/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteSubscription(long id)
