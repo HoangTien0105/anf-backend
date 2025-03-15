@@ -29,9 +29,11 @@ namespace ANF.Application.Extensions
             });
             services.AddEndpointsApiExplorer();
             // Options pattern: Must add this line to run properly when injecting the configuration class
+            // By default, the configuration binder uses a case-insensitive matching
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+            services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
             
             // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>
