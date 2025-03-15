@@ -11,7 +11,7 @@ namespace ANF.Application.Controllers.v1
     [ApiController]
     public class ImagesController : ControllerBase
     {
-        private readonly ICloudinaryService _imageService;
+        /*private readonly ICloudinaryService _imageService;
 
         public ImagesController(ICloudinaryService imageService)
         {
@@ -30,6 +30,6 @@ namespace ANF.Application.Controllers.v1
             {
                 return StatusCode(500, $"Error uploading image: {ex.Message}");
             }
-        }
+        }*/
     }
 }

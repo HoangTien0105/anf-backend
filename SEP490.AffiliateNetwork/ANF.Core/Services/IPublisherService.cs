@@ -18,5 +18,16 @@ namespace ANF.Core.Services
         Task<PublisherResponse> GetPublisherProfile(long publisherId);
 
         Task<List<AffiliateSourceResponse>> GetAffiliateSourceOfPublisher(long publisherId);
+
+        Task<bool> AddBankingInformation(Guid publisherCode, List<UserBankCreateRequest> requests);
+
+        Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request);
+
+        /// <summary>
+        /// Remove user bank accounts
+        /// </summary>
+        /// <param name="ubIds">List user bank's id</param>
+        /// <returns></returns>
+        Task<bool> DeleteBankingInformation(List<long> ubIds);
     }
 }

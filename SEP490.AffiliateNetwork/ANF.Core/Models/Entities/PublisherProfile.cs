@@ -15,12 +15,6 @@ namespace ANF.Core.Models.Entities
         [Column("image_url")]
         public string? ImageUrl { get; set; }
 
-        [Column("banking_no")]
-        public string BankingNo { get; set; } = null!;
-
-        [Column("banking_provider")]
-        public string? BankingProvider { get; set; }
-
         [Column("bio")]
         public string? Bio { get; set; }
 

@@ -65,7 +65,7 @@ namespace ANF.Application.Controllers.v1
         /// Change user's account status 
         /// </summary>
         /// <returns></returns>
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPatch("users/{id}/status")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -94,7 +94,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("users")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetUsers([FromQuery] PaginationRequest request)
@@ -129,11 +129,10 @@ namespace ANF.Application.Controllers.v1
                 Message = "Register account successfully. Please wait for admin to accept the registration."
             });
         }
-
-        // DELETE: api/Users/5
+        
         [HttpDelete("users/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteUser(long id)
