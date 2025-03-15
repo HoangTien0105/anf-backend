@@ -142,7 +142,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="id">Source's id</param>
         /// <returns></returns>
-        [HttpDelete("affiliate-source/{id}")]
+        /*[HttpDelete("affiliate-source/{id}")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -156,7 +156,7 @@ namespace ANF.Application.Controllers.v1
                 IsSuccess = true,
                 Message = "Success."
             });
-        }
+        }*/
 
         /// <summary>
         /// Delete affiliate sources
@@ -176,6 +176,77 @@ namespace ANF.Application.Controllers.v1
             {
                 IsSuccess = true,
                 Message = "Success."
+            });
+        }
+
+        /// <summary>
+        /// Add publisher's bank accounts
+        /// </summary>
+        /// <param name="code">Publisher's code</param>
+        /// <param name="requests">Requested data for bank accounts</param>
+        /// <returns></returns>
+        [HttpPost("publishers/{code}/bank-accounts")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AddBankingInformation(Guid code, [FromBody] List<UserBankCreateRequest> requests)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null) return validationResult;
+            var result = await _publisherService.AddBankingInformation(code, requests);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Add successfully!"
+            });
+        }
+
+        /// <summary>
+        /// Delete publisher's bank accounts
+        /// </summary>
+        /// <param name="ubIds">Publisher's bank id</param>
+        /// <returns></returns>
+        [HttpDelete("publisher/bank-accounts")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteBankingInformation(List<long> ubIds)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null) return validationResult;
+            var result = await _publisherService.DeleteBankingInformation(ubIds);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Delete bank accounts successfully!"
+            });
+        }
+
+        /// <summary>
+        /// Update publisher's bank account
+        /// </summary>
+        /// <param name="id">Bank account's id</param>
+        /// <param name="request">Requested data for updating</param>
+        /// <returns></returns>
+        [HttpPut("publisher/bank-accounts/{id}")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateBankingInformation(long id, UserBankUpdateRequest request)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null) return validationResult;
+            var result = await _publisherService.UpdateBankingInformation(id, request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update successfully!"
             });
         }
     }

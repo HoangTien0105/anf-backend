@@ -29,8 +29,10 @@ namespace ANF.Service
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>()
-                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode));
-            //.ForMember(dest => dest.AffiliateSourceResponses, opt => opt.MapFrom(src => src.AffiliateSources));   //TODO: Review the mapping, current it is not used
+                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode))
+                .ForMember(dest => dest.Specialization, opt => opt.MapFrom(src => src.PublisherProfile.Specialization))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PublisherProfile.ImageUrl))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.PublisherProfile.Bio));
 
             CreateMap<UpdatePasswordRequest, User>()
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.NewPassword))

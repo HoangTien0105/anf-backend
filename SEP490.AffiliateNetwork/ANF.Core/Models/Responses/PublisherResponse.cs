@@ -26,12 +26,8 @@
         
         public string? ImageUrl { get; set; }
         
-        public string BankingNo { get; set; } = null!;
-        
-        public string? BankingProvider { get; set; }
-        
         public string? Bio { get; set; }
 
-        //public ICollection<PubAffiliateSourceResponse> AffiliateSourceResponses { get; set; } = new List<PubAffiliateSourceResponse>();
+        public ICollection<UserBankResponse> UserBanks { get; set; } = new List<UserBankResponse>();
     }
 }
