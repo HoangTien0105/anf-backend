@@ -227,7 +227,7 @@ namespace ANF.Application.Extensions
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidateLifetime = false,
+                    ValidateLifetime = true,
                 };
             });  // NOTE: Can add more authentication schema with configurations
             return services;
