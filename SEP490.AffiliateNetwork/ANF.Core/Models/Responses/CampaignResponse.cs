@@ -1,11 +1,9 @@
-﻿using ANF.Core.Models.Entities;
-namespace ANF.Core.Models.Responses
+﻿namespace ANF.Core.Models.Responses
 {
     public class CampaignResponse
     {
         public long Id { get; set; }
-
-        public long AdvertiserId { get; set; }
+        public Guid AdvertiserCode { get; set; }
         public string Name { get; set; } = null!;
 
         public string? Description { get; set; }
@@ -14,13 +12,12 @@ namespace ANF.Core.Models.Responses
 
         public DateTime EndDate { get; set; }
 
-        public double Budget { get; set; }
-
         public double Balance { get; set; }
 
         public string ProductUrl { get; set; } = null!;
 
         public string? TrackingParams { get; set; }
+        public string? RejectReason { get; set; }
 
         public long? CategoryId { get; set; }
 
@@ -28,9 +25,9 @@ namespace ANF.Core.Models.Responses
 
         public UserResponse Advertiser { get; set; } = null!;
 
-        public Category? Category { get; set; }
+        public CategoryResponse? Category { get; set; }
         public ICollection<OfferResponse>? Offers { get; set; }
 
-        public ICollection<CampaignImage>? Images { get; set; }
+        public ICollection<CampaignImageResponse>? Images { get; set; }
     }
 }

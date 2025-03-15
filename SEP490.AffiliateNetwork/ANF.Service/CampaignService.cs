@@ -24,7 +24,7 @@ namespace ANF.Service
             var userRepository = _unitOfWork.GetRepository<User>();
             var categoryRepository = _unitOfWork.GetRepository<Category>();
             var imageRepository = _unitOfWork.GetRepository<CampaignImage>();
-            
+
             try
             {
                 if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
@@ -52,7 +52,7 @@ namespace ANF.Service
                     throw new ArgumentOutOfRangeException("End date must be after start date");
 
                 if (!Uri.TryCreate(request.ProductUrl, UriKind.Absolute, out var uriResult) ||
-                    (uriResult != null && uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
+                    (uriResult is not null && uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
                     throw new ArgumentException("ProductUrl must be a valid URL with http or https scheme (e.g., http://example.com or https://example.com).");
 
                 if (request.ProductUrl.EndsWith("/"))
@@ -72,9 +72,9 @@ namespace ANF.Service
 
                 var offersRequest = _mapper.Map<List<OfferCreateRequest>>(request.Offers);
 
-                var isDuplicateOffer = offersRequest.GroupBy(o => 
-                                        new {o.PricingModel, o.Description, o.StepInfo,o.StartDate, o.EndDate}).Any(g => g.Count() > 1);
-                if(isDuplicateOffer)
+                var isDuplicateOffer = offersRequest.GroupBy(o =>
+                                        new { o.PricingModel, o.Description, o.StepInfo, o.StartDate, o.EndDate }).Any(g => g.Count() > 1);
+                if (isDuplicateOffer)
                     throw new InvalidOperationException("Offers can't be the same");
 
                 foreach (var offer in offersRequest)
@@ -91,9 +91,9 @@ namespace ANF.Service
                         throw new ArgumentOutOfRangeException("Offer end date must be between start and end date of campaign");
 
                     if (offer.EndDate <= offer.StartDate)
-                        throw new ArgumentOutOfRangeException("End date must be after start date");
+                        throw new ArgumentOutOfRangeException("Offer end date must be after offer start date");
 
-                    if(offer.Bid >= offer.Budget)
+                    if (offer.Bid >= offer.Budget)
                         throw new ArgumentOutOfRangeException("Offer bid can't be higher than offer budget");
 
                     var offerData = _mapper.Map<Offer>(offer);
@@ -111,7 +111,7 @@ namespace ANF.Service
                     }
 
                     var imageUrl = await _cloudinaryService.UploadImageAsync(image);
-                    if (imageUrl != null)
+                    if (imageUrl is not null)
                     {
                         CampaignImgCreateRequest imageCreateRequest = new CampaignImgCreateRequest
                         {
@@ -121,11 +121,63 @@ namespace ANF.Service
 
                         var imageData = _mapper.Map<CampaignImage>(imageCreateRequest);
                         imageRepository.Add(imageData);
-                    } 
+                    }
                 }
 
                 var affectedRows = await _unitOfWork.SaveAsync();
                 return affectedRows > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteCampaign(long id)
+        {
+            try
+            {
+                var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var imageRepository = _unitOfWork.GetRepository<CampaignImage>();
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var campaign = await campaignRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Id == id);
+
+                if (campaign is not null)
+                {
+                    if (campaign.Status != CampaignStatus.Pending)
+                    {
+                        throw new InvalidOperationException("Campaign status must be Pending to delete campaign");
+                    }
+
+                    var offers = await offerRepository.GetAll()
+                            .AsNoTracking()
+                            .Where(e => e.CampaignId == campaign.Id)
+                            .ToListAsync();
+
+                    if (offers.Any())
+                    {
+                        offerRepository.DeleteRange(offers);
+                    }
+                    var imageUrl = await imageRepository.GetAll()
+                            .AsNoTracking()
+                            .Where(u => u.CampaignId == campaign.Id)
+                            .ToListAsync();
+
+                    if (imageUrl.Any())
+                    {
+                        imageRepository.DeleteRange(imageUrl);
+                    }
+
+                    campaignRepository.Delete(campaign);
+                    return await _unitOfWork.SaveAsync() > 0;
+                }
+                else
+                {
+                    throw new KeyNotFoundException("Campaign does not exist!");
+                }
             }
             catch (Exception)
             {
@@ -139,6 +191,8 @@ namespace ANF.Service
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
+                            .Include(e => e.Images)
+                            .Include(e => e.Category)
                             .Where(e => e.Status == CampaignStatus.Verified)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
@@ -151,14 +205,17 @@ namespace ANF.Service
             return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
-        public async Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, long id)
+        public async Task<PaginationResponse<CampaignResponse>> 
+            GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id)
         {
-            /*var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
-                            .Where(e => e.AdvertiserId == id)
+                            .Where(e => e.AdvertiserCode.ToString() == id)
                             .Include(e => e.Advertiser)
+                            .Include(e => e.Category)
+                            .Include(e => e.Images)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
@@ -179,8 +236,7 @@ namespace ANF.Service
 
             var totalCounts = campaigns.Count();
 
-            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);*/
-            throw new NotImplementedException();
+            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
         public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request)
@@ -189,6 +245,8 @@ namespace ANF.Service
             var offerRepository = _unitOfWork.GetRepository<Offer>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
+                            .Include(e => e.Category)
+                            .Include(e => e.Images)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
@@ -217,24 +275,108 @@ namespace ANF.Service
             try
             {
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
-                if(request is null)
+                var categoryRepository = _unitOfWork.GetRepository<Category>();
+                var imageRepository = _unitOfWork.GetRepository<CampaignImage>();
+
+                if (request is null)
                     throw new ArgumentException("Invalid data request. Please check again!");
                 var campaign = await campaignRepository.GetAll()
                                 .AsNoTracking()
                                 .FirstOrDefaultAsync(e => e.Id == id);
 
-                if(campaign is null)
+                if (campaign is null)
                     throw new KeyNotFoundException("Campaign does not exist!");
-                
-                if(campaign.Status != CampaignStatus.Pending)
+
+                if (campaign.Status != CampaignStatus.Pending)
                     throw new ArgumentException("Can't update this campaign");
 
-                return true;
+                if (request.CategoryId.HasValue)
+                {
+                    var category = await categoryRepository.GetAll()
+                                .AsNoTracking()
+                                .Where(e => e.Id == request.CategoryId)
+                                .FirstOrDefaultAsync();
+                    if (category is null) throw new KeyNotFoundException("Category does not exists");
+
+                }
+
+                if (request.StartDate <= DateTime.UtcNow.AddDays(1))
+                    throw new ArgumentOutOfRangeException("Campaign start date must be after today atleast 1");
+
+                if (request.EndDate <= request.StartDate)
+                    throw new ArgumentOutOfRangeException("End date must be after start date");
+
+                if (!Uri.TryCreate(request.ProductUrl, UriKind.Absolute, out var uriResult) ||
+                    (uriResult is not null && uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
+                    throw new ArgumentException("ProductUrl must be a valid URL with http or https scheme (e.g., http://example.com or https://example.com).");
+
+                if (request.ProductUrl.EndsWith("/"))
+                    throw new ArgumentException("ProductUrl must not end with a trailing slash (/).");
+
+                _ = _mapper.Map(request, campaign);
+                campaignRepository.Update(campaign);
+
+                var allowedImagesTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+
+                // Need to review update image function
+                foreach (var image in request.ImgFiles)
+                {
+                    if (!allowedImagesTypes.Contains(image.ContentType))
+                    {
+                        throw new ArgumentException($"File {image.FileName} is not an allowed image format! Only JPEG, PNG, GIF, and WebP are supported.");
+                    }
+
+                    var imageUrl = await _cloudinaryService.UploadImageAsync(image);
+                    if (imageUrl is not null)
+                    {
+                        CampaignImgCreateRequest imageCreateRequest = new CampaignImgCreateRequest
+                        {
+                            CampaignId = campaign.Id,
+                            ImageUrl = imageUrl,
+                        };
+
+                        var imageData = _mapper.Map<CampaignImage>(imageCreateRequest);
+                        imageRepository.Add(imageData);
+                    }
+                }
+
+                return await _unitOfWork.SaveAsync() > 0;
 
             }
             catch (Exception)
             {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
 
+        public async Task<bool> UpdateCampaignStatus(long id, string campaignStatus, string? rejectReason)
+        {
+            try
+            {
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+
+                if(!Enum.TryParse<CampaignStatus>(campaignStatus, true, out var status))
+                    throw new ArgumentException("Invalid campaign's status. Please check again!");
+
+                var campaign = await campaignRepository.GetAll()
+                                    .AsNoTracking()
+                                    .FirstOrDefaultAsync(e => e.Id == id);
+                if(campaign is null)
+                    throw new KeyNotFoundException("Campaign does not exist!");
+
+                if (status != CampaignStatus.Rejected)
+                    rejectReason = String.Empty;
+
+                campaign.Status = status;
+                campaign.RejectReason = rejectReason;
+
+                campaignRepository.Update(campaign);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }

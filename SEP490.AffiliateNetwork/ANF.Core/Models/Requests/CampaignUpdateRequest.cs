@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ANF.Core.Models.Requests
 {
@@ -12,7 +7,9 @@ namespace ANF.Core.Models.Requests
     {
         [Required(ErrorMessage = "Name is required.")]
         public string Name { get; set; } = null!;
-        public string? Description { get; set; }
+
+        [Required(ErrorMessage = "Description is required.")]
+        public string Description { get; set; } = null!;
 
         [DataType(DataType.DateTime)]
         [Required(ErrorMessage = "Start date is required")]
