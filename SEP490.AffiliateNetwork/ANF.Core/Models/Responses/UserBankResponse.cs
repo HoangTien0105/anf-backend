@@ -2,7 +2,12 @@
 {
     public class UserBankResponse
     {
-        public int BankingNo { get; init; }
+        /// <summary>
+        /// User's bank id
+        /// </summary>
+        public int Id { get; init; }
+
+        public long BankingNo { get; init; }
 
         public string BankingProvider { get; init; } = null!;
     }

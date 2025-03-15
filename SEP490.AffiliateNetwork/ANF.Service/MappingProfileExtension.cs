@@ -79,7 +79,11 @@ namespace ANF.Service
             CreateMap<Offer, OfferResponse>();
 
             CreateMap<User, AdvertiserProfileResponse>()
-                .ForMember(dest => dest.AdvertiserCode, opt => opt.MapFrom(src => src.UserCode));
+                .ForMember(dest => dest.AdvertiserCode, opt => opt.MapFrom(src => src.UserCode))
+                .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.AdvertiserProfile.CompanyName))
+                .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.AdvertiserProfile.Industry))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.AdvertiserProfile.ImageUrl))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.AdvertiserProfile.Bio));
             
             CreateMap<AdvertiserProfileUpdatedRequest, User>()
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -96,7 +100,7 @@ namespace ANF.Service
             CreateMap<UserBank, UserBankResponse>();
 
             CreateMap<UserBankCreateRequest, UserBank>()
-                .ForMember(dest => dest.UserCode, opt => opt.MapFrom((src, dest, destMember, context) => (long)context.Items["UserCode"]))
+                .ForMember(dest => dest.UserCode, opt => opt.MapFrom((src, dest, destMember, context) => (Guid)context.Items["UserCode"]))
                 .ForMember(dest => dest.AddedDate, opt => opt.MapFrom(_ => DateTime.Now));
 
             CreateMap<UserBankUpdateRequest, UserBank>()

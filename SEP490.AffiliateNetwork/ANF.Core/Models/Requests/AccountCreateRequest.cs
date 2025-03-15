@@ -13,6 +13,8 @@ namespace ANF.Core.Models.Requests
         [Required(ErrorMessage = "Last name is required.", AllowEmptyStrings = false)]
         public string LastName { get; set; } = null!;
 
+        public string? Address { get; set; }
+
         [Required(ErrorMessage = "Phone number is required.", AllowEmptyStrings = false)]
         [RegularExpression(@"^\d{10,12}$",
             ErrorMessage = "Phone number must contain only numbers and be between 10 and 12 digits.")]
