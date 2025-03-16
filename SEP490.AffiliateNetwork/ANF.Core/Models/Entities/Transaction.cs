@@ -4,6 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
 {
+    /// <summary>
+    /// Table to store all transactions occured in the platform
+    /// </summary>
+    [Table("Transactions")]
     public class Transaction : IEntity
     {
         [Column("trans_id")]
@@ -19,8 +23,10 @@ namespace ANF.Core.Models.Entities
         [Column("amount")]
         public double Amount { get; set; }
 
+        [Column("campaign_id")]
         public long? CampaignId { get; set; }
 
+        [Column("subscription_id")]
         public long? SubscriptionId { get; set; }
 
         [Column("created_at")]

@@ -62,7 +62,7 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Reset password token's expiried date
         /// </summary>
-        [Column("expiry_date")]
+        [Column("token_expired_date")]
         public DateTime? ExpiryDate { get; set; }
 
         [Column("reject_reason")]
