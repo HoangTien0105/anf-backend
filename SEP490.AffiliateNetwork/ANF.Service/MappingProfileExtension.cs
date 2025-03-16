@@ -24,7 +24,19 @@ namespace ANF.Service
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => Math.Floor(src.Price)));
 
-            CreateMap<PublisherProfileRequest, PublisherProfile>();
+            CreateMap<PublisherProfileCreatedRequest, PublisherProfile>();
+
+            CreateMap<PublisherProfileUpdatedRequest, User>()
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.CitizenId, opt => opt.MapFrom(src => src.CitizenId))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth));
+
+            CreateMap<PublisherProfileUpdatedRequest, PublisherProfile>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
+                .ForMember(dest => dest.Specialization, opt => opt.MapFrom(src => src.Specialization));
+
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
 
             CreateMap<User, UserResponse>();

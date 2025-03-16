@@ -13,11 +13,11 @@ namespace ANF.Application.Controllers.v1
         private readonly IPublisherService _publisherService = publisherService;
 
         /// <summary>
-        /// Get affiliate source of a publisher
+        /// Get publisher's affiliate sources
         /// </summary>
         /// <param name="id">Publisher's id</param>
-        /// <returns></returns>
-        [HttpGet("publisher/{id}/affiliate-sources")]
+        /// <returns>A list of available affiliate sources</returns>
+        [HttpGet("publishers/{id}/affiliate-sources")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -34,10 +34,10 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get profile of a publisher
+        /// Get publisher's profile
         /// </summary>
         /// <param name="id">Publisher's id</param>
-        /// <returns></returns>
+        /// <returns>Publisher's profile information with list bank accounts</returns>
         [HttpGet("publishers/{id}/profile")]
         [Authorize(Roles = "Publisher")]
         [MapToApiVersion(1)]
@@ -55,17 +55,17 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Add profile to new publisher
+        /// Add publisher's profile
         /// </summary>
         /// <param name="id">Publisher's id</param>
-        /// <param name="value">Data</param>
+        /// <param name="value">Requested data</param>
         /// <returns></returns>
         [HttpPost("publisher/{id}/profile")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AddProfile(long id, [FromBody] PublisherProfileRequest value)
+        public async Task<IActionResult> AddProfile(long id, [FromForm] PublisherProfileCreatedRequest value)
         {
             var validationResult = HandleValidationErrors();
             if (validationResult is not null)
@@ -82,7 +82,34 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Add affiliate sources of a publisher
+        /// Update publisher
+        /// </summary>
+        /// <param name="id">Publisher's id</param>
+        /// <param name="value">Requested data for updating</param>
+        /// <returns></returns>
+        [HttpPut("publisher/{id}/profile")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdatePublisher(long id, [FromForm] PublisherProfileUpdatedRequest value)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
+            var result = await _publisherService.UpdateProfile(id, value);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update successfully!"
+            });
+        }
+
+        /// <summary>
+        /// Add affiliate sources
         /// </summary>
         /// <param name="id">Publisher's id</param>
         /// <param name="requests">The list of affiliate sources</param>
@@ -136,28 +163,7 @@ namespace ANF.Application.Controllers.v1
                 Message = "Success."
             });
         }
-
-        /// <summary>
-        /// Delete affiliate source
-        /// </summary>
-        /// <param name="id">Source's id</param>
-        /// <returns></returns>
-        /*[HttpDelete("affiliate-source/{id}")]
-        [MapToApiVersion(1)]
-        [Authorize(Roles = "Publisher")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteAffiliateSource(long id)
-        {
-            var result = await _publisherService.DeleteAffiliateSource(id);
-            if (!result) return BadRequest();
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Success."
-            });
-        }*/
-
+        
         /// <summary>
         /// Delete affiliate sources
         /// </summary>
