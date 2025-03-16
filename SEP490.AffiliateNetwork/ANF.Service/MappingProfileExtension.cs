@@ -24,8 +24,22 @@ namespace ANF.Service
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => Math.Floor(src.Price)));
 
-            CreateMap<PublisherProfileRequest, PublisherProfile>();
-            CreateMap<AdvertiserProfileRequest, AdvertiserProfile>();
+            CreateMap<PublisherProfileCreatedRequest, PublisherProfile>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]));
+
+            CreateMap<PublisherProfileUpdatedRequest, User>()
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
+                .ForMember(dest => dest.CitizenId, opt => opt.MapFrom(src => src.CitizenId))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth));
+
+            CreateMap<PublisherProfileUpdatedRequest, PublisherProfile>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]))
+                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio))
+                .ForMember(dest => dest.Specialization, opt => opt.MapFrom(src => src.Specialization));
+
+            CreateMap<AdvertiserProfileRequest, AdvertiserProfile>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]));
 
             CreateMap<User, UserResponse>();
             CreateMap<User, PublisherResponse>()
@@ -102,7 +116,7 @@ namespace ANF.Service
             CreateMap<AdvertiserProfileUpdatedRequest, AdvertiserProfile>()
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.CompanyName))
                 .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.Industry))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio));
 
             CreateMap<UserBank, UserBankResponse>();

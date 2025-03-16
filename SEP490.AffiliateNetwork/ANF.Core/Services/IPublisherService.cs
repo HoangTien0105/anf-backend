@@ -13,7 +13,9 @@ namespace ANF.Core.Services
 
         Task<bool> UpdateAffiliateSource(long sourceId, AffiliateSourceUpdateRequest request);
 
-        Task<bool> AddProfile(long publisherId, PublisherProfileRequest value);
+        Task<bool> AddProfile(long publisherId, PublisherProfileCreatedRequest value);
+
+        Task<bool> UpdateProfile(long publisherId, PublisherProfileUpdatedRequest request);
 
         Task<PublisherResponse> GetPublisherProfile(long publisherId);
 

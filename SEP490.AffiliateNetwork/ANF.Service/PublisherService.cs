@@ -10,10 +10,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ANF.Service
 {
-    public class PublisherService(IUnitOfWork unitOfWork, IMapper mapper) : IPublisherService
+    public class PublisherService(IUnitOfWork unitOfWork, IMapper mapper,
+        ICloudinaryService cloudinaryService) : IPublisherService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
+        private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
         public async Task<bool> AddAffiliateSources(long publisherId, List<AffiliateSourceCreateRequest> requests)
         {
@@ -74,7 +76,7 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> AddProfile(long publisherId, PublisherProfileRequest value)
+        public async Task<bool> AddProfile(long publisherId, PublisherProfileCreatedRequest value)
         {
             try
             {
@@ -82,13 +84,17 @@ namespace ANF.Service
                     throw new ArgumentException("Publisher's id is not match!");
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
+                var imageUrl = string.Empty;
+
                 if (value is null) throw new NullReferenceException("Invalid request data. Please check again!");
+                if (value.Image is not null)
+                    imageUrl = await _cloudinaryService.UploadImageAsync(value.Image);
                 // Check whether a publisher is existed in the platform
                 var publisher = await userRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Id == value.PublisherId && x.Status == Core.Enums.UserStatus.Active);
+                    .FirstOrDefaultAsync(x => x.Id == value.PublisherId && x.Status == UserStatus.Active);
                 if (publisher is null) throw new KeyNotFoundException("Publisher does not exist!");
-                
+
                 var duplicatedProfile = await pubProfileRepository.GetAll()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.PublisherId == value.PublisherId);
@@ -96,13 +102,13 @@ namespace ANF.Service
                 {
                     throw new ArgumentException("Publisher's profile is existed!");
                 }
-                var profile = _mapper.Map<PublisherProfile>(value);
+                var profile = _mapper.Map<PublisherProfile>(value, opt => opt.Items["ImageUrl"] = imageUrl);
                 pubProfileRepository.Add(profile);
                 return await _unitOfWork.SaveAsync() > 0;
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -122,13 +128,13 @@ namespace ANF.Service
                 pubSourceRepository.Delete(source);
                 return await _unitOfWork.SaveAsync() > 0;
             }
-            catch 
+            catch
             {
                 //await _unitOfWork.SaveAsync();
                 throw;
             }
         }
-        
+
         public async Task<bool> DeleteAffiliateSources(List<long> sourceIds)
         {
             try
@@ -149,7 +155,7 @@ namespace ANF.Service
                 }
                 return await _unitOfWork.SaveAsync() > 0;
             }
-            catch 
+            catch
             {
                 //await _unitOfWork.RollbackAsync();
                 throw;
@@ -190,7 +196,7 @@ namespace ANF.Service
             var publisher = await userRepository.FindByIdAsync(publisherId);
             if (publisher is null)
                 throw new KeyNotFoundException("Publisher does not exist!");
-            
+
             var affiliateSources = await pubSrcRepository.GetAll()
                 .AsNoTracking()
                 .Where(p => p.PublisherId == publisherId && p.Status == AffSourceStatus.Verified)
@@ -208,8 +214,8 @@ namespace ANF.Service
                 .AsNoTracking()
                 .Include(p => p.PublisherProfile)
                 .Include(p => p.UserBanks)
-                .Where(p => p.Role == UserRoles.Publisher && p.Id == publisherId 
-                    && p.Status == UserStatus.Active) 
+                .Where(p => p.Role == UserRoles.Publisher && p.Id == publisherId
+                    && p.Status == UserStatus.Active)
                 .FirstOrDefaultAsync();
             if (publisher is null)
                 throw new KeyNotFoundException("Publisher does not exist!");
@@ -257,6 +263,43 @@ namespace ANF.Service
                     throw new DuplicatedException("No changes detected. Banking information is identical!");
                 _ = _mapper.Map(request, bank);
                 userBankRepository.Update(bank);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateProfile(long publisherId, PublisherProfileUpdatedRequest request)
+        {
+            try
+            {
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
+                var imageUrl = string.Empty;
+                
+                if (request is null)
+                    throw new ArgumentException("Invalid requested data!");
+                if (request.Image != null)
+                    imageUrl = await _cloudinaryService.UploadImageAsync(request.Image);
+
+                var publisher = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == publisherId);
+
+                var profile = await pubProfileRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.PublisherId == publisherId);
+                if (publisher is null || profile is null)
+                    throw new KeyNotFoundException("Publisher does not exist!");
+
+                _ = _mapper.Map(request, publisher);
+                _ = _mapper.Map(request, profile, opt => opt.Items["ImageUrl"] = imageUrl);
+                
+                userRepository.Update(publisher);
+                pubProfileRepository.Update(profile);
                 return await _unitOfWork.SaveAsync() > 0;
             }
             catch

@@ -9,10 +9,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ANF.Service
 {
-    public class AdvertiserService(IUnitOfWork unitOfWork, IMapper mapper) : IAdvertiserService
+    public class AdvertiserService(IUnitOfWork unitOfWork, IMapper mapper, 
+        ICloudinaryService cloudinaryService) : IAdvertiserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
+        private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
         public async Task<bool> AddBankingInformation(Guid advertiserCode, List<UserBankCreateRequest> requests)
         {
@@ -45,10 +47,14 @@ namespace ANF.Service
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
+                var imageUrl = string.Empty;
+
                 if (profile.AdvertiserId != advertiserId)
-                    throw new ArgumentException("Publisher's id is not match!");
+                    throw new ArgumentException("Advertiser's id is not match!");
                 if (profile is null)
                     throw new NullReferenceException("Invalid request data. Please check again!");
+                if (profile.Image is not null)
+                    imageUrl = await _cloudinaryService.UploadImageAsync(profile.Image);
                 // Check whether an advertiser is existed in platform
                 var advertiser = await userRepository.GetAll()
                     .AsNoTracking()
@@ -63,13 +69,13 @@ namespace ANF.Service
                 {
                     throw new ArgumentException("Advertiser's profile is existed!");
                 }
-                var mappedProfile = _mapper.Map<AdvertiserProfile>(profile);
+                var mappedProfile = _mapper.Map<AdvertiserProfile>(profile, opt => opt.Items["ImageUrl"] = imageUrl);
                 advProfileRepository.Add(mappedProfile);
                 return await _unitOfWork.SaveAsync() > 0;
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -144,20 +150,26 @@ namespace ANF.Service
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
-
+                var imageUrl = string.Empty;
                 if (request is null)
                     throw new ArgumentException("Invalid requested data!");
+                if (request.Image is not null)
+                    imageUrl = await _cloudinaryService.UploadImageAsync(request.Image);
+
                 var advertiser = await userRepository.GetAll()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Id == advertiserId);
-                var profile = await advProfileRepository.FindByIdAsync(advertiserId);
+                var profile = await advProfileRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.AdvertiserId == advertiserId);
+                
                 if (advertiser is null)
                     throw new KeyNotFoundException("Advertiser does not exist!");
                 if (profile is null)
                     throw new KeyNotFoundException("Advertiser's profile does not exist!");
 
                 _ = _mapper.Map(request, advertiser);
-                _ = _mapper.Map(request, profile);
+                _ = _mapper.Map(request, profile, opts: opt => opt.Items["ImageUrl"] = imageUrl);
                 userRepository.Update(advertiser);
                 advProfileRepository.Update(profile);
                 return await _unitOfWork.SaveAsync() > 0;

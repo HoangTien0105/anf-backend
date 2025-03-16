@@ -6,17 +6,15 @@ using System.ComponentModel.DataAnnotations;
 namespace ANF.Core.Models.Requests
 {
     /// <summary>
-    /// Request model for updating advertiser's profile
+    /// Updated request for publisher
     /// </summary>
-    public class AdvertiserProfileUpdatedRequest
+    public class PublisherProfileUpdatedRequest
     {
-        [Required(AllowEmptyStrings = false, ErrorMessage = "Phone number is required!")]
-        [RegularExpression(@"^\d{10,12}$",
-            ErrorMessage = "Phone number must contain only numbers and be between 10 and 12 digits.")]
+        [Required(ErrorMessage = "Phone number is required!", AllowEmptyStrings = false)]
         [BindProperty(Name = "phoneNumber")]
         public string? PhoneNumber { get; set; }
 
-        [Required(ErrorMessage = "Citizen number is required!", AllowEmptyStrings = false)]
+        [Required(ErrorMessage = "Citizen number is required.", AllowEmptyStrings = false)]
         [RegularExpression(@"^\d{12}$",
             ErrorMessage = "Citizen id must be exactly 12 digits.")]
         [BindProperty(Name = "citizenId")]
@@ -25,17 +23,13 @@ namespace ANF.Core.Models.Requests
         [BindProperty(Name = "address")]
         public string? Address { get; set; }
 
+        [Required(ErrorMessage = "Date of birth is required.")]
         [BindProperty(Name = "dateOfBirth")]
-        [Required(ErrorMessage = "Date of birth is required!")]
         public DateTime? DateOfBirth { get; set; }
 
-        [BindProperty(Name = "companyName")]
-        [Required(ErrorMessage = "Company name is required!", AllowEmptyStrings = false)]
-        public string? CompanyName { get; set; }
-
-        [BindProperty(Name = "industry")]
-        [Required(ErrorMessage = "Industry is required!", AllowEmptyStrings = false)]
-        public string? Industry { get; set; }
+        [Required(ErrorMessage = "Date of birth is required.", AllowEmptyStrings = false)]
+        [BindProperty(Name = "specialization")]
+        public string? Specialization { get; set; }
 
         [BindProperty(Name = "image")]
         [AllowedImageExtensions]
