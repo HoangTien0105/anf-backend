@@ -37,7 +37,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
-        [HttpGet("campaigns/admin/offers")]
+        [HttpGet("campaigns/offers")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]

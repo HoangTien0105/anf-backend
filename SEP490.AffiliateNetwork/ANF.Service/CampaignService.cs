@@ -46,10 +46,10 @@ namespace ANF.Service
                 }
 
                 if (request.StartDate <= DateTime.UtcNow.AddDays(1))
-                    throw new ArgumentOutOfRangeException("Campaign start date must be after today atleast 1");
+                    throw new ArgumentException("Campaign start date must be after today at least 1 day");
 
                 if (request.EndDate <= request.StartDate)
-                    throw new ArgumentOutOfRangeException("End date must be after start date");
+                    throw new ArgumentException("End date must be after start date");
 
                 if (!Uri.TryCreate(request.ProductUrl, UriKind.Absolute, out var uriResult) ||
                     (uriResult is not null && uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
@@ -85,16 +85,16 @@ namespace ANF.Service
                     if (!validModel) throw new KeyNotFoundException("Pricing model does not exists");
 
                     if (offer.StartDate < campaign.StartDate || offer.StartDate > campaign.EndDate)
-                        throw new ArgumentOutOfRangeException("Offer start date must be between start and end date of campaign");
+                        throw new ArgumentException("Offer start date must be between start and end date of campaign");
 
                     if (offer.EndDate < campaign.StartDate || offer.EndDate > campaign.EndDate)
-                        throw new ArgumentOutOfRangeException("Offer end date must be between start and end date of campaign");
+                        throw new ArgumentException("Offer end date must be between start and end date of campaign");
 
                     if (offer.EndDate <= offer.StartDate)
-                        throw new ArgumentOutOfRangeException("Offer end date must be after offer start date");
+                        throw new ArgumentException("Offer end date must be after offer start date");
 
                     if (offer.Bid >= offer.Budget)
-                        throw new ArgumentOutOfRangeException("Offer bid can't be higher than offer budget");
+                        throw new ArgumentException("Offer bid can't be higher than offer budget");
 
                     var offerData = _mapper.Map<Offer>(offer);
 
@@ -301,10 +301,10 @@ namespace ANF.Service
                 }
 
                 if (request.StartDate <= DateTime.UtcNow.AddDays(1))
-                    throw new ArgumentOutOfRangeException("Campaign start date must be after today atleast 1");
+                    throw new ArgumentException("Campaign start date must be after today atleast 1");
 
                 if (request.EndDate <= request.StartDate)
-                    throw new ArgumentOutOfRangeException("End date must be after start date");
+                    throw new ArgumentException("End date must be after start date");
 
                 if (!Uri.TryCreate(request.ProductUrl, UriKind.Absolute, out var uriResult) ||
                     (uriResult is not null && uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))

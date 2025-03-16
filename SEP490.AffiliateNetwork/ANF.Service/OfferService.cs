@@ -223,7 +223,13 @@ namespace ANF.Service
 
                 offerRepository.Update(offer);
 
-                campaignExist.Balance += offer.Budget;
+                var existingOffersSum = await offerRepository.GetAll()
+                                            .AsNoTracking()
+                                            .Where(e => e.CampaignId == campaignExist.Id && e.Id != offer.Id)
+                                            .SumAsync(e => e.Budget);
+
+                campaignExist.Balance = existingOffersSum + offer.Budget;
+
                 campaignRepository.Update(campaignExist);
 
                 return await _unitOfWork.SaveAsync() > 0;
