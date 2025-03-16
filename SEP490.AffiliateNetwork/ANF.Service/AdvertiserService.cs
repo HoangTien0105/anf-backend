@@ -46,7 +46,7 @@ namespace ANF.Service
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
                 if (profile.AdvertiserId != advertiserId)
-                    throw new ArgumentException("Publisher's id is not match!");
+                    throw new ArgumentException("Advertiser's id is not match!");
                 if (profile is null)
                     throw new NullReferenceException("Invalid request data. Please check again!");
                 // Check whether an advertiser is existed in platform
@@ -69,7 +69,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -150,7 +150,7 @@ namespace ANF.Service
                 var advertiser = await userRepository.GetAll()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Id == advertiserId);
-                var profile = await advProfileRepository.FindByIdAsync(advertiserId);
+                var profile = await advProfileRepository.FindByIdAsync(advertiserId);   //TODO: FIX ERROR, NO USE FINDBYIDASYNC
                 if (advertiser is null)
                     throw new KeyNotFoundException("Advertiser does not exist!");
                 if (profile is null)

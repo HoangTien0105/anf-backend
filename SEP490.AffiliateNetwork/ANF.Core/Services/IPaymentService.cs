@@ -6,5 +6,9 @@
     public interface IPaymentService
     {
         Task<string> CreatePaymentLink();
+
+        Task<string> GetPaymentLinkInformation();
+
+        Task<bool> CancelPaymentLink(); 
     }
 }
