@@ -84,7 +84,11 @@ namespace ANF.Service
                     throw new ArgumentException("Publisher's id is not match!");
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
+                var imageUrl = string.Empty;
+
                 if (value is null) throw new NullReferenceException("Invalid request data. Please check again!");
+                if (value.Image is not null)
+                    imageUrl = await _cloudinaryService.UploadImageAsync(value.Image);
                 // Check whether a publisher is existed in the platform
                 var publisher = await userRepository.GetAll()
                     .AsNoTracking()
@@ -98,7 +102,7 @@ namespace ANF.Service
                 {
                     throw new ArgumentException("Publisher's profile is existed!");
                 }
-                var profile = _mapper.Map<PublisherProfile>(value);
+                var profile = _mapper.Map<PublisherProfile>(value, opt => opt.Items["ImageUrl"] = imageUrl);
                 pubProfileRepository.Add(profile);
                 return await _unitOfWork.SaveAsync() > 0;
             }

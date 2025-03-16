@@ -1,4 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ANF.Core.Validations;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace ANF.Core.Models.Requests
 {
@@ -7,21 +10,21 @@ namespace ANF.Core.Models.Requests
     /// </summary>
     public class AdvertiserProfileRequest
     {
+        [BindProperty(Name = "companyName")]
         public string? CompanyName { get; set; }
 
+        [BindProperty(Name = "industry")]
         public string? Industry { get; set; }
 
-        public string? ImageUrl { get; set; }
+        [BindProperty(Name = "image")]
+        public IFormFile? Image { get; set; }
 
-        [Required(ErrorMessage = "Banking number is required.", AllowEmptyStrings = false)]
-        public string BankingNo { get; set; } = null!;
-
-        [Required(ErrorMessage = "Banking provider is required.", AllowEmptyStrings = false)]
-        public string? BankingProvider { get; set; }
-
+        [BindProperty(Name = "bio")]
+        [AllowedImageExtensions]
         public string? Bio { get; set; }
 
         [Required(ErrorMessage = "Advertiser's id is required.")]
+        [BindProperty(Name = "advertiserId")]
         public long AdvertiserId { get; set; }
     }
 }
