@@ -22,9 +22,6 @@
         public long? CategoryId { get; set; }
 
         public string Status { get; set; } = null!;
-
-        public UserResponse Advertiser { get; set; } = null!;
-
         public CategoryResponse? Category { get; set; }
         public ICollection<OfferResponse>? Offers { get; set; }
 

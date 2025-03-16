@@ -213,7 +213,6 @@ namespace ANF.Service
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
                             .Where(e => e.AdvertiserCode.ToString() == id)
-                            .Include(e => e.Advertiser)
                             .Include(e => e.Category)
                             .Include(e => e.Images)
                             .Skip((request.pageNumber - 1) * request.pageSize)
