@@ -1,5 +1,6 @@
 ﻿using ANF.Core.Models.Entities;
 using ANF.Infrastructure.Configs;
+using ANF.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -39,6 +40,8 @@ namespace ANF.Infrastructure
         
         public DbSet<WalletHistory> WalletHistories { get; set; } = null!;
 
+        public DbSet<TrackingParam> TrackingParams { get; set; } = null!;
+        
         /// <summary>
         /// Get connection string from appsettings.json
         /// NOTE: Can be removed the method and not call it in OnConfiguring(),
@@ -91,6 +94,8 @@ namespace ANF.Infrastructure
             builder.Entity<Category>()
                 .Property(c => c.Id).ValueGeneratedNever();
             #endregion
+
+            builder.SeedTrackingParams();
         }
     }
 }
