@@ -15,6 +15,60 @@ namespace ANF.Service
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
         private readonly IMapper _mapper = mapper;
+
+        public async Task<bool> ApplyOffer(string pubId, long offerId)
+        {
+            try
+            {
+                if(pubId is null) throw new NullReferenceException("Invalid request data. Please check again!");
+
+                var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
+                var userRepository = _unitOfWork.GetRepository<User>();
+
+                var offerExist = await offerRepository.GetAll()
+                                        .AsNoTracking().FirstOrDefaultAsync(e => e.Id == offerId);
+                if(offerExist is null) throw new KeyNotFoundException("Offer does not exists");
+
+                var publisherExist = await userRepository.GetAll()
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(e => e.UserCode.ToString() == pubId && e.Role == UserRoles.Publisher);
+                if (publisherExist is null) throw new KeyNotFoundException("Publisher does not exists");
+
+                var campaignExist = await campaignRepository.GetAll()
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId); 
+                if (campaignExist is null) throw new KeyNotFoundException("Campaign does not exists");
+
+                if (campaignExist.Status != CampaignStatus.Verified && campaignExist.Status != CampaignStatus.Pending)
+                    throw new InvalidOperationException("Campaign must be Verified or Pending for offer to be applied");
+
+                var pubOfferExist = await pubOfferRepository.GetAll()
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(e => e.OfferId == offerId && e.PublisherCode.ToString() == pubId);
+                if (pubOfferExist is not null) throw new DuplicatedException("You have applied this offer alreay!");
+
+                PublisherOffer publisherOffer = new PublisherOffer
+                {
+                    OfferId = offerId,
+                    PublisherCode = publisherExist.UserCode,
+                    JoiningDate = DateTime.UtcNow,
+                    Status = PublisherOfferStatus.Pending
+                };
+
+                pubOfferRepository.Add(publisherOffer);
+                var affectedRows = await _unitOfWork.SaveAsync();
+                return affectedRows > 0;
+
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> CreateOffer(OfferCreateRequest request)
         {
             try
@@ -48,17 +102,17 @@ namespace ANF.Service
                 if (!validModel) throw new KeyNotFoundException("Pricing model does not exists");
 
                 if (request.StartDate < campaignExist.StartDate || request.StartDate > campaignExist.EndDate)
-                    throw new ArgumentOutOfRangeException("Offer start date must be between start and end date of campaign");
+                    throw new ArgumentException("Offer start date must be between start and end date of campaign");
 
                 if (request.EndDate < campaignExist.StartDate && request.EndDate > campaignExist.EndDate)
-                    throw new ArgumentOutOfRangeException("Offer end date must be between start and end date of campaign");
+                    throw new ArgumentException("Offer end date must be between start and end date of campaign");
 
                 if (request.EndDate <= request.StartDate)
-                    throw new ArgumentOutOfRangeException("End date must be after start date");
+                    throw new ArgumentException("End date must be after start date");
 
                 if (request.Bid >= request.Budget)
                 {
-                    throw new ArgumentOutOfRangeException("Bid can't higher than budget");
+                    throw new ArgumentException("Bid can't higher than budget");
                 }
 
                 var offer = _mapper.Map<Offer>(request);
@@ -160,6 +214,50 @@ namespace ANF.Service
             return new PaginationResponse<OfferResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
+        public async Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason)
+        {
+            try
+            {
+                var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var offerRepository = _unitOfWork.GetRepository<Offer>();
+
+                var pubOfferExist = await pubOfferRepository.GetAll()
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(e => e.Id == pubOfferId);
+                if (pubOfferExist is null) throw new KeyNotFoundException("Publisher request for offer doest not exist.");
+
+                var offerExist = await offerRepository.GetAll()
+                                        .AsNoTracking().FirstOrDefaultAsync(e => e.Id == pubOfferExist.OfferId);
+                if (offerExist is null) throw new KeyNotFoundException("Offer does not exists");
+
+                var campaignExist = await campaignRepository.GetAll()
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId &&
+                                            (e.Status == CampaignStatus.Pending || e.Status == CampaignStatus.Verified));
+                if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending or Verified for offer to be updated");
+
+                if (!Enum.TryParse<PublisherOfferStatus>(status, true, out var pubOfferStatus))
+                    throw new ArgumentException("Invalid offer's status. Please check again!");
+
+                pubOfferExist.Status = pubOfferStatus;
+                pubOfferExist.JoiningDate = DateTime.UtcNow;
+                if (pubOfferStatus == PublisherOfferStatus.Rejected)
+                {
+                    pubOfferExist.RejectReason = rejectReason;
+                }
+
+                pubOfferRepository.Update(pubOfferExist);
+                return await _unitOfWork.SaveAsync() > 0;
+
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> UpdateOffer(long id, OfferUpdateRequest request)
         {
             try
@@ -186,17 +284,17 @@ namespace ANF.Service
                 if (!validModel) throw new KeyNotFoundException("Pricing model does not exists");
 
                 if (request.StartDate < campaignExist.StartDate && request.StartDate > campaignExist.EndDate)
-                    throw new ArgumentOutOfRangeException("Offer start date must be between start and end date of campaign");
+                    throw new ArgumentException("Offer start date must be between start and end date of campaign");
 
                 if (request.EndDate < campaignExist.StartDate && request.EndDate > campaignExist.EndDate)
-                    throw new ArgumentOutOfRangeException("Offer end date must be between start and end date of campaign");
+                    throw new ArgumentException("Offer end date must be between start and end date of campaign");
 
                 if (request.EndDate <= request.StartDate)
-                    throw new ArgumentOutOfRangeException("End date must be after start date");
+                    throw new ArgumentException("End date must be after start date");
 
                 if (request.Bid >= request.Budget)
                 {
-                    throw new ArgumentOutOfRangeException("Bid can't higher than budget");
+                    throw new ArgumentException("Bid can't higher than budget");
                 }
 
                 _ = _mapper.Map(request, offer);
