@@ -1,5 +1,6 @@
 ﻿using ANF.Core.Commons;
 using ANF.Core.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
@@ -20,8 +21,8 @@ namespace ANF.Core.Models.Entities
         [Column("wallet_id")]
         public long WalletId { get; set; }
 
-        [Column("amount")]
-        public double Amount { get; set; }
+        [Column("amount", TypeName = "decimal(10, 2)")]
+        public decimal Amount { get; set; }
 
         [Column("campaign_id")]
         public long? CampaignId { get; set; }
