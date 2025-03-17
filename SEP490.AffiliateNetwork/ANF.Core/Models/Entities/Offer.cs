@@ -33,14 +33,14 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Money gained by publisher for a click, order, etc. Based on the pricing model and advertiser rule
         /// </summary>
-        [Column("bid")]
-        public double Bid { get; set; }
+        [Column("bid", TypeName = "decimal(10, 2)")]
+        public decimal Bid { get; set; }
 
         /// <summary>
         /// The amount of money to run an offer
         /// </summary>
-        [Column("budget")]
-        public double Budget { get; set; }
+        [Column("budget", TypeName = "decimal(10, 2)")]
+        public decimal Budget { get; set; }
 
         [Column("commission_rate")]
         public double? CommissionRate { get; set; }
