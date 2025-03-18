@@ -119,13 +119,6 @@ namespace ANF.Service
 
                 if (request.OfferImages is not null)
                 {
-                    var allowedImagesTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-
-                    if (!allowedImagesTypes.Contains(request.OfferImages.ContentType))
-                    {
-                        throw new ArgumentException($"File {request.OfferImages.FileName} is not an allowed image format! Only JPEG, PNG, GIF, and WebP are supported.");
-                    }
-
                     var imageUrl = await _cloudinaryService.UploadImageAsync(request.OfferImages);
                     if(imageUrl is not null)
                     {
@@ -301,13 +294,6 @@ namespace ANF.Service
 
                 if (request.OfferImages is not null)
                 {
-                    var allowedImagesTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
-
-                    if (!allowedImagesTypes.Contains(request.OfferImages.ContentType))
-                    {
-                        throw new ArgumentException($"File {request.OfferImages.FileName} is not an allowed image format! Only JPEG, PNG, GIF, and WebP are supported.");
-                    }
-
                     var imageUrl = await _cloudinaryService.UploadImageAsync(request.OfferImages);
                     if (imageUrl is not null)
                     {
