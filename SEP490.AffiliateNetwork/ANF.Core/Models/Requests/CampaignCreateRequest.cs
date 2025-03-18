@@ -56,11 +56,11 @@ namespace ANF.Core.Models.Requests
 
         [Required(ErrorMessage = "Bid is required")]
         [Range(1000, double.MaxValue, ErrorMessage = "Bid is not negative")]
-        public double Bid { get; set; }
+        public decimal Bid { get; set; }
 
         [Required(ErrorMessage = "Budget is required")]
         [Range(1000, double.MaxValue, ErrorMessage = "Budget is not negative")]
-        public double Budget { get; set; }
+        public decimal Budget { get; set; }
 
     }
 }

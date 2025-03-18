@@ -9,8 +9,8 @@
         public string StepInfo { get; set; } = null!;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public double Bid { get; set; }
-        public double Budget { get; set; }
+        public decimal Bid { get; set; }
+        public decimal Budget { get; set; }
         public double? CommissionRate { get; set; }
         public string? OrderReturnTime { get; set; }
         public string? ImageUrl { get; set; }

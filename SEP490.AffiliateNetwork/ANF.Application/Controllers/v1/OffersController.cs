@@ -3,6 +3,7 @@ using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
@@ -17,7 +18,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
         [HttpGet("offers")]
-        //[Authorize]
+        [Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -38,7 +39,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Offer id</param>
         /// <returns></returns>
         [HttpGet("offers/{id}")]
-        //[Authorize]
+        [Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -60,7 +61,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Offer data json</param>
         /// <returns></returns>
         [HttpPost("offers")]
-        //[Authorize(Roles = "Advertiser")]
+        [Authorize(Roles = "Advertiser")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -90,7 +91,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPut("offers/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Advertiser, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -118,9 +119,10 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpDelete("offers/{id}")]
         [MapToApiVersion(1)]
-        //[Authorize(Roles = "Advertiser")]
+        [Authorize(Roles = "Advertiser, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteOffer(long id)
         {
             var result = await _offerService.DeleteOffer(id);
@@ -129,6 +131,51 @@ namespace ANF.Application.Controllers.v1
             {
                 IsSuccess = true,
                 Message = "Delete success."
+            });
+        }
+
+        /// <summary>
+        /// Apply offer for publishers
+        /// </summary>
+        /// <param name="pubId">Publisher code</param>
+        /// <param name="offerId">Offer id</param>
+        /// <returns></returns>
+        [HttpPost("offers/publisher")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ApplyOffer(string pubId, long offerId)
+        {
+            var result = await _offerService.ApplyOffer(pubId, offerId);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Apply success."
+            });
+        }
+
+        /// <summary>
+        /// Update apply offer request for advertiser
+        /// </summary>
+        /// <param name="id">Publisher Offer Id</param>
+        /// <param name="status">Request status</param>
+        /// <param name="rejectReason">Reject reason</param>
+        /// <returns></returns>
+        [HttpPatch("offers/pubOffers/{id}/status")]
+        [MapToApiVersion(1)]
+        //[Authorize(Roles = "Advertiser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdatePubOfferStatus(long id, string status, string? rejectReason)
+        {
+            var result = await _offerService.UpdateApplyOfferStatus(id, status, rejectReason);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update success."
             });
         }
     }

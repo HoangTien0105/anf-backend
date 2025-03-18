@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ANF.Core.Validations;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace ANF.Core.Models.Requests
@@ -32,6 +33,8 @@ namespace ANF.Core.Models.Requests
         [Required(ErrorMessage = "Budget is required")]
         [Range(1000, double.MaxValue, ErrorMessage = "Budget is not negative")]
         public decimal Budget { get; set; }
+
+        [AllowedImageExtensions]
         public IFormFile? OfferImages { get; set; }
     }
 }
