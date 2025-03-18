@@ -109,7 +109,7 @@ namespace ANF.Service
 
                     subscription.Name = request.Name;
                     subscription.Description = request.Description;
-                    subscription.Price = Math.Floor(request.Price); 
+                    subscription.Price = (decimal)Math.Floor(request.Price); 
                     subscription.Duration = request.Duration;
 
                     subscriptionRepository.Update(subscription);

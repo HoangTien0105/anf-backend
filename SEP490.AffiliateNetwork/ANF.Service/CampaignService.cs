@@ -66,7 +66,7 @@ namespace ANF.Service
 
                 var campaign = _mapper.Map<Campaign>(request);
 
-                campaign.Balance = request.Offers.Sum(e => e.Budget);
+                campaign.Balance = (decimal?)request.Offers.Sum(e => e.Budget);
 
                 campaignRepository.Add(campaign);
 

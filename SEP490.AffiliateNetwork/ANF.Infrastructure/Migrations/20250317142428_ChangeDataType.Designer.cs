@@ -4,6 +4,7 @@ using ANF.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250317142428_ChangeDataType")]
+    partial class ChangeDataType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -418,127 +421,6 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Subscriptions");
-                });
-
-            modelBuilder.Entity("ANF.Core.Models.Entities.TrackingParam", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("param_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("description");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("name");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrackingParam");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            Description = "Traffic source identifier",
-                            Name = "source"
-                        },
-                        new
-                        {
-                            Id = 2L,
-                            Description = "Unique identifier for the affiliate",
-                            Name = "publisher_id"
-                        },
-                        new
-                        {
-                            Id = 3L,
-                            Description = "Specific campaign identifier",
-                            Name = "campaign_id"
-                        },
-                        new
-                        {
-                            Id = 4L,
-                            Description = "Sub-affiliate identifier",
-                            Name = "sub_id"
-                        },
-                        new
-                        {
-                            Id = 5L,
-                            Description = "Marketing channel (email, social, search, etc.)",
-                            Name = "channel"
-                        },
-                        new
-                        {
-                            Id = 6L,
-                            Description = "Keyword that triggered the ad",
-                            Name = "keyword"
-                        },
-                        new
-                        {
-                            Id = 7L,
-                            Description = "User device type (desktop, mobile, tablet)",
-                            Name = "device"
-                        },
-                        new
-                        {
-                            Id = 8L,
-                            Description = "User country code",
-                            Name = "country"
-                        },
-                        new
-                        {
-                            Id = 9L,
-                            Description = "URL of the referring website",
-                            Name = "referrer"
-                        },
-                        new
-                        {
-                            Id = 10L,
-                            Description = "Specific landing page URL or identifier",
-                            Name = "landing_page"
-                        },
-                        new
-                        {
-                            Id = 11L,
-                            Description = "Unique identifier for each click",
-                            Name = "click_id"
-                        },
-                        new
-                        {
-                            Id = 12L,
-                            Description = "UTM parameter for traffic source",
-                            Name = "utm_source"
-                        },
-                        new
-                        {
-                            Id = 13L,
-                            Description = "UTM parameter for campaign name",
-                            Name = "utm_campaign"
-                        },
-                        new
-                        {
-                            Id = 14L,
-                            Description = "UTM parameter for content identifier",
-                            Name = "utm_content"
-                        },
-                        new
-                        {
-                            Id = 15L,
-                            Description = "UTM parameter for search terms",
-                            Name = "utm_term"
-                        },
-                        new
-                        {
-                            Id = 16L,
-                            Description = "Commission amount for this affiliate",
-                            Name = "payout"
-                        });
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Transaction", b =>
