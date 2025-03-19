@@ -41,7 +41,7 @@ namespace ANF.Service
                 }
                 if (wallet.IsActive)
                     throw new Exception("Wallet has already activated!");   //TODO: Change the exception type
-                
+
                 wallet.IsActive = true;
                 walletRepository.Update(wallet);
                 return await _unitOfWork.SaveAsync() > 0;
@@ -183,35 +183,18 @@ namespace ANF.Service
             {
                 throw new UnauthorizedAccessException("Invalid user's token!");
             }
-            var userId = claims.ContainsKey(ClaimConstants.NameId) ? claims[ClaimConstants.NameId] : "N/A";
+            var userCode = claims.ContainsKey(ClaimConstants.NameId) ? claims[ClaimConstants.NameId] : "N/A";
             var user = await userRepository.GetAll()
                 .AsNoTracking()
                 .Include(u => u.PublisherProfile)
                 .Include(u => u.AdvertiserProfile)
-                .FirstOrDefaultAsync(u => u.Id == long.Parse(userId));
+                .FirstOrDefaultAsync(u => u.UserCode == Guid.Parse(userCode));
             if (user is null)
             {
                 throw new KeyNotFoundException("User does not exist!");
             }
             var response = _mapper.Map<DetailedUserResponse>(user);
             return response;
-        }
-
-        public async Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request)
-        {
-            var userRepository = _unitOfWork.GetRepository<User>();
-            var users = await userRepository.GetAll()
-                .AsNoTracking()
-                .Where(u => u.Role == UserRoles.Publisher || u.Role == UserRoles.Advertiser)
-                .Skip((request.pageNumber - 1) * request.pageSize)
-                .Take(request.pageSize)
-                .ToListAsync();
-            if (!users.Any())
-                throw new NoDataRetrievalException("No data for users!");
-            var totalCount = users.Count();
-
-            var data = _mapper.Map<List<UserResponse>>(users);
-            return new PaginationResponse<UserResponse>(data, totalCount, request.pageNumber, request.pageSize);
         }
         
         public async Task<bool> RegisterAccount(AccountCreateRequest request)
@@ -330,6 +313,40 @@ namespace ANF.Service
             }
             var token = _tokenService.GenerateToken(user);
             return token;
+        }
+
+        public async Task<PaginationResponse<AdvertiserResponse>> GetAdvertisers(PaginationRequest request)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var users = await userRepository.GetAll()
+                .AsNoTracking()
+                .Where(u => u.Role == UserRoles.Advertiser)
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!users.Any())
+                throw new NoDataRetrievalException("No data for users!");
+            var totalCount = users.Count();
+
+            var data = _mapper.Map<List<AdvertiserResponse>>(users);
+            return new PaginationResponse<AdvertiserResponse>(data, totalCount, request.pageNumber, request.pageSize);
+        }
+
+        public async Task<PaginationResponse<PublisherResponse>> GetPublishers(PaginationRequest request)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var users = await userRepository.GetAll()
+                .AsNoTracking()
+                .Where(u => u.Role == UserRoles.Publisher)
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!users.Any())
+                throw new NoDataRetrievalException("No data for users!");
+            var totalCount = users.Count();
+
+            var data = _mapper.Map<List<PublisherResponse>>(users);
+            return new PaginationResponse<PublisherResponse>(data, totalCount, request.pageNumber, request.pageSize);
         }
     }
 }

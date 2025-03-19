@@ -5,6 +5,8 @@
     /// </summary>
     public class ClaimConstants
     {
+        public const string Primarysid = "primarysid";
+
         public const string NameId = "nameid";
 
         public const string Email = "email";

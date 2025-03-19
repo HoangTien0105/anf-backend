@@ -44,8 +44,11 @@ namespace ANF.Service
             CreateMap<AdvertiserProfileRequest, AdvertiserProfile>()
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]));
 
-            CreateMap<User, UserResponse>();
-            CreateMap<User, PublisherResponse>()
+            CreateMap<User, AdvertiserResponse>();
+
+            CreateMap<User, PublisherResponse>();
+
+            CreateMap<User, PublisherProfileResponse>()
                 .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode))
                 .ForMember(dest => dest.Specialization, opt => opt.MapFrom(src => src.PublisherProfile.Specialization))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PublisherProfile.ImageUrl))

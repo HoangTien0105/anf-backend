@@ -66,19 +66,31 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get all users
+        /// Get all advertisers
         /// </summary>
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
-        [HttpGet("users")]
+        [HttpGet("users/advertisers")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetUsers([FromQuery] PaginationRequest request)
+        public async Task<IActionResult> GetAdvertisers([FromQuery] PaginationRequest request)
         {
-            var users = await _userService.GetUsers(request);
-            return Ok(users);
+            var advertisers = await _userService.GetAdvertisers(request);
+            return Ok(advertisers);
+        }
+
+
+        [HttpGet("users/publishers")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPublishers([FromQuery] PaginationRequest request)
+        {
+            var publishers = await _userService.GetPublishers(request);
+            return Ok(publishers);
         }
 
         /// <summary>

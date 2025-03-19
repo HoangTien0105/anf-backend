@@ -38,7 +38,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -47,33 +47,26 @@ namespace ANF.Service
         {
             try
             {
-                try
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+                if (!requests.Any())
+                    throw new ArgumentException("Invalid requested data!");
+                foreach (var item in requests)
                 {
-                    var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                    if (!requests.Any())
-                        throw new ArgumentException("Invalid requested data!");
-                    foreach (var item in requests)
-                    {
-                        var isDuplicate = await userBankRepository.GetAll()
-                            .AsNoTracking()
-                            .AnyAsync(ub => ub.UserCode == publisherCode && ub.BankingNo == item.BankingNo);
-                        if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
-                    }
-                    var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = publisherCode);
-                    userBankRepository.AddRange(banks);
-                    return await _unitOfWork.SaveAsync() > 0;
+                    var isDuplicate = await userBankRepository.GetAll()
+                        .AsNoTracking()
+                        .AnyAsync(ub => ub.UserCode == publisherCode && ub.BankingNo == item.BankingNo);
+                    if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
                 }
-                catch
-                {
-                    await _unitOfWork.RollbackAsync();
-                    throw;
-                }
+                var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = publisherCode);
+                userBankRepository.AddRange(banks);
+                return await _unitOfWork.SaveAsync() > 0;
             }
             catch
             {
-                await _unitOfWork.SaveAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
+
         }
 
         public async Task<bool> AddProfile(long publisherId, PublisherProfileCreatedRequest value)
@@ -130,7 +123,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.SaveAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -193,13 +186,15 @@ namespace ANF.Service
             var userRepository = _unitOfWork.GetRepository<User>();
             var pubSrcRepository = _unitOfWork.GetRepository<PublisherSource>();
 
-            var publisher = await userRepository.FindByIdAsync(publisherId);
+            var publisher = await userRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == publisherId);
             if (publisher is null)
                 throw new KeyNotFoundException("Publisher does not exist!");
 
             var affiliateSources = await pubSrcRepository.GetAll()
                 .AsNoTracking()
-                .Where(p => p.PublisherId == publisherId && p.Status == AffSourceStatus.Verified)
+                .Where(p => p.PublisherId == publisherId)
                 .ToListAsync();
             if (!affiliateSources.Any())
                 throw new NoDataRetrievalException("No data of affiliate source!");
@@ -207,7 +202,7 @@ namespace ANF.Service
             return response;
         }
 
-        public async Task<PublisherResponse> GetPublisherProfile(long publisherId)
+        public async Task<PublisherProfileResponse> GetPublisherProfile(long publisherId)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
             var publisher = await userRepository.GetAll()
@@ -219,7 +214,7 @@ namespace ANF.Service
                 .FirstOrDefaultAsync();
             if (publisher is null)
                 throw new KeyNotFoundException("Publisher does not exist!");
-            var response = _mapper.Map<PublisherResponse>(publisher);
+            var response = _mapper.Map<PublisherProfileResponse>(publisher);
             return response;
         }
 
@@ -245,6 +240,28 @@ namespace ANF.Service
             catch
             {
                 //await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateAffiliateSourceState(List<long> sIds)
+        {
+            try
+            {
+                var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
+                foreach (var item in sIds)
+                {
+                    var source = await pubSourceRepository.FindByIdAsync(item);
+                    if (source is null)
+                        throw new KeyNotFoundException("Source does not exist!");
+                    source.Status = AffSourceStatus.Verified;
+                    pubSourceRepository.Update(source);
+                }
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -279,7 +296,7 @@ namespace ANF.Service
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
                 var imageUrl = string.Empty;
-                
+
                 if (request is null)
                     throw new ArgumentException("Invalid requested data!");
                 if (request.Image != null)
@@ -297,7 +314,7 @@ namespace ANF.Service
 
                 _ = _mapper.Map(request, publisher);
                 _ = _mapper.Map(request, profile, opt => opt.Items["ImageUrl"] = imageUrl);
-                
+
                 userRepository.Update(publisher);
                 pubProfileRepository.Update(profile);
                 return await _unitOfWork.SaveAsync() > 0;

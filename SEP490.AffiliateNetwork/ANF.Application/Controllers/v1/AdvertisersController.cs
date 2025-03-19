@@ -18,7 +18,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Advertiser's id</param>
         /// <returns></returns>
         [HttpGet("advertisers/{id}/profile")]
-        [Authorize(Roles = "Advertiser")]
+        [Authorize(Roles = "Advertiser, Admin")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

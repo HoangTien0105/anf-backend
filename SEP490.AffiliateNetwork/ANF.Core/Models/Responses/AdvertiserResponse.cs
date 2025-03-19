@@ -1,9 +1,9 @@
 ﻿namespace ANF.Core.Models.Responses
 {
     /// <summary>
-    /// Response model for users 
+    /// Advertiser responded information for admin
     /// </summary>
-    public class UserResponse
+    public class AdvertiserResponse
     {
         public long Id { get; set; }
 
@@ -25,6 +25,6 @@
 
         public string Status { get; set; } = null!;
 
-        public string Role { get; set; } = null!;
+        public string? RejectReason { get; set; }
     }
 }

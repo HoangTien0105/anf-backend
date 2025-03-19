@@ -17,7 +17,7 @@ namespace ANF.Core.Services
 
         Task<bool> UpdateProfile(long publisherId, PublisherProfileUpdatedRequest request);
 
-        Task<PublisherResponse> GetPublisherProfile(long publisherId);
+        Task<PublisherProfileResponse> GetPublisherProfile(long publisherId);
 
         Task<List<AffiliateSourceResponse>> GetAffiliateSourceOfPublisher(long publisherId);
 
@@ -31,5 +31,12 @@ namespace ANF.Core.Services
         /// <param name="ubIds">List user bank's id</param>
         /// <returns></returns>
         Task<bool> DeleteBankingInformation(List<long> ubIds);
+
+        /// <summary>
+        /// Update status 
+        /// </summary>
+        /// <param name="sIds"></param>
+        /// <returns></returns>
+        Task<bool> UpdateAffiliateSourceState(List<long> sIds);
     }
 }
