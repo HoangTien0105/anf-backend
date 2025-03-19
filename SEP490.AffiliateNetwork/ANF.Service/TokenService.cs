@@ -23,7 +23,8 @@ namespace ANF.Service
             {
                 Subject = new ClaimsIdentity(
                 [
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.PrimarySid, user.Id.ToString()),
+                    new Claim(ClaimTypes.NameIdentifier, user.UserCode.ToString()),
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
                 ]),

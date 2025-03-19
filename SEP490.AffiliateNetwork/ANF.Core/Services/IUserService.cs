@@ -5,13 +5,15 @@ namespace ANF.Core.Services
 {
     public interface IUserService
     {
-        Task<LoginResponse> Login(string email, string password);
+        Task<string> Login(string email, string password);
 
         Task<bool> RegisterAccount(AccountCreateRequest request);
 
         Task<UserStatusResponse> UpdateAccountStatus(long userId, string status);
 
-        Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request);
+        Task<PaginationResponse<AdvertiserResponse>> GetAdvertisers(PaginationRequest request);
+
+        Task<PaginationResponse<PublisherResponse>> GetPublishers(PaginationRequest request);
 
         Task<bool> DeleteUser(long id);
 
@@ -20,5 +22,9 @@ namespace ANF.Core.Services
         Task<bool> ChangePassword(string email);
 
         Task<bool> UpdatePassword(string token, long userId, UpdatePasswordRequest request);
+
+        Task<bool> ActivateWallet(Guid userCode);
+
+        Task<DetailedUserResponse> GetUserInformation();
     }
 }

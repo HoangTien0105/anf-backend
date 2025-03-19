@@ -30,14 +30,14 @@ namespace ANF.Core.Models.Entities
         [Column("subscription_id")]
         public long? SubscriptionId { get; set; }
 
+        [Column("reason")]
+        public string? Reason { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
         
-        /// <summary>
-        /// Payment status: Success, Failed, Canceled
-        /// </summary>
-        [Column("payment_status")]
-        public PaymentStatus Status { get; set; }
+        [Column("status")]
+        public TransactionStatus Status { get; set; }
 
         public WalletHistory? WalletHistory { get; set; }
 

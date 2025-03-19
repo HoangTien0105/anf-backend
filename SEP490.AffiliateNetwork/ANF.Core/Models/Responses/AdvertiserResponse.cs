@@ -1,6 +1,9 @@
 ﻿namespace ANF.Core.Models.Responses
 {
-    public class PublisherResponse
+    /// <summary>
+    /// Advertiser responded information for admin
+    /// </summary>
+    public class AdvertiserResponse
     {
         public long Id { get; set; }
 
