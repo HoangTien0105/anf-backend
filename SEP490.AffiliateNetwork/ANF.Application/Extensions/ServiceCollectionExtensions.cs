@@ -43,8 +43,8 @@ namespace ANF.Application.Extensions
 
             var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
             var jwtConfig = configuration.GetRequiredSection("Jwt");
-            //var googleConfig = configuration.GetRequiredSection("Google");
 
+            services.AddHttpContextAccessor();
             services.ConfigureSwagger();
             services.ConfigureCors();
             services.ConfigureAuthentication(jwtConfig);

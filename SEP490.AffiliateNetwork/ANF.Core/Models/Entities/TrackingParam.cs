@@ -6,6 +6,7 @@ namespace ANF.Core.Models.Entities
     /// <summary>
     /// Table for displaying supported tracking parameters by platform
     /// </summary>
+    [Table("TrackingParams")]
     public class TrackingParam : IEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

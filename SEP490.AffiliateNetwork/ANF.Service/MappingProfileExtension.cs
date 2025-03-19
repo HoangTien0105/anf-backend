@@ -11,7 +11,10 @@ namespace ANF.Service
     {
         public MappingProfileExtension()
         {
-            CreateMap<User, LoginResponse>();
+            CreateMap<User, DetailedUserResponse>()
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PublisherProfile.ImageUrl))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.AdvertiserProfile.ImageUrl));
 
             CreateMap<AccountCreateRequest, User>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))

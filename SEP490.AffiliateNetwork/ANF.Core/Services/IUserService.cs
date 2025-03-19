@@ -5,7 +5,8 @@ namespace ANF.Core.Services
 {
     public interface IUserService
     {
-        Task<LoginResponse> Login(string email, string password);
+        //Task<LoginResponse> Login(string email, string password);
+        Task<string> Login(string email, string password);
 
         Task<bool> RegisterAccount(AccountCreateRequest request);
 
@@ -20,5 +21,10 @@ namespace ANF.Core.Services
         Task<bool> ChangePassword(string email);
 
         Task<bool> UpdatePassword(string token, long userId, UpdatePasswordRequest request);
+
+        Task<bool> ActivateWallet(Guid userCode);
+
+        Task<DetailedUserResponse> GetUserInformation();
+
     }
 }

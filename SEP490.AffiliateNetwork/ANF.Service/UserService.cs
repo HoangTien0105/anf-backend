@@ -8,20 +8,50 @@ using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using ANF.Infrastructure.Helpers;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace ANF.Service
 {
     public class UserService(IUnitOfWork unitOfWork,
                              TokenService tokenService,
-                             IMapper mapper, IEmailService emailService) : IUserService
+                             IMapper mapper, IEmailService emailService,
+                             IHttpContextAccessor httpContextAccessor) : IUserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
         private readonly IEmailService _emailService = emailService;
-        //NOTE: Change the application host when deploying successfully!
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
+        //TODO: Change the application host when deploying successfully!
         private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
+
+        public async Task<bool> ActivateWallet(Guid userCode)
+        {
+            try
+            {
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var wallet = await walletRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserCode == userCode);
+                if (wallet is null)
+                {
+                    throw new KeyNotFoundException("Wallet does not exist!");
+                }
+                if (wallet.IsActive)
+                    throw new Exception("Wallet has already activated!");   //TODO: Change the exception type
+                
+                wallet.IsActive = true;
+                walletRepository.Update(wallet);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
 
         public async Task<bool> ChangeEmailStatus(long userId)
         {
@@ -145,6 +175,28 @@ namespace ANF.Service
             }
         }
 
+        public async Task<DetailedUserResponse> GetUserInformation()
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var claims = TokenHelper.GetTokenClaims(_httpContextAccessor.HttpContext);
+            if (claims is null)
+            {
+                throw new UnauthorizedAccessException("Invalid user's token!");
+            }
+            var userId = claims.ContainsKey(ClaimConstants.NameId) ? claims[ClaimConstants.NameId] : "N/A";
+            var user = await userRepository.GetAll()
+                .AsNoTracking()
+                .Include(u => u.PublisherProfile)
+                .Include(u => u.AdvertiserProfile)
+                .FirstOrDefaultAsync(u => u.Id == long.Parse(userId));
+            if (user is null)
+            {
+                throw new KeyNotFoundException("User does not exist!");
+            }
+            var response = _mapper.Map<DetailedUserResponse>(user);
+            return response;
+        }
+
         public async Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
@@ -161,24 +213,7 @@ namespace ANF.Service
             var data = _mapper.Map<List<UserResponse>>(users);
             return new PaginationResponse<UserResponse>(data, totalCount, request.pageNumber, request.pageSize);
         }
-
-        public async Task<LoginResponse> Login(string email, string password)
-        {
-            var userRepository = _unitOfWork.GetRepository<User>();
-            var user = await userRepository.GetAll()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
-            if (user is null) throw new KeyNotFoundException("User does not exist.");
-            if (user.Status == UserStatus.Deactive)
-            {
-                throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
-            }
-
-            var response = _mapper.Map<LoginResponse>(user);
-            response.AccessToken = _tokenService.GenerateToken(user);
-            return response;
-        }
-
+        
         public async Task<bool> RegisterAccount(AccountCreateRequest request)
         {
             try
@@ -280,6 +315,21 @@ namespace ANF.Service
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<string> Login(string email, string password)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var user = await userRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
+            if (user is null) throw new KeyNotFoundException("User does not exist.");
+            if (user.Status == UserStatus.Deactive)
+            {
+                throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
+            }
+            var token = _tokenService.GenerateToken(user);
+            return token;
         }
     }
 }

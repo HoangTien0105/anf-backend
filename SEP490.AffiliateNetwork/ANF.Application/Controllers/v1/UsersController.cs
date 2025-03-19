@@ -16,29 +16,7 @@ namespace ANF.Application.Controllers.v1
         /// Authenticates a user with the provided email and password.
         /// </summary>
         /// <param name="value">The login request containing email and password.</param>
-        /// <returns>An ApiResponse containing the login response with user details and access token.</returns>
-        /// <remarks>
-        /// Sample request:
-        /// 
-        ///     POST /api/v1/users/login
-        ///     {
-        ///         "email": "user@example.com",
-        ///         "password": "password123"
-        ///     }
-        /// 
-        /// Sample response:
-        /// 
-        ///     {
-        ///         "isSuccess": true,
-        ///         "message": "Login successfully.",
-        ///         "value": {
-        ///             "id": "d290f1ee-6c54-4b01-90e6-d701748f0851",
-        ///             "firstName": "John",
-        ///             "lastName": "Doe",
-        ///             "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        ///         }
-        ///     }
-        /// </remarks>
+        /// <returns>An access token</returns>
         [HttpPost("users/login")]
         [MapToApiVersion(1)]
         [AllowAnonymous]
@@ -52,12 +30,12 @@ namespace ANF.Application.Controllers.v1
             {
                 return validationResult;
             }
-            var user = await _userService.Login(value.Email, value.Password);
-            return Ok(new ApiResponse<LoginResponse>
+            var token = await _userService.Login(value.Email, value.Password);
+            return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
                 Message = "Login successfully.",
-                Value = user
+                Value = token
             });
         }
 
@@ -102,7 +80,28 @@ namespace ANF.Application.Controllers.v1
             var users = await _userService.GetUsers(request);
             return Ok(users);
         }
-        
+
+        /// <summary>
+        /// Get information of the user
+        /// </summary>
+        /// <returns>User's information</returns>
+        [HttpGet("users/me")]
+        [MapToApiVersion(1)]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetDetailedUser()
+        {
+            var user = await _userService.GetUserInformation();
+            return Ok(new ApiResponse<DetailedUserResponse>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = user
+            });
+        }
+
         /// <summary>
         /// Create new account
         /// </summary>
@@ -209,6 +208,22 @@ namespace ANF.Application.Controllers.v1
             {
                 IsSuccess = true,
                 Message = "An email for reset the password is sent to you. Please check the inbox and spam email to get the link!"
+            });
+        }
+
+        [HttpPatch("users/{code}/wallet")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser, Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ActivateWallet(Guid code)
+        {
+            var result = await _userService.ActivateWallet(code);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Activation success!"
             });
         }
     }
