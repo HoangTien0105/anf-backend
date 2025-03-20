@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ANF.Infrastructure.Configs
 {
-    public class PublisherSourceTypeConfig : IEntityTypeConfiguration<PublisherSource>
+    public class PublisherSourceTypeConfig : IEntityTypeConfiguration<TrafficSource>
     {
-        public void Configure(EntityTypeBuilder<PublisherSource> builder)
+        public void Configure(EntityTypeBuilder<TrafficSource> builder)
         {
             builder.HasOne(p => p.Publisher)
                 .WithMany(c => c.AffiliateSources)

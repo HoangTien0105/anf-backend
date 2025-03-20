@@ -13,11 +13,11 @@ namespace ANF.Application.Controllers.v1
         private readonly IPublisherService _publisherService = publisherService;
 
         /// <summary>
-        /// Get publisher's affiliate sources
+        /// Get publisher's traffic sources
         /// </summary>
         /// <param name="id">Publisher's id</param>
         /// <returns>A list of available affiliate sources</returns>
-        [HttpGet("publishers/{id}/affiliate-sources")]
+        [HttpGet("publishers/{id}/traffic-sources")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Publisher, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]

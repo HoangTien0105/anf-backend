@@ -16,13 +16,13 @@ namespace ANF.Service
     public class UserService(IUnitOfWork unitOfWork,
                              TokenService tokenService,
                              IMapper mapper, IEmailService emailService,
-                             IHttpContextAccessor httpContextAccessor) : IUserService
+                             IUserClaimsService userClaimsService) : IUserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
         private readonly IEmailService _emailService = emailService;
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
 
         //TODO: Change the application host when deploying successfully!
         private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
@@ -31,6 +31,10 @@ namespace ANF.Service
         {
             try
             {
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (userCode != Guid.Parse(currentUserCode))
+                    throw new UnauthorizedAccessException("User's code does not match!");
+
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 var wallet = await walletRepository.GetAll()
                     .AsNoTracking()
@@ -40,7 +44,7 @@ namespace ANF.Service
                     throw new KeyNotFoundException("Wallet does not exist!");
                 }
                 if (wallet.IsActive)
-                    throw new Exception("Wallet has already activated!");   //TODO: Change the exception type
+                    throw new Exception("Wallet has already activated!");
 
                 wallet.IsActive = true;
                 walletRepository.Update(wallet);
@@ -129,7 +133,7 @@ namespace ANF.Service
                     {
                         if (user.AffiliateSources.Any())
                         {
-                            var pubSrcRepository = _unitOfWork.GetRepository<PublisherSource>();
+                            var pubSrcRepository = _unitOfWork.GetRepository<TrafficSource>();
                             pubSrcRepository.DeleteRange(user.AffiliateSources);
                         }
                         if (user.PublisherProfile is not null)
@@ -159,8 +163,7 @@ namespace ANF.Service
                     }
                     else
                     {
-                        //TODO: Change the message and exception type
-                        throw new Exception("Exception.");
+                        throw new Exception("Cannot delete user!");
                     }
                 }
                 else
@@ -178,12 +181,11 @@ namespace ANF.Service
         public async Task<DetailedUserResponse> GetUserInformation()
         {
             var userRepository = _unitOfWork.GetRepository<User>();
-            var claims = TokenHelper.GetTokenClaims(_httpContextAccessor.HttpContext);
-            if (claims is null)
+            var userCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            if (string.IsNullOrEmpty(userCode))
             {
-                throw new UnauthorizedAccessException("Invalid user's token!");
+                throw new UnauthorizedAccessException("Cannot retrieve claims from the token!");
             }
-            var userCode = claims.ContainsKey(ClaimConstants.NameId) ? claims[ClaimConstants.NameId] : "N/A";
             var user = await userRepository.GetAll()
                 .AsNoTracking()
                 .Include(u => u.PublisherProfile)

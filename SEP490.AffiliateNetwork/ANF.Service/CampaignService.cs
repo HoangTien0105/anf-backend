@@ -6,15 +6,18 @@ using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ANF.Core.Enums;
+using ANF.Core.Commons;
 
 namespace ANF.Service
 {
     public class CampaignService(IUnitOfWork unitOfWork,
                                  ICloudinaryService cloudinaryService,
-                                 IMapper mapper) : ICampaignService
+                                 IMapper mapper,
+                                 IUserClaimsService userClaimsService) : ICampaignService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
 
         public async Task<bool> CreateCampaign(CampaignCreateRequest request)
@@ -27,8 +30,13 @@ namespace ANF.Service
 
             try
             {
+                var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (request.AdvertiserCode != currentAdvertiserCode)
+                {
+                    throw new UnauthorizedAccessException("Advertiser's code does not match!");
+                }
                 if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
-
+                
                 var advertiser = await userRepository.GetAll()
                                             .AsNoTracking()
                                             .Where(e => e.UserCode.ToString() == request.AdvertiserCode && e.Role == UserRoles.Advertiser)
@@ -205,14 +213,25 @@ namespace ANF.Service
             return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="id">Advertiser's code</param>
+        /// <returns></returns>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="KeyNotFoundException"></exception>
         public async Task<PaginationResponse<CampaignResponse>> 
             GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id)
         {
+            var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            if (id != currentAdvertiserCode)
+                throw new UnauthorizedAccessException("Advertiser's code does not match!");
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
-                            .Where(e => e.AdvertiserCode.ToString() == id)
+                            .Where(e => e.AdvertiserCode.ToString() == id)  
                             .Include(e => e.Category)
                             .Include(e => e.Images)
                             .Skip((request.pageNumber - 1) * request.pageSize)

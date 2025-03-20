@@ -67,12 +67,12 @@ namespace ANF.Service
             CreateMap<Category, CategoryResponse>();
 
 
-            CreateMap<AffiliateSourceCreateRequest, PublisherSource>()
+            CreateMap<AffiliateSourceCreateRequest, TrafficSource>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => AffSourceStatus.Pending))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.Now))
                 .ForMember(dest => dest.PublisherId, opt => opt.MapFrom((src, dest, destMember, context) => (long)context.Items["PublisherId"]));
 
-            CreateMap<AffiliateSourceUpdateRequest, PublisherSource>()
+            CreateMap<AffiliateSourceUpdateRequest, TrafficSource>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.Status, opt => opt.Ignore());
 
@@ -100,7 +100,7 @@ namespace ANF.Service
             CreateMap<OfferCreateRequest, Offer>()
                 .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
 
-            CreateMap<PublisherSource, AffiliateSourceResponse>();
+            CreateMap<TrafficSource, AffiliateSourceResponse>();
             CreateMap<Subscription, SubscriptionResponse>();
             CreateMap<Campaign, CampaignResponse>();
             CreateMap<CampaignImage, CampaignImageResponse>();

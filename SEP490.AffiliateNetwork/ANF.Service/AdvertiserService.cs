@@ -1,4 +1,5 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
@@ -10,16 +11,21 @@ using Microsoft.EntityFrameworkCore;
 namespace ANF.Service
 {
     public class AdvertiserService(IUnitOfWork unitOfWork, IMapper mapper, 
-        ICloudinaryService cloudinaryService) : IAdvertiserService
+        ICloudinaryService cloudinaryService,
+        IUserClaimsService userClaimsService) : IAdvertiserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
 
         public async Task<bool> AddBankingInformation(Guid advertiserCode, List<UserBankCreateRequest> requests)
         {
             try
             {
+                var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (advertiserCode != Guid.Parse(currentAdvertiserCode))
+                    throw new UnauthorizedAccessException("Advertiser's code does not match!");
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 if (!requests.Any())
                     throw new ArgumentException("Invalid requested data!");
@@ -45,6 +51,10 @@ namespace ANF.Service
         {
             try
             {
+                var currentAdvertiserId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+                if (advertiserId != long.Parse(currentAdvertiserId))
+                    throw new UnauthorizedAccessException("Advertiser's id does not match!");
+
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
                 var imageUrl = string.Empty;
@@ -108,8 +118,11 @@ namespace ANF.Service
 
         public async Task<AdvertiserProfileResponse> GetAdvertiserProfile(long advertiserId)
         {
+            var currentAdvertiserId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+            if (advertiserId != long.Parse(currentAdvertiserId))
+                throw new UnauthorizedAccessException("Advertiser's id does not match!");
+            
             var userRepository = _unitOfWork.GetRepository<User>();
-
             var advertiser = await userRepository.GetAll()
                 .AsNoTracking()
                 .Include(u => u.AdvertiserProfile)
@@ -148,9 +161,14 @@ namespace ANF.Service
         {
             try
             {
+                var currentAdvertiserId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+                if (advertiserId != long.Parse(currentAdvertiserId))
+                    throw new UnauthorizedAccessException("Advertiser's id does not match!");
+
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
                 var imageUrl = string.Empty;
+                
                 if (request is null)
                     throw new ArgumentException("Invalid requested data!");
                 if (request.Image is not null)

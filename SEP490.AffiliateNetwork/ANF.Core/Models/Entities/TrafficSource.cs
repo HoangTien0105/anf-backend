@@ -7,7 +7,7 @@ namespace ANF.Core.Models.Entities
     /// <summary>
     /// Affiliate source of a publisher
     /// </summary>
-    public class PublisherSource : IEntity
+    public class TrafficSource : IEntity
     {
         [Column("pubs_no")]
         public long Id { get; set; }

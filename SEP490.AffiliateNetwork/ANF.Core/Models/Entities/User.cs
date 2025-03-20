@@ -72,7 +72,7 @@ namespace ANF.Core.Models.Entities
         [Timestamp]
         public byte[] ConcurrencyStamp { get; set; } = null!;
 
-        public ICollection<PublisherSource> AffiliateSources { get; set; } = new List<PublisherSource>();
+        public ICollection<TrafficSource> AffiliateSources { get; set; } = new List<TrafficSource>();
 
         public ICollection<PublisherOffer> PublisherOffers { get; set; } = new List<PublisherOffer>();
 

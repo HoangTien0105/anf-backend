@@ -1,4 +1,5 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
@@ -10,20 +11,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ANF.Service
 {
-    public class PublisherService(IUnitOfWork unitOfWork, IMapper mapper,
-        ICloudinaryService cloudinaryService) : IPublisherService
+    public class PublisherService(IUnitOfWork unitOfWork, 
+        IMapper mapper,
+        ICloudinaryService cloudinaryService,
+        IUserClaimsService userClaimsService) : IPublisherService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
 
         public async Task<bool> AddAffiliateSources(long publisherId, List<AffiliateSourceCreateRequest> requests)
         {
             try
             {
+                var currentPublisherId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+                if (publisherId != long.Parse(currentPublisherId))
+                    throw new UnauthorizedAccessException("Publisher's id does not match!");
+
                 if (!requests.Any())
                     throw new ArgumentException("Request data is invalid. Please check again!");
-                var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
+                var pubSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
                 var userRepository = _unitOfWork.GetRepository<User>();
 
                 var publisher = await userRepository.FindByIdAsync(publisherId);
@@ -32,7 +40,7 @@ namespace ANF.Service
                     throw new KeyNotFoundException("Publisher does not exist!");
                 }
                 // Pass publisherId to AutoMapper via Items dictionary
-                var sources = _mapper.Map<List<PublisherSource>>(requests, opts => opts.Items["PublisherId"] = publisherId);
+                var sources = _mapper.Map<List<TrafficSource>>(requests, opts => opts.Items["PublisherId"] = publisherId);
                 pubSourceRepository.AddRange(sources);
                 return await _unitOfWork.SaveAsync() > 0;
             }
@@ -47,6 +55,9 @@ namespace ANF.Service
         {
             try
             {
+                var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (publisherCode != Guid.Parse(currentPublisherCode))
+                    throw new UnauthorizedAccessException("Publisher's id does not match!");
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 if (!requests.Any())
                     throw new ArgumentException("Invalid requested data!");
@@ -73,8 +84,12 @@ namespace ANF.Service
         {
             try
             {
-                if (value.PublisherId != publisherId)
-                    throw new ArgumentException("Publisher's id is not match!");
+                var currentPublisherId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+                if (publisherId != long.Parse(currentPublisherId))
+                    throw new UnauthorizedAccessException("Publisher's id does not match!");
+                /*if (value.PublisherId != publisherId)
+                    throw new ArgumentException("Publisher's id is not match!");*/
+                
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
                 var imageUrl = string.Empty;
@@ -110,7 +125,7 @@ namespace ANF.Service
         {
             try
             {
-                var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
+                var pubSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
                 var source = await pubSourceRepository.GetAll()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.Id == sourceId);
@@ -134,7 +149,7 @@ namespace ANF.Service
             {
                 if (!sourceIds.Any())
                     throw new ArgumentException("Request data is invalid. Please check again!");
-                var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
+                var pubSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
                 foreach (var id in sourceIds)
                 {
                     var affiliateSource = await pubSourceRepository.GetAll()
@@ -183,27 +198,28 @@ namespace ANF.Service
 
         public async Task<List<AffiliateSourceResponse>> GetAffiliateSourceOfPublisher(long publisherId)
         {
+            var currentPublisherId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+            if (publisherId != long.Parse(currentPublisherId))
+                throw new UnauthorizedAccessException("Publisher's id does not match!");
+            
             var userRepository = _unitOfWork.GetRepository<User>();
-            var pubSrcRepository = _unitOfWork.GetRepository<PublisherSource>();
-
-            var publisher = await userRepository.GetAll()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == publisherId);
-            if (publisher is null)
-                throw new KeyNotFoundException("Publisher does not exist!");
-
-            var affiliateSources = await pubSrcRepository.GetAll()
+            var trafficSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
+            var sources = await trafficSourceRepository.GetAll()
                 .AsNoTracking()
                 .Where(p => p.PublisherId == publisherId)
                 .ToListAsync();
-            if (!affiliateSources.Any())
+            if (!sources.Any())
                 throw new NoDataRetrievalException("No data of affiliate source!");
-            var response = _mapper.Map<List<AffiliateSourceResponse>>(affiliateSources);
+            var response = _mapper.Map<List<AffiliateSourceResponse>>(sources);
             return response;
         }
 
         public async Task<PublisherProfileResponse> GetPublisherProfile(long publisherId)
         {
+            var currentPublisherId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+            if (publisherId != long.Parse(currentPublisherId))
+                throw new UnauthorizedAccessException("Publisher's id does not match!");
+            
             var userRepository = _unitOfWork.GetRepository<User>();
             var publisher = await userRepository.GetAll()
                 .AsNoTracking()
@@ -222,7 +238,7 @@ namespace ANF.Service
         {
             try
             {
-                var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
+                var pubSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
                 if (request is null)
                     throw new ArgumentException("Invalid data request. Please check again!");
                 var source = await pubSourceRepository.GetAll()
@@ -248,7 +264,7 @@ namespace ANF.Service
         {
             try
             {
-                var pubSourceRepository = _unitOfWork.GetRepository<PublisherSource>();
+                var pubSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
                 foreach (var item in sIds)
                 {
                     var source = await pubSourceRepository.FindByIdAsync(item);
@@ -293,6 +309,10 @@ namespace ANF.Service
         {
             try
             {
+                var currentPublisherId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
+                if (publisherId != long.Parse(currentPublisherId))
+                    throw new UnauthorizedAccessException("Publisher's id does not match!");
+
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var pubProfileRepository = _unitOfWork.GetRepository<PublisherProfile>();
                 var imageUrl = string.Empty;
