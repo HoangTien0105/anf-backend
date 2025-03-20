@@ -7,7 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.Register(builder.Configuration);
+
 builder.Services.AddTransient<GlobalExceptionHandlingMiddleware>();
+
+builder.Services.AddScoped<UserClaimsMiddleware>();
 
 var app = builder.Build();
 
@@ -24,6 +27,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseMiddleware<UserClaimsMiddleware>();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 

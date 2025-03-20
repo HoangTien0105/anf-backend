@@ -202,6 +202,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
+            services.AddScoped<IUserClaimsService, UserClaimsService>();
 
             return services;
         }

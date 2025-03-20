@@ -19,9 +19,16 @@ namespace ANF.Core.Models.Entities
         [Column("joining_date")]
         public DateTime JoiningDate { get; set; }
 
+        /// <summary>
+        /// Approved date (Admin)
+        /// </summary>
+        [Column("approved_date")]
+        public DateTime? ApprovedDate { get; set; }
+
         [Column("reject_reason")]
         public string? RejectReason { get; set; }
-
+        
+        [Column("status")]
         public PublisherOfferStatus Status { get; set; }
 
         public User Publisher { get; set; } = null!;

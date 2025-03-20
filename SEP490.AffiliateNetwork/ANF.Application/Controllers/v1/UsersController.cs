@@ -235,7 +235,7 @@ namespace ANF.Application.Controllers.v1
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
-                Message = "Activation success!"
+                Message = "Wallet is actived successfully!"
             });
         }
     }

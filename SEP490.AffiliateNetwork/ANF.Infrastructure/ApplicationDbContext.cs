@@ -18,7 +18,7 @@ namespace ANF.Infrastructure
         
         public DbSet<AdvertiserProfile> AdvertiserProfiles { get; set; } = null!;
         
-        public DbSet<PublisherSource> PublisherSources { get; set; } = null!;
+        public DbSet<TrafficSource> TrafficSources { get; set; } = null!;
         
         public DbSet<Subscription> Subscriptions { get; set; } = null!;
                 
@@ -73,7 +73,7 @@ namespace ANF.Infrastructure
 
             new AdvertiserProfileTypeConfig().Configure(builder.Entity<AdvertiserProfile>());
             new PublisherProfileTypeConfig().Configure(builder.Entity<PublisherProfile>());
-            new PublisherSourceTypeConfig().Configure(builder.Entity<PublisherSource>());
+            new PublisherSourceTypeConfig().Configure(builder.Entity<TrafficSource>());
             new CampaignImageTypeConfig().Configure(builder.Entity<CampaignImage>());
 
             new WalletHistoryTypeConfig().Configure(builder.Entity<WalletHistory>());
