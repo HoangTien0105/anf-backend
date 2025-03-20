@@ -7,20 +7,27 @@ using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ANF.Core.Enums;
+using ANF.Core.Commons;
 
 namespace ANF.Service
 {
-    public class OfferService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinaryService) : IOfferService
+    public class OfferService(IUnitOfWork unitOfWork, IMapper mapper, 
+        ICloudinaryService cloudinaryService,
+        IUserClaimsService userClaimsService) : IOfferService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
         private readonly IMapper _mapper = mapper;
 
         public async Task<bool> ApplyOffer(string pubId, long offerId)
         {
             try
             {
-                if(pubId is null) throw new NullReferenceException("Invalid request data. Please check again!");
+                var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (currentPublisherCode != pubId)
+                    throw new UnauthorizedAccessException("Publisher's code does not match!");
+                if (pubId is null) throw new NullReferenceException("Invalid request data. Please check again!");
 
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
@@ -29,7 +36,7 @@ namespace ANF.Service
 
                 var offerExist = await offerRepository.GetAll()
                                         .AsNoTracking().FirstOrDefaultAsync(e => e.Id == offerId);
-                if(offerExist is null) throw new KeyNotFoundException("Offer does not exists");
+                if (offerExist is null) throw new KeyNotFoundException("Offer does not exists");
 
                 var publisherExist = await userRepository.GetAll()
                                         .AsNoTracking()
@@ -38,7 +45,7 @@ namespace ANF.Service
 
                 var campaignExist = await campaignRepository.GetAll()
                                         .AsNoTracking()
-                                        .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId); 
+                                        .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId);
                 if (campaignExist is null) throw new KeyNotFoundException("Campaign does not exists");
 
                 if (campaignExist.Status != CampaignStatus.Verified && campaignExist.Status != CampaignStatus.Started)
@@ -120,10 +127,11 @@ namespace ANF.Service
                 if (request.OfferImages is not null)
                 {
                     var imageUrl = await _cloudinaryService.UploadImageAsync(request.OfferImages);
-                    if(imageUrl is not null)
+                    if (imageUrl is not null)
                     {
                         offer.ImageUrl = imageUrl;
-                    } else
+                    }
+                    else
                     {
                         throw new ArgumentException("Something went wrong with image");
                     }
@@ -151,7 +159,7 @@ namespace ANF.Service
                 var offer = await offerRepository.GetAll()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Id == id);
-                if(offer is null)
+                if (offer is null)
                     throw new KeyNotFoundException("Offer does not exist!");
 
                 var campaign = await campaignRepository.GetAll()
@@ -160,13 +168,13 @@ namespace ANF.Service
                                         .Include(e => e.Offers)
                                         .FirstOrDefaultAsync();
 
-                if(campaign is null)
+                if (campaign is null)
                     throw new KeyNotFoundException("Campaign does not exists");
 
                 if (campaign.Status != CampaignStatus.Pending)
                     throw new InvalidOperationException("Campaign status must be Pending to delete offer");
 
-                if(campaign.Offers.Count < 2)
+                if (campaign.Offers.Count < 2)
                     throw new InvalidOperationException("Campaign must have at least 1 offer");
 
                 offerRepository.Delete(offer);
@@ -234,7 +242,8 @@ namespace ANF.Service
                     throw new ArgumentException("Invalid offer's status. Please check again!");
 
                 pubOfferExist.Status = pubOfferStatus;
-                pubOfferExist.JoiningDate = DateTime.UtcNow;
+                pubOfferExist.JoiningDate = DateTime.UtcNow;    //TODO: Fix (joining_date phải là ngày publisher apply, k update field này ở method này)
+                                                                // Db có thể bổ sung thêm 1 field approved_date, chỗ này đưa value vào
                 if (pubOfferStatus == PublisherOfferStatus.Rejected)
                 {
                     pubOfferExist.RejectReason = rejectReason;

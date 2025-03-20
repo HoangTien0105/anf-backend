@@ -43,9 +43,8 @@ namespace ANF.Application.Extensions
 
             var connectionString = configuration.GetConnectionString("Default") ?? string.Empty;
             var jwtConfig = configuration.GetRequiredSection("Jwt");
-            //var googleConfig = configuration.GetRequiredSection("Google");
-            
 
+            services.AddHttpContextAccessor();
             services.ConfigureSwagger();
             services.ConfigureCors();
             services.ConfigureAuthentication(jwtConfig);
@@ -204,6 +203,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
+            services.AddScoped<IUserClaimsService, UserClaimsService>();
 
             return services;
         }

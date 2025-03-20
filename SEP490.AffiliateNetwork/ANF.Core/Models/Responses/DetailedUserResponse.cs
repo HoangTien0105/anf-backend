@@ -1,11 +1,13 @@
 ﻿namespace ANF.Core.Models.Responses
 {
     /// <summary>
-    /// Response model for campagin 
+    /// Detailed information of the user
     /// </summary>
-    public class UserResponse
+    public class DetailedUserResponse
     {
         public long Id { get; set; }
+
+        public Guid UserCode { get; set; }
 
         public string? FirstName { get; set; }
 
@@ -21,10 +23,8 @@
 
         public string Email { get; set; } = null!;
 
-        public bool? EmailConfirmed { get; set; }
-
-        public string Status { get; set; } = null!;
-
         public string Role { get; set; } = null!;
+
+        public string? ImageUrl { get; set; }
     }
 }

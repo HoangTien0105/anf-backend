@@ -8,20 +8,54 @@ using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using ANF.Infrastructure.Helpers;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace ANF.Service
 {
     public class UserService(IUnitOfWork unitOfWork,
                              TokenService tokenService,
-                             IMapper mapper, IEmailService emailService) : IUserService
+                             IMapper mapper, IEmailService emailService,
+                             IUserClaimsService userClaimsService) : IUserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
         private readonly IEmailService _emailService = emailService;
-        //NOTE: Change the application host when deploying successfully!
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
+
+        //TODO: Change the application host when deploying successfully!
         private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
+
+        public async Task<bool> ActivateWallet(Guid userCode)
+        {
+            try
+            {
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (userCode != Guid.Parse(currentUserCode))
+                    throw new UnauthorizedAccessException("User's code does not match!");
+
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var wallet = await walletRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserCode == userCode);
+                if (wallet is null)
+                {
+                    throw new KeyNotFoundException("Wallet does not exist!");
+                }
+                if (wallet.IsActive)
+                    throw new Exception("Wallet has already activated!");
+
+                wallet.IsActive = true;
+                walletRepository.Update(wallet);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
 
         public async Task<bool> ChangeEmailStatus(long userId)
         {
@@ -99,7 +133,7 @@ namespace ANF.Service
                     {
                         if (user.AffiliateSources.Any())
                         {
-                            var pubSrcRepository = _unitOfWork.GetRepository<PublisherSource>();
+                            var pubSrcRepository = _unitOfWork.GetRepository<TrafficSource>();
                             pubSrcRepository.DeleteRange(user.AffiliateSources);
                         }
                         if (user.PublisherProfile is not null)
@@ -129,8 +163,7 @@ namespace ANF.Service
                     }
                     else
                     {
-                        //TODO: Change the message and exception type
-                        throw new Exception("Exception.");
+                        throw new Exception("Cannot delete user!");
                     }
                 }
                 else
@@ -145,40 +178,27 @@ namespace ANF.Service
             }
         }
 
-        public async Task<PaginationResponse<UserResponse>> GetUsers(PaginationRequest request)
+        public async Task<DetailedUserResponse> GetUserInformation()
         {
             var userRepository = _unitOfWork.GetRepository<User>();
-            var users = await userRepository.GetAll()
-                .AsNoTracking()
-                .Where(u => u.Role == UserRoles.Publisher || u.Role == UserRoles.Advertiser)
-                .Skip((request.pageNumber - 1) * request.pageSize)
-                .Take(request.pageSize)
-                .ToListAsync();
-            if (!users.Any())
-                throw new NoDataRetrievalException("No data for users!");
-            var totalCount = users.Count();
-
-            var data = _mapper.Map<List<UserResponse>>(users);
-            return new PaginationResponse<UserResponse>(data, totalCount, request.pageNumber, request.pageSize);
-        }
-
-        public async Task<LoginResponse> Login(string email, string password)
-        {
-            var userRepository = _unitOfWork.GetRepository<User>();
+            var userCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            if (string.IsNullOrEmpty(userCode))
+            {
+                throw new UnauthorizedAccessException("Cannot retrieve claims from the token!");
+            }
             var user = await userRepository.GetAll()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
-            if (user is null) throw new KeyNotFoundException("User does not exist.");
-            if (user.Status == UserStatus.Deactive)
+                .Include(u => u.PublisherProfile)
+                .Include(u => u.AdvertiserProfile)
+                .FirstOrDefaultAsync(u => u.UserCode == Guid.Parse(userCode));
+            if (user is null)
             {
-                throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
+                throw new KeyNotFoundException("User does not exist!");
             }
-
-            var response = _mapper.Map<LoginResponse>(user);
-            response.AccessToken = _tokenService.GenerateToken(user);
+            var response = _mapper.Map<DetailedUserResponse>(user);
             return response;
         }
-
+        
         public async Task<bool> RegisterAccount(AccountCreateRequest request)
         {
             try
@@ -280,6 +300,55 @@ namespace ANF.Service
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<string> Login(string email, string password)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var user = await userRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
+            if (user is null) throw new KeyNotFoundException("User does not exist.");
+            if (user.Status == UserStatus.Deactive)
+            {
+                throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
+            }
+            var token = _tokenService.GenerateToken(user);
+            return token;
+        }
+
+        public async Task<PaginationResponse<AdvertiserResponse>> GetAdvertisers(PaginationRequest request)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var users = await userRepository.GetAll()
+                .AsNoTracking()
+                .Where(u => u.Role == UserRoles.Advertiser)
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!users.Any())
+                throw new NoDataRetrievalException("No data for users!");
+            var totalCount = users.Count();
+
+            var data = _mapper.Map<List<AdvertiserResponse>>(users);
+            return new PaginationResponse<AdvertiserResponse>(data, totalCount, request.pageNumber, request.pageSize);
+        }
+
+        public async Task<PaginationResponse<PublisherResponse>> GetPublishers(PaginationRequest request)
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var users = await userRepository.GetAll()
+                .AsNoTracking()
+                .Where(u => u.Role == UserRoles.Publisher)
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!users.Any())
+                throw new NoDataRetrievalException("No data for users!");
+            var totalCount = users.Count();
+
+            var data = _mapper.Map<List<PublisherResponse>>(users);
+            return new PaginationResponse<PublisherResponse>(data, totalCount, request.pageNumber, request.pageSize);
         }
     }
 }

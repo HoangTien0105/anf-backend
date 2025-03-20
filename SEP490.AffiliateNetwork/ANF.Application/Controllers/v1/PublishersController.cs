@@ -13,13 +13,13 @@ namespace ANF.Application.Controllers.v1
         private readonly IPublisherService _publisherService = publisherService;
 
         /// <summary>
-        /// Get publisher's affiliate sources
+        /// Get publisher's traffic sources
         /// </summary>
         /// <param name="id">Publisher's id</param>
         /// <returns>A list of available affiliate sources</returns>
-        [HttpGet("publishers/{id}/affiliate-sources")]
+        [HttpGet("publishers/{id}/traffic-sources")]
         [MapToApiVersion(1)]
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher, Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetAffiliateSourceOfPublisher(long id)
@@ -39,14 +39,14 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Publisher's id</param>
         /// <returns>Publisher's profile information with list bank accounts</returns>
         [HttpGet("publishers/{id}/profile")]
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "Publisher, Admin")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetPublisher(long id)
         {
             var publisher = await _publisherService.GetPublisherProfile(id);
-            return Ok(new ApiResponse<PublisherResponse>
+            return Ok(new ApiResponse<PublisherProfileResponse>
             {
                 IsSuccess = true,
                 Message = "Success.",
@@ -163,7 +163,7 @@ namespace ANF.Application.Controllers.v1
                 Message = "Success."
             });
         }
-        
+
         /// <summary>
         /// Delete affiliate sources
         /// </summary>
@@ -253,6 +253,25 @@ namespace ANF.Application.Controllers.v1
             {
                 IsSuccess = true,
                 Message = "Update successfully!"
+            });
+        }
+
+        //TODO: Review the endpoint again
+        [HttpPatch("publisher/affiliate-sources")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateAffiliateSourceStatus(List<long> sIds)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+                return validationResult;
+            var result = await _publisherService.UpdateAffiliateSourceState(sIds);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
             });
         }
     }

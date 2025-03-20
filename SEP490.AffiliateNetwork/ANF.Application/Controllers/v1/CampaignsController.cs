@@ -56,17 +56,17 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Get campaigns including offers for an advertiser with all status
         /// </summary>
-        /// <param name="id">Advertiser id</param>
         /// <param name="request">Pagination data</param>
+        /// <param name="code">Advertiser's code</param>
         /// <returns></returns>
         [HttpGet("campaigns/advertisers/{id}/offers")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin, Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, string id)
+        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, string code)
         {
-            var campaigns = await _campaignService.GetCampaignsByAdvertisersWithOffers(request, id);
+            var campaigns = await _campaignService.GetCampaignsByAdvertisersWithOffers(request, code);
             return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
             {
                 IsSuccess = true,
