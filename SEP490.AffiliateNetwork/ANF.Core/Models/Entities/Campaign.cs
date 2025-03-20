@@ -14,7 +14,7 @@ namespace ANF.Core.Models.Entities
         public long Id { get; set; }
 
         [Column("advertiser_code")]
-        public Guid AdvertiserCode { get; set; }
+        public string AdvertiserCode { get; set; } = null!;
 
         [Column("camp_name")]
         public string Name { get; set; } = null!;

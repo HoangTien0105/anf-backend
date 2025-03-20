@@ -196,7 +196,7 @@ namespace ANF.Application.Controllers.v1
         [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AddBankingInformation(Guid code, [FromBody] List<UserBankCreateRequest> requests)
+        public async Task<IActionResult> AddBankingInformation(string code, [FromBody] List<UserBankCreateRequest> requests)
         {
             var validationResult = HandleValidationErrors();
             if (validationResult is not null) return validationResult;

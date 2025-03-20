@@ -59,7 +59,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Pagination data</param>
         /// <param name="code">Advertiser's code</param>
         /// <returns></returns>
-        [HttpGet("campaigns/advertisers/{id}/offers")]
+        [HttpGet("campaigns/advertisers/{id}/offers")]  //FIX
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin, Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -125,7 +125,7 @@ namespace ANF.Application.Controllers.v1
                 IsSuccess = true,
                 Message = "Update status successfully"
             });
-        }
+        }   //FIX
 
         /// <summary>
         /// Create campaigns

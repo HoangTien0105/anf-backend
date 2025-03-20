@@ -11,7 +11,7 @@ namespace ANF.Core.Services
 
         Task<bool> UpdateProfile(long advertiserId, AdvertiserProfileUpdatedRequest request);
 
-        Task<bool> AddBankingInformation(Guid advertiserCode, List<UserBankCreateRequest> requests);
+        Task<bool> AddBankingInformation(string advertiserCode, List<UserBankCreateRequest> requests);
 
         Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request);
 

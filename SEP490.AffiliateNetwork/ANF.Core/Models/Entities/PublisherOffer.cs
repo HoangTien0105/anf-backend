@@ -14,7 +14,7 @@ namespace ANF.Core.Models.Entities
         public long OfferId { get; set; }
 
         [Column("publisher_code")]
-        public Guid PublisherCode { get; set; }
+        public string PublisherCode { get; set; } = null!;
 
         [Column("joining_date")]
         public DateTime JoiningDate { get; set; }

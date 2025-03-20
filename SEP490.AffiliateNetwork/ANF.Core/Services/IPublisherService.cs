@@ -21,7 +21,7 @@ namespace ANF.Core.Services
 
         Task<List<AffiliateSourceResponse>> GetAffiliateSourceOfPublisher(long publisherId);
 
-        Task<bool> AddBankingInformation(Guid publisherCode, List<UserBankCreateRequest> requests);
+        Task<bool> AddBankingInformation(string publisherCode, List<UserBankCreateRequest> requests);
 
         Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request);
 

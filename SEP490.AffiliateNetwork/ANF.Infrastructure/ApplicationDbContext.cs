@@ -41,6 +41,12 @@ namespace ANF.Infrastructure
         public DbSet<WalletHistory> WalletHistories { get; set; } = null!;
 
         public DbSet<TrackingParam> TrackingParams { get; set; } = null!;
+
+        public DbSet<TrackingEvent> TrackingEvents { get; set; } = null!;
+        
+        public DbSet<TrackingValidation> TrackingValidations { get; set; } = null!;
+        
+        public DbSet<FraudDetection> FraudDetections { get; set; } = null!;
         
         /// <summary>
         /// Get connection string from appsettings.json
@@ -85,6 +91,10 @@ namespace ANF.Infrastructure
             new UserTypeConfig().Configure(builder.Entity<User>());
             new UserBankTypeConfig().Configure(builder.Entity<UserBank>());
             new CampaignTypeConfig().Configure(builder.Entity<Campaign>());
+
+            new TrackingEventTypeConfig().Configure(builder.Entity<TrackingEvent>());
+            new TrackingValidationTypeConfig().Configure(builder.Entity<TrackingValidation>());
+            new FraudDetectionTypeConfig().Configure(builder.Entity<FraudDetection>());
 
             #region Other type configurations
             builder.Entity<Subscription>()

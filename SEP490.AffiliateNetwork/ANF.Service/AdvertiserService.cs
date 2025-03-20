@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ANF.Service
 {
-    public class AdvertiserService(IUnitOfWork unitOfWork, IMapper mapper, 
+    public class AdvertiserService(IUnitOfWork unitOfWork, IMapper mapper,
         ICloudinaryService cloudinaryService,
         IUserClaimsService userClaimsService) : IAdvertiserService
     {
@@ -19,12 +19,12 @@ namespace ANF.Service
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
 
-        public async Task<bool> AddBankingInformation(Guid advertiserCode, List<UserBankCreateRequest> requests)
+        public async Task<bool> AddBankingInformation(string advertiserCode, List<UserBankCreateRequest> requests)
         {
             try
             {
                 var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (advertiserCode != Guid.Parse(currentAdvertiserCode))
+                if (advertiserCode != currentAdvertiserCode)
                     throw new UnauthorizedAccessException("Advertiser's code does not match!");
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 if (!requests.Any())
@@ -121,7 +121,7 @@ namespace ANF.Service
             var currentAdvertiserId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
             if (advertiserId != long.Parse(currentAdvertiserId))
                 throw new UnauthorizedAccessException("Advertiser's id does not match!");
-            
+
             var userRepository = _unitOfWork.GetRepository<User>();
             var advertiser = await userRepository.GetAll()
                 .AsNoTracking()
@@ -150,7 +150,7 @@ namespace ANF.Service
                 userBankRepository.Update(bank);
                 return await _unitOfWork.SaveAsync() > 0;
             }
-            catch 
+            catch
             {
                 await _unitOfWork.RollbackAsync();
                 throw;
@@ -168,7 +168,7 @@ namespace ANF.Service
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var advProfileRepository = _unitOfWork.GetRepository<AdvertiserProfile>();
                 var imageUrl = string.Empty;
-                
+
                 if (request is null)
                     throw new ArgumentException("Invalid requested data!");
                 if (request.Image is not null)
@@ -180,7 +180,7 @@ namespace ANF.Service
                 var profile = await advProfileRepository.GetAll()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.AdvertiserId == advertiserId);
-                
+
                 if (advertiser is null)
                     throw new KeyNotFoundException("Advertiser does not exist!");
                 if (profile is null)
