@@ -42,7 +42,7 @@ namespace ANF.Service
                 string deviceKey = $"{httpRequest.HttpContext.Connection.RemoteIpAddress}-{httpRequest.Headers["User-Agent"]}";
                 string cacheKey = $"tracking_requests_{deviceKey}";
                 int maxRequests = 5;
-                TimeSpan decayMinutes = TimeSpan.FromMinutes(1);
+                TimeSpan delayTimes = TimeSpan.FromSeconds(10);
 
                 // Kiểm tra rate limiting
                 int requestCount = _cache.Get<int>(cacheKey);
@@ -50,7 +50,7 @@ namespace ANF.Service
                 {
                     throw new ArgumentException("Too many requests.");
                 }
-                _cache.Set(cacheKey, requestCount + 1, decayMinutes);
+                _cache.Set(cacheKey, requestCount + 1, delayTimes);
 
                 string userAgent = httpRequest.Headers["User-Agent"];
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
