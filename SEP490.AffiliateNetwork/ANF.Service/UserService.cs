@@ -27,12 +27,12 @@ namespace ANF.Service
         //TODO: Change the application host when deploying successfully!
         private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
 
-        public async Task<bool> ActivateWallet(Guid userCode)
+        public async Task<bool> ActivateWallet(string userCode)
         {
             try
             {
                 var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (userCode != Guid.Parse(currentUserCode))
+                if (userCode != currentUserCode)
                     throw new UnauthorizedAccessException("User's code does not match!");
 
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
@@ -190,7 +190,7 @@ namespace ANF.Service
                 .AsNoTracking()
                 .Include(u => u.PublisherProfile)
                 .Include(u => u.AdvertiserProfile)
-                .FirstOrDefaultAsync(u => u.UserCode == Guid.Parse(userCode));
+                .FirstOrDefaultAsync(u => u.UserCode == userCode);
             if (user is null)
             {
                 throw new KeyNotFoundException("User does not exist!");

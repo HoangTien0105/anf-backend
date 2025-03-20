@@ -15,7 +15,7 @@ namespace ANF.Core.Models.Entities
         public bool IsActive { get; set; } = false;
 
         [Column("user_code")]
-        public Guid UserCode { get; set; }
+        public string UserCode { get; set; } = null!;
 
         public User User { get; set; } = null!;
             

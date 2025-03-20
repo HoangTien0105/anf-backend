@@ -51,12 +51,12 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> AddBankingInformation(Guid publisherCode, List<UserBankCreateRequest> requests)
+        public async Task<bool> AddBankingInformation(string publisherCode, List<UserBankCreateRequest> requests)
         {
             try
             {
                 var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (publisherCode != Guid.Parse(currentPublisherCode))
+                if (publisherCode != currentPublisherCode)
                     throw new UnauthorizedAccessException("Publisher's id does not match!");
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 if (!requests.Any())

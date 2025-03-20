@@ -16,7 +16,7 @@ namespace ANF.Core.Models.Entities
         /// Unique click's id, one-to-one relationship with TrackingEvent
         /// </summary>
         [Column("click_id")]
-        public long ClickId { get; set; }
+        public Guid ClickId { get; set; }
 
         [Column("offer_id")]
         public long OfferId { get; set; }
@@ -33,5 +33,7 @@ namespace ANF.Core.Models.Entities
 
         [Column("revenue")]
         public double? Revenue { get; set; }
+
+        public TrackingEvent? TrackingEvent { get; set; }
     }
 }

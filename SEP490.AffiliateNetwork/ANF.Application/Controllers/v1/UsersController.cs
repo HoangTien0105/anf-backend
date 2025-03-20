@@ -49,7 +49,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ChangeAccountStatus(long id, string status)
+        public async Task<IActionResult> ChangeAccountStatus(long id, [FromQuery] string status)
         {
             var result = await _userService.UpdateAccountStatus(id, status);
             if (result is not null)
@@ -81,7 +81,11 @@ namespace ANF.Application.Controllers.v1
             return Ok(advertisers);
         }
 
-
+        /// <summary>
+        /// Get all publishers
+        /// </summary>
+        /// <param name="request">Pagination request model</param>
+        /// <returns></returns>
         [HttpGet("users/publishers")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin")]
@@ -228,7 +232,7 @@ namespace ANF.Application.Controllers.v1
         [Authorize(Roles = "Advertiser, Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ActivateWallet(Guid code)
+        public async Task<IActionResult> ActivateWallet(string code)
         {
             var result = await _userService.ActivateWallet(code);
             if (!result) return BadRequest();

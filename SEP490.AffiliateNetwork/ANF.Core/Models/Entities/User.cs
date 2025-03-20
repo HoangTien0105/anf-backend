@@ -18,7 +18,7 @@ namespace ANF.Core.Models.Entities
         /// UNIQUE value
         /// </summary>
         [Column("user_code")]
-        public Guid UserCode { get; set; }
+        public string UserCode { get; set; } = null!;
 
         [Column("first_name")]
         public string? FirstName { get; set; }

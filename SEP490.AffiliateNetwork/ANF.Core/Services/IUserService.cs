@@ -23,7 +23,7 @@ namespace ANF.Core.Services
 
         Task<bool> UpdatePassword(string token, long userId, UpdatePasswordRequest request);
 
-        Task<bool> ActivateWallet(Guid userCode);
+        Task<bool> ActivateWallet(string userCode);
 
         Task<DetailedUserResponse> GetUserInformation();
     }
