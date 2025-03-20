@@ -65,8 +65,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("camp_id");
 
-                    b.Property<Guid>("AdvertiserCode")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("AdvertiserCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("advertiser_code");
 
                     b.Property<decimal?>("Balance")
@@ -174,6 +175,43 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.FraudDetection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("fraud_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid>("ClickId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("click_id");
+
+                    b.Property<DateTime>("DetectedTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("detected_time");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("offer_id");
+
+                    b.Property<long>("PublisherId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("publisher_id");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("reason");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClickId")
+                        .IsUnique();
+
+                    b.ToTable("FraudDetections");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>
@@ -302,8 +340,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("offer_id");
 
-                    b.Property<Guid>("PublisherCode")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("PublisherCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("publisher_code");
 
                     b.Property<string>("RejectReason")
@@ -382,6 +421,68 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Subscriptions");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.TrackingEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("click_id");
+
+                    b.Property<string>("Carrier")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("carrier");
+
+                    b.Property<DateTime>("ClickTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("click_time");
+
+                    b.Property<string>("Country")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("country");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("ip_address");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("offer_id");
+
+                    b.Property<string>("Proxy")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("proxy");
+
+                    b.Property<string>("PublisherCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("publisher_code");
+
+                    b.Property<string>("Referer")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("referer");
+
+                    b.Property<string>("SiteId")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("site_id");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("status");
+
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("text")
+                        .HasColumnName("user_agent");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OfferId");
+
+                    b.HasIndex("PublisherCode", "OfferId")
+                        .IsUnique();
+
+                    b.ToTable("TrackingEvents");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.TrackingParam", b =>
@@ -505,6 +606,47 @@ namespace ANF.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ANF.Core.Models.Entities.TrackingValidation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("validation_id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateOnly>("ClickDate")
+                        .HasColumnType("date")
+                        .HasColumnName("click_date");
+
+                    b.Property<Guid>("ClickId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("click_id");
+
+                    b.Property<string>("ConversionStatus")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("conversion_status");
+
+                    b.Property<long>("OfferId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("offer_id");
+
+                    b.Property<double?>("Revenue")
+                        .HasColumnType("float")
+                        .HasColumnName("revenue");
+
+                    b.Property<DateTime>("ValidatedTime")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("validated_time");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClickId")
+                        .IsUnique();
+
+                    b.ToTable("TrackingValidations");
+                });
+
             modelBuilder.Entity("ANF.Core.Models.Entities.TrafficSource", b =>
                 {
                     b.Property<long>("Id")
@@ -579,8 +721,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("subscription_id");
 
-                    b.Property<Guid>("UserCode")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("UserCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("user_code");
 
                     b.Property<long>("WalletId")
@@ -671,8 +814,9 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("user_status");
 
-                    b.Property<Guid>("UserCode")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("UserCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("user_code");
 
                     b.HasKey("Id");
@@ -708,8 +852,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("banking_provider");
 
-                    b.Property<Guid?>("UserCode")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("UserCode")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("user_code");
 
                     b.HasKey("Id");
@@ -736,14 +880,15 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("is_active");
 
-                    b.Property<Guid>("UserCode")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("UserCode")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("user_code");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserCode")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[user_code] IS NOT NULL");
 
                     b.ToTable("Wallets");
                 });
@@ -815,6 +960,15 @@ namespace ANF.Infrastructure.Migrations
                     b.Navigation("Campaign");
                 });
 
+            modelBuilder.Entity("ANF.Core.Models.Entities.FraudDetection", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.TrackingEvent", "TrackingEvent")
+                        .WithOne("FraudDetection")
+                        .HasForeignKey("ANF.Core.Models.Entities.FraudDetection", "ClickId");
+
+                    b.Navigation("TrackingEvent");
+                });
+
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>
                 {
                     b.HasOne("ANF.Core.Models.Entities.Campaign", "Campaign")
@@ -864,6 +1018,26 @@ namespace ANF.Infrastructure.Migrations
                         .HasForeignKey("ANF.Core.Models.Entities.PublisherProfile", "PublisherId");
 
                     b.Navigation("Publisher");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.TrackingEvent", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.Offer", "Offer")
+                        .WithMany("TrackingEvents")
+                        .HasForeignKey("OfferId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Offer");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.TrackingValidation", b =>
+                {
+                    b.HasOne("ANF.Core.Models.Entities.TrackingEvent", "TrackingEvent")
+                        .WithOne("TrackingValidation")
+                        .HasForeignKey("ANF.Core.Models.Entities.TrackingValidation", "ClickId");
+
+                    b.Navigation("TrackingEvent");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.TrafficSource", b =>
@@ -960,11 +1134,20 @@ namespace ANF.Infrastructure.Migrations
                     b.Navigation("PostbackData");
 
                     b.Navigation("PublisherOffers");
+
+                    b.Navigation("TrackingEvents");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Subscription", b =>
                 {
                     b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("ANF.Core.Models.Entities.TrackingEvent", b =>
+                {
+                    b.Navigation("FraudDetection");
+
+                    b.Navigation("TrackingValidation");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Transaction", b =>

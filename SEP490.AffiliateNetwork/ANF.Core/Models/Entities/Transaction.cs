@@ -16,7 +16,7 @@ namespace ANF.Core.Models.Entities
         public long Id { get; set; }
 
         [Column("user_code")]
-        public Guid UserCode { get; set; }
+        public string UserCode { get; set; } = null!;
 
         [Column("wallet_id")]
         public long WalletId { get; set; }

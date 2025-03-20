@@ -14,9 +14,8 @@ namespace ANF.Core.Models.Entities
         [Column("offer_id")]
         public long OfferId { get; set; }
 
-        //TODO: Review the field. Use publisher_id or publisher_code?
-        [Column("publisher_id")]
-        public long PublisherId { get; set; }
+        [Column("publisher_code")]
+        public string PublisherCode { get; set; } = null!;
 
         [Column("ip_address")]
         public string? IpAddress { get; set; }
@@ -45,5 +44,11 @@ namespace ANF.Core.Models.Entities
         //TODO: Define the status of tracking
         [Column("status")]
         public string? Status { get; set; }
+
+        public Offer? Offer { get; set; }
+
+        public FraudDetection? FraudDetection { get; set; }
+
+        public TrackingValidation? TrackingValidation { get; set; }
     }
 }

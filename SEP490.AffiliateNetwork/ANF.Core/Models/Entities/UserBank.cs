@@ -10,7 +10,7 @@ namespace ANF.Core.Models.Entities
         public long Id { get; set; }
 
         [Column("user_code")]
-        public Guid? UserCode { get; set; }
+        public string? UserCode { get; set; }
 
         [Column("banking_no")]
         public long BankingNo { get; set; }

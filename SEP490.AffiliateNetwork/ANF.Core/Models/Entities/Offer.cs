@@ -59,6 +59,8 @@ namespace ANF.Core.Models.Entities
 
         public ICollection<PostbackData> PostbackData { get; set; } = new List<PostbackData>();
 
+        public ICollection<TrackingEvent> TrackingEvents { get; set; } = new List<TrackingEvent>();
+
         public Campaign Campaign { get; set; } = null!;
     }
 }

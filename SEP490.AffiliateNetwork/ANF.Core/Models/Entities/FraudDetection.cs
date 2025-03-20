@@ -29,5 +29,7 @@ namespace ANF.Core.Models.Entities
 
         [Column("detected_time")]
         public DateTime DetectedTime { get; set; }
+
+        public TrackingEvent? TrackingEvent { get; set; }
     }
 }

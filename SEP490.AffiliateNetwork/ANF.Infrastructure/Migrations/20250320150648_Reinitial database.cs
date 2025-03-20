@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace ANF.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class Reinitialdatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,7 +33,7 @@ namespace ANF.Infrastructure.Migrations
                     sub_id = table.Column<long>(type: "bigint", nullable: false),
                     sub_name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    sub_price = table.Column<double>(type: "float", nullable: false),
+                    sub_price = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     duration = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -40,11 +42,25 @@ namespace ANF.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TrackingParams",
+                columns: table => new
+                {
+                    param_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    description = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrackingParams", x => x.param_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     user_id = table.Column<long>(type: "bigint", nullable: false),
-                    user_code = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     first_name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     last_name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     phone_number = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -57,7 +73,7 @@ namespace ANF.Infrastructure.Migrations
                     user_status = table.Column<int>(type: "int", nullable: false),
                     user_role = table.Column<int>(type: "int", nullable: false),
                     reset_password_token = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    expiry_date = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    token_expired_date = table.Column<DateTime>(type: "datetime2", nullable: true),
                     reject_reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     concurrency_stamp = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
                 },
@@ -76,8 +92,6 @@ namespace ANF.Infrastructure.Migrations
                     company_name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     industry = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     image_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    banking_no = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    banking_provider = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     advertiser_id = table.Column<long>(type: "bigint", nullable: false)
                 },
@@ -96,12 +110,12 @@ namespace ANF.Infrastructure.Migrations
                 columns: table => new
                 {
                     camp_id = table.Column<long>(type: "bigint", nullable: false),
-                    advertiser_code = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    advertiser_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     camp_name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     start_date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     end_date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    balance = table.Column<double>(type: "float", nullable: true),
+                    balance = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
                     product_url = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     tracking_params = table.Column<string>(type: "text", nullable: true),
                     reject_reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -133,8 +147,6 @@ namespace ANF.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     specialization = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     image_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    banking_no = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    banking_provider = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     publisher_id = table.Column<long>(type: "bigint", nullable: false)
                 },
@@ -149,7 +161,7 @@ namespace ANF.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PublisherSources",
+                name: "TrafficSources",
                 columns: table => new
                 {
                     pubs_no = table.Column<long>(type: "bigint", nullable: false)
@@ -163,41 +175,12 @@ namespace ANF.Infrastructure.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PublisherSources", x => x.pubs_no);
+                    table.PrimaryKey("PK_TrafficSources", x => x.pubs_no);
                     table.ForeignKey(
-                        name: "FK_PublisherSources_Users_publisher_id",
+                        name: "FK_TrafficSources_Users_publisher_id",
                         column: x => x.publisher_id,
                         principalTable: "Users",
                         principalColumn: "user_id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SubPurchases",
-                columns: table => new
-                {
-                    subp_no = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    advertiser_code = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    sub_id = table.Column<long>(type: "bigint", nullable: true),
-                    purchased_at = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    expired_at = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    current_price = table.Column<double>(type: "float", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SubPurchases", x => x.subp_no);
-                    table.ForeignKey(
-                        name: "FK_SubPurchases_Subscriptions_sub_id",
-                        column: x => x.sub_id,
-                        principalTable: "Subscriptions",
-                        principalColumn: "sub_id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_SubPurchases_Users_advertiser_code",
-                        column: x => x.advertiser_code,
-                        principalTable: "Users",
-                        principalColumn: "user_code",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -206,8 +189,8 @@ namespace ANF.Infrastructure.Migrations
                 {
                     ub_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    user_code = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    banking_no = table.Column<int>(type: "int", nullable: false),
+                    user_code = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    banking_no = table.Column<long>(type: "bigint", nullable: false),
                     banking_provider = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     added_date = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -230,7 +213,7 @@ namespace ANF.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     balance = table.Column<double>(type: "float", nullable: false),
                     is_active = table.Column<bool>(type: "bit", nullable: false),
-                    user_code = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    user_code = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -275,8 +258,8 @@ namespace ANF.Infrastructure.Migrations
                     step_info = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     start_date = table.Column<DateTime>(type: "datetime2", nullable: false),
                     end_date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    bid = table.Column<double>(type: "float", nullable: false),
-                    budget = table.Column<double>(type: "float", nullable: false),
+                    bid = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    budget = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     commission_rate = table.Column<double>(type: "float", nullable: true),
                     order_return_time = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     img_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -294,27 +277,40 @@ namespace ANF.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "PaymentTransactions",
+                name: "Transactions",
                 columns: table => new
                 {
                     trans_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    user_code = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    user_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     wallet_id = table.Column<long>(type: "bigint", nullable: false),
+                    amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    campaign_id = table.Column<long>(type: "bigint", nullable: true),
+                    subscription_id = table.Column<long>(type: "bigint", nullable: true),
+                    reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     created_at = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    amount = table.Column<double>(type: "float", nullable: false),
-                    payment_status = table.Column<int>(type: "int", nullable: false)
+                    status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PaymentTransactions", x => x.trans_id);
+                    table.PrimaryKey("PK_Transactions", x => x.trans_id);
                     table.ForeignKey(
-                        name: "FK_PaymentTransactions_Users_user_code",
+                        name: "FK_Transactions_Campaigns_campaign_id",
+                        column: x => x.campaign_id,
+                        principalTable: "Campaigns",
+                        principalColumn: "camp_id");
+                    table.ForeignKey(
+                        name: "FK_Transactions_Subscriptions_subscription_id",
+                        column: x => x.subscription_id,
+                        principalTable: "Subscriptions",
+                        principalColumn: "sub_id");
+                    table.ForeignKey(
+                        name: "FK_Transactions_Users_user_code",
                         column: x => x.user_code,
                         principalTable: "Users",
                         principalColumn: "user_code");
                     table.ForeignKey(
-                        name: "FK_PaymentTransactions_Wallets_wallet_id",
+                        name: "FK_Transactions_Wallets_wallet_id",
                         column: x => x.wallet_id,
                         principalTable: "Wallets",
                         principalColumn: "id");
@@ -349,10 +345,11 @@ namespace ANF.Infrastructure.Migrations
                     po_no = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     offer_id = table.Column<long>(type: "bigint", nullable: false),
-                    publisher_code = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    publisher_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     joining_date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    approved_date = table.Column<DateTime>(type: "datetime2", nullable: true),
                     reject_reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -370,44 +367,119 @@ namespace ANF.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TrackingEvents",
+                columns: table => new
+                {
+                    click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    offer_id = table.Column<long>(type: "bigint", nullable: false),
+                    publisher_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ip_address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    user_agent = table.Column<string>(type: "text", nullable: true),
+                    site_id = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    country = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    carrier = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    click_time = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    referer = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    proxy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    status = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrackingEvents", x => x.click_id);
+                    table.ForeignKey(
+                        name: "FK_TrackingEvents_Offers_offer_id",
+                        column: x => x.offer_id,
+                        principalTable: "Offers",
+                        principalColumn: "offer_id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "WalletHistories",
                 columns: table => new
                 {
                     wh_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    amount = table.Column<double>(type: "float", nullable: false),
-                    changed_time = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    wallet_balance = table.Column<double>(type: "float", nullable: false),
-                    type = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     transaction_id = table.Column<long>(type: "bigint", nullable: true),
-                    campaign_id = table.Column<long>(type: "bigint", nullable: true),
-                    subscription_id = table.Column<long>(type: "bigint", nullable: true),
-                    wallet_id = table.Column<long>(type: "bigint", nullable: false),
-                    PaymentTransactionId = table.Column<long>(type: "bigint", nullable: true)
+                    current_balance = table.Column<double>(type: "float", nullable: true),
+                    balance_type = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WalletHistories", x => x.wh_id);
                     table.ForeignKey(
-                        name: "FK_WalletHistories_Campaigns_campaign_id",
-                        column: x => x.campaign_id,
-                        principalTable: "Campaigns",
-                        principalColumn: "camp_id");
-                    table.ForeignKey(
-                        name: "FK_WalletHistories_PaymentTransactions_PaymentTransactionId",
-                        column: x => x.PaymentTransactionId,
-                        principalTable: "PaymentTransactions",
+                        name: "FK_WalletHistories_Transactions_transaction_id",
+                        column: x => x.transaction_id,
+                        principalTable: "Transactions",
                         principalColumn: "trans_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FraudDetections",
+                columns: table => new
+                {
+                    fraud_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    offer_id = table.Column<long>(type: "bigint", nullable: false),
+                    publisher_id = table.Column<long>(type: "bigint", nullable: false),
+                    reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    detected_time = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FraudDetections", x => x.fraud_id);
                     table.ForeignKey(
-                        name: "FK_WalletHistories_Subscriptions_subscription_id",
-                        column: x => x.subscription_id,
-                        principalTable: "Subscriptions",
-                        principalColumn: "sub_id");
+                        name: "FK_FraudDetections_TrackingEvents_click_id",
+                        column: x => x.click_id,
+                        principalTable: "TrackingEvents",
+                        principalColumn: "click_id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrackingValidations",
+                columns: table => new
+                {
+                    validation_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    offer_id = table.Column<long>(type: "bigint", nullable: false),
+                    validated_time = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    click_date = table.Column<DateOnly>(type: "date", nullable: false),
+                    conversion_status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    revenue = table.Column<double>(type: "float", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrackingValidations", x => x.validation_id);
                     table.ForeignKey(
-                        name: "FK_WalletHistories_Wallets_wallet_id",
-                        column: x => x.wallet_id,
-                        principalTable: "Wallets",
-                        principalColumn: "id");
+                        name: "FK_TrackingValidations_TrackingEvents_click_id",
+                        column: x => x.click_id,
+                        principalTable: "TrackingEvents",
+                        principalColumn: "click_id");
+                });
+
+            migrationBuilder.InsertData(
+                table: "TrackingParams",
+                columns: new[] { "param_id", "description", "name" },
+                values: new object[,]
+                {
+                    { 1L, "Traffic source identifier", "source" },
+                    { 2L, "Unique identifier for the affiliate", "publisher_id" },
+                    { 3L, "Specific campaign identifier", "campaign_id" },
+                    { 4L, "Sub-affiliate identifier", "sub_id" },
+                    { 5L, "Marketing channel (email, social, search, etc.)", "channel" },
+                    { 6L, "Keyword that triggered the ad", "keyword" },
+                    { 7L, "User device type (desktop, mobile, tablet)", "device" },
+                    { 8L, "User country code", "country" },
+                    { 9L, "URL of the referring website", "referrer" },
+                    { 10L, "Specific landing page URL or identifier", "landing_page" },
+                    { 11L, "Unique identifier for each click", "click_id" },
+                    { 12L, "UTM parameter for traffic source", "utm_source" },
+                    { 13L, "UTM parameter for campaign name", "utm_campaign" },
+                    { 14L, "UTM parameter for content identifier", "utm_content" },
+                    { 15L, "UTM parameter for search terms", "utm_term" },
+                    { 16L, "Commission amount for this affiliate", "payout" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -432,19 +504,15 @@ namespace ANF.Infrastructure.Migrations
                 column: "cate_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FraudDetections_click_id",
+                table: "FraudDetections",
+                column: "click_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Offers_camp_id",
                 table: "Offers",
                 column: "camp_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PaymentTransactions_user_code",
-                table: "PaymentTransactions",
-                column: "user_code");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_PaymentTransactions_wallet_id",
-                table: "PaymentTransactions",
-                column: "wallet_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PostbackData_offer_id",
@@ -468,19 +536,46 @@ namespace ANF.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PublisherSources_publisher_id",
-                table: "PublisherSources",
+                name: "IX_TrackingEvents_offer_id",
+                table: "TrackingEvents",
+                column: "offer_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrackingEvents_publisher_code_offer_id",
+                table: "TrackingEvents",
+                columns: new[] { "publisher_code", "offer_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrackingValidations_click_id",
+                table: "TrackingValidations",
+                column: "click_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrafficSources_publisher_id",
+                table: "TrafficSources",
                 column: "publisher_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SubPurchases_advertiser_code",
-                table: "SubPurchases",
-                column: "advertiser_code");
+                name: "IX_Transactions_campaign_id",
+                table: "Transactions",
+                column: "campaign_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SubPurchases_sub_id",
-                table: "SubPurchases",
-                column: "sub_id");
+                name: "IX_Transactions_subscription_id",
+                table: "Transactions",
+                column: "subscription_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_user_code",
+                table: "Transactions",
+                column: "user_code");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_wallet_id",
+                table: "Transactions",
+                column: "wallet_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserBank_user_code",
@@ -500,30 +595,18 @@ namespace ANF.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_WalletHistories_campaign_id",
+                name: "IX_WalletHistories_transaction_id",
                 table: "WalletHistories",
-                column: "campaign_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WalletHistories_PaymentTransactionId",
-                table: "WalletHistories",
-                column: "PaymentTransactionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WalletHistories_subscription_id",
-                table: "WalletHistories",
-                column: "subscription_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WalletHistories_wallet_id",
-                table: "WalletHistories",
-                column: "wallet_id");
+                column: "transaction_id",
+                unique: true,
+                filter: "[transaction_id] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wallets_user_code",
                 table: "Wallets",
                 column: "user_code",
-                unique: true);
+                unique: true,
+                filter: "[user_code] IS NOT NULL");
         }
 
         /// <inheritdoc />
@@ -536,6 +619,9 @@ namespace ANF.Infrastructure.Migrations
                 name: "CampaignImages");
 
             migrationBuilder.DropTable(
+                name: "FraudDetections");
+
+            migrationBuilder.DropTable(
                 name: "PostbackData");
 
             migrationBuilder.DropTable(
@@ -545,10 +631,13 @@ namespace ANF.Infrastructure.Migrations
                 name: "PublisherProfiles");
 
             migrationBuilder.DropTable(
-                name: "PublisherSources");
+                name: "TrackingParams");
 
             migrationBuilder.DropTable(
-                name: "SubPurchases");
+                name: "TrackingValidations");
+
+            migrationBuilder.DropTable(
+                name: "TrafficSources");
 
             migrationBuilder.DropTable(
                 name: "UserBank");
@@ -557,19 +646,22 @@ namespace ANF.Infrastructure.Migrations
                 name: "WalletHistories");
 
             migrationBuilder.DropTable(
-                name: "Offers");
+                name: "TrackingEvents");
 
             migrationBuilder.DropTable(
-                name: "PaymentTransactions");
+                name: "Transactions");
+
+            migrationBuilder.DropTable(
+                name: "Offers");
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");
 
             migrationBuilder.DropTable(
-                name: "Campaigns");
+                name: "Wallets");
 
             migrationBuilder.DropTable(
-                name: "Wallets");
+                name: "Campaigns");
 
             migrationBuilder.DropTable(
                 name: "Categories");
