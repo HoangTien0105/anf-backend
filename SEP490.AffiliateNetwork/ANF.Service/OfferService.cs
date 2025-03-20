@@ -41,8 +41,8 @@ namespace ANF.Service
                                         .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId); 
                 if (campaignExist is null) throw new KeyNotFoundException("Campaign does not exists");
 
-                if (campaignExist.Status != CampaignStatus.Verified && campaignExist.Status != CampaignStatus.Pending)
-                    throw new InvalidOperationException("Campaign must be Verified or Pending for offer to be applied");
+                if (campaignExist.Status != CampaignStatus.Verified && campaignExist.Status != CampaignStatus.Started)
+                    throw new InvalidOperationException("Campaign must be Verified or Started for offer to be applied");
 
                 var pubOfferExist = await pubOfferRepository.GetAll()
                                         .AsNoTracking()
