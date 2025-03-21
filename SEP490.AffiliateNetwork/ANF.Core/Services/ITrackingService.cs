@@ -4,6 +4,6 @@ namespace ANF.Core.Services
 {
     public interface ITrackingService
     {
-        public Task<string> StoreParams(long offerId, long publisherId, HttpRequest httpRequest);
+        public Task<string> StoreParams(long offerId, string publisherCode, HttpRequest httpRequest);
     }
 }

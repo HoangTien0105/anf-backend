@@ -7,17 +7,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using MyCSharp.HttpUserAgentParser;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ANF.Service
 {
-    public class TrackingService: ITrackingService
+    public class TrackingService : ITrackingService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMemoryCache _cache;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ConcurrentQueue<PostbackData> _trackingQueue;
+        private readonly ConcurrentQueue<TrackingEvent> _trackingQueue;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processingTask;
 
@@ -25,38 +27,47 @@ namespace ANF.Service
         {
             _unitOfWork = unitOfWork;
             _cache = cache;
-            _trackingQueue = new ConcurrentQueue<PostbackData>();
+            _trackingQueue = new ConcurrentQueue<TrackingEvent>();
             _cts = new CancellationTokenSource();
             _scopeFactory = scopeFactory;
             _processingTask = Task.Run(() => ProcessQueueAsync(_cts.Token));
         }
 
-        public async Task<string> StoreParams(long offerId, long publisherId, HttpRequest httpRequest)
+        public async Task<string> StoreParams(long offerId, string publisherCode, HttpRequest httpRequest)
         {
             try
             {
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var userRepository = _unitOfWork.GetRepository<User>();
 
-                // Tạo key duy nhất cho rate limiting dựa trên IP và User-Agent
-                string deviceKey = $"{httpRequest.HttpContext.Connection.RemoteIpAddress}-{httpRequest.Headers["User-Agent"]}";
-                string cacheKey = $"tracking_requests_{deviceKey}";
-                int maxRequests = 5;
-                TimeSpan delayTimes = TimeSpan.FromSeconds(10);
+                var userExist = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode.ToString() == publisherCode);
+                if (userExist is null) throw new KeyNotFoundException("Publisher not found.");
 
-                // Kiểm tra rate limiting
-                int requestCount = _cache.Get<int>(cacheKey);
-                if (requestCount >= maxRequests)
-                {
-                    throw new ArgumentException("Too many requests.");
-                }
-                _cache.Set(cacheKey, requestCount + 1, delayTimes);
+                string referer = httpRequest.Headers["Referer"].ToString();
 
                 string userAgent = httpRequest.Headers["User-Agent"];
+                string ipAddress = httpRequest.HttpContext.Connection.RemoteIpAddress.ToString();
+
+                // Tạo key duy nhất cho rate limiting dựa trên IP và User-Agent
+                //string deviceKey = $"{ipAddress}-{userAgent}";
+                //string cacheKey = $"tracking_requests_{deviceKey}";
+                //int maxRequests = 5;
+                //TimeSpan delayTimes = TimeSpan.FromSeconds(10);
+
+                //// Kiểm tra rate limiting
+                //int requestCount = _cache.Get<int>(cacheKey);
+                //if (requestCount >= maxRequests)
+                //{
+                //    throw new ArgumentException("Too many requests.");
+                //}
+                //_cache.Set(cacheKey, requestCount + 1, delayTimes);
+
+
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
                 if (offerId < 1 || uaInfor.IsRobot())
                 {
-                    throw new ArgumentException("Bot alert");
+                    throw new ArgumentException(offerId < 1 ? "Invalid offer" : "Bot requests are not allowed.");
                 }
 
                 var offer = await offerRepository.GetAll()
@@ -71,30 +82,37 @@ namespace ANF.Service
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(e => e.Id == offer.CampaignId);
                 if (campaign is null) throw new KeyNotFoundException("Offer does not exists");
-                if(campaign.Status != CampaignStatus.Started)
+                if (campaign.Status != CampaignStatus.Started)
                     throw new ArgumentException("Campaign is not available.");
 
-                Guid clickId = Guid.NewGuid();
+                string clickId = (DateTimeOffset.Now.ToUnixTimeSeconds() + new Random().Next(10000, 100000)).ToString();
 
-                var postBackData = new PostbackData
+                var trackingEvent = new TrackingEvent
                 {
-                    PublisherId = publisherId,
-                    ClickId = clickId,
+                    Id = clickId,
+                    PublisherCode = publisherCode,
                     OfferId = offerId,
-                    Status = 0
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent,
+                    ClickTime = DateTime.UtcNow,
+                    Referer = referer,
+                    Status = TrackingEventStatus.Pending
                 };
 
-                _trackingQueue.Enqueue(postBackData);
+                _trackingQueue.Enqueue(trackingEvent);
+                
 
                 var trackingData = new Dictionary<string, string>
                 {
-                    { "publisher_id", publisherId.ToString() },
-                    { "click_id", clickId.ToString() },
+                    { "publisher_id", publisherCode },
+                    { "click_id",trackingEvent.Id },
                     { "offer_id", offerId.ToString() },
+                    { "user_agent", uaInfor.UserAgent },
+                    { "ip_address", ipAddress},
+                    { "referer", referer}
                 }.Where(kv => kv.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value);
 
                 string redirectUrl = await BuildRedirectUrl(campaign.ProductUrl, campaign.TrackingParams, trackingData);
-
                 return redirectUrl;
             }
             catch (Exception)
@@ -103,19 +121,20 @@ namespace ANF.Service
             }
         }
 
-        private async Task StoreTrackingData(PostbackData postbackData)
+        private async Task StoreTrackingData(TrackingEvent trackingEvent)
         {
             using (var scope = _scopeFactory.CreateScope())
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                var postBackRepository = unitOfWork.GetRepository<PostbackData>();
+                var trackingEventRepository = unitOfWork.GetRepository<TrackingEvent>();
                 try
                 {
-                    postBackRepository.Add(postbackData);
+                    trackingEventRepository.Add(trackingEvent);
                     await unitOfWork.SaveAsync();
                 }
                 catch (Exception)
                 {
+                    Console.WriteLine("Something went wrong with " + trackingEvent.Id);
                     await unitOfWork.RollbackAsync();
                     throw;
                 }
