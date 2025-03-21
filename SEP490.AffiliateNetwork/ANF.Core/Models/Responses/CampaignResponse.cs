@@ -3,7 +3,7 @@
     public class CampaignResponse
     {
         public long Id { get; set; }
-        public Guid AdvertiserCode { get; set; }
+        public string AdvertiserCode { get; set; } = null!;
         public string Name { get; set; } = null!;
 
         public string? Description { get; set; }

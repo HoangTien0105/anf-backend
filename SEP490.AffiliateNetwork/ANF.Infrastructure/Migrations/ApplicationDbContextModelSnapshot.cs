@@ -56,7 +56,7 @@ namespace ANF.Infrastructure.Migrations
                     b.HasIndex("AdvertiserId")
                         .IsUnique();
 
-                    b.ToTable("AdvertiserProfiles");
+                    b.ToTable("AdvertiserProfiles", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Campaign", b =>
@@ -126,7 +126,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Campaigns");
+                    b.ToTable("Campaigns", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.CampaignImage", b =>
@@ -154,7 +154,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("CampaignId");
 
-                    b.ToTable("CampaignImages");
+                    b.ToTable("CampaignImages", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Category", b =>
@@ -174,7 +174,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.FraudDetection", b =>
@@ -186,8 +186,8 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid>("ClickId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("ClickId")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("click_id");
 
                     b.Property<DateTime>("DetectedTime")
@@ -209,9 +209,10 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClickId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[click_id] IS NOT NULL");
 
-                    b.ToTable("FraudDetections");
+                    b.ToTable("FraudDetections", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Offer", b =>
@@ -280,7 +281,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("CampaignId");
 
-                    b.ToTable("Offers");
+                    b.ToTable("Offers", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.PostbackData", b =>
@@ -316,7 +317,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("OfferId");
 
-                    b.ToTable("PostbackData");
+                    b.ToTable("PostbackData", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.PublisherOffer", b =>
@@ -359,7 +360,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("PublisherCode");
 
-                    b.ToTable("PublisherOffers");
+                    b.ToTable("PublisherOffers", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.PublisherProfile", b =>
@@ -392,7 +393,7 @@ namespace ANF.Infrastructure.Migrations
                     b.HasIndex("PublisherId")
                         .IsUnique();
 
-                    b.ToTable("PublisherProfiles");
+                    b.ToTable("PublisherProfiles", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Subscription", b =>
@@ -420,14 +421,13 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Subscriptions");
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.TrackingEvent", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("click_id");
 
                     b.Property<string>("Carrier")
@@ -467,8 +467,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("site_id");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)")
+                    b.Property<int?>("Status")
+                        .HasColumnType("int")
                         .HasColumnName("status");
 
                     b.Property<string>("UserAgent")
@@ -482,7 +482,7 @@ namespace ANF.Infrastructure.Migrations
                     b.HasIndex("PublisherCode", "OfferId")
                         .IsUnique();
 
-                    b.ToTable("TrackingEvents");
+                    b.ToTable("TrackingEvents", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.TrackingParam", b =>
@@ -505,7 +505,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TrackingParams");
+                    b.ToTable("TrackingParams", (string)null);
 
                     b.HasData(
                         new
@@ -619,8 +619,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("click_date");
 
-                    b.Property<Guid>("ClickId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("ClickId")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("click_id");
 
                     b.Property<string>("ConversionStatus")
@@ -642,9 +642,10 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClickId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[click_id] IS NOT NULL");
 
-                    b.ToTable("TrackingValidations");
+                    b.ToTable("TrackingValidations", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.TrafficSource", b =>
@@ -685,7 +686,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("PublisherId");
 
-                    b.ToTable("TrafficSources");
+                    b.ToTable("TrafficSources", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Transaction", b =>
@@ -740,7 +741,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.User", b =>
@@ -827,7 +828,7 @@ namespace ANF.Infrastructure.Migrations
                     b.HasIndex("UserCode")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.UserBank", b =>
@@ -860,7 +861,7 @@ namespace ANF.Infrastructure.Migrations
 
                     b.HasIndex("UserCode");
 
-                    b.ToTable("UserBank");
+                    b.ToTable("UserBank", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Wallet", b =>
@@ -890,7 +891,7 @@ namespace ANF.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[user_code] IS NOT NULL");
 
-                    b.ToTable("Wallets");
+                    b.ToTable("Wallets", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.WalletHistory", b =>
@@ -920,7 +921,7 @@ namespace ANF.Infrastructure.Migrations
                         .IsUnique()
                         .HasFilter("[transaction_id] IS NOT NULL");
 
-                    b.ToTable("WalletHistories");
+                    b.ToTable("WalletHistories", (string)null);
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.AdvertiserProfile", b =>
