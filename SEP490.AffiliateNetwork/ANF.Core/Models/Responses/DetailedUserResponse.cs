@@ -7,7 +7,7 @@
     {
         public long Id { get; set; }
 
-        public Guid UserCode { get; set; }
+        public string UserCode { get; init; } = null!;
 
         public string? FirstName { get; set; }
 
