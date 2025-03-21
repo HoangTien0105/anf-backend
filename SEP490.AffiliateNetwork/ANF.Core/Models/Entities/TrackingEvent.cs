@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
@@ -6,10 +7,10 @@ namespace ANF.Core.Models.Entities
     /// <summary>
     /// Data collected from the customer by platform
     /// </summary>
-    public class TrackingEvent : IGuidEntity
+    public class TrackingEvent
     {
         [Column("click_id")]
-        public Guid Id { get; set; }
+        public string Id { get; set; } = null!;
 
         [Column("offer_id")]
         public long OfferId { get; set; }
@@ -41,9 +42,8 @@ namespace ANF.Core.Models.Entities
         [Column("proxy")]
         public string? Proxy { get; set; }
 
-        //TODO: Define the status of tracking
         [Column("status")]
-        public string? Status { get; set; }
+        public TrackingEventStatus? Status { get; set; }
 
         public Offer? Offer { get; set; }
 

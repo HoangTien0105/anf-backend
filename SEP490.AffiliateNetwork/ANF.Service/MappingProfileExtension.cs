@@ -95,15 +95,24 @@ namespace ANF.Service
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.Offers, opt => opt.Ignore());
 
+            CreateMap<Campaign, CampaignDetailedResponse>()
+                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images.Select(x => x.ImageUrl)))
+                .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
+
             CreateMap<OfferForCampaignCreateRequest, OfferCreateRequest>();
 
             CreateMap<OfferCreateRequest, Offer>()
                 .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
 
             CreateMap<TrafficSource, AffiliateSourceResponse>();
+
             CreateMap<Subscription, SubscriptionResponse>();
+
             CreateMap<Campaign, CampaignResponse>();
+            
             CreateMap<CampaignImage, CampaignImageResponse>();
+            
             CreateMap<Offer, OfferResponse>();
 
             CreateMap<User, AdvertiserProfileResponse>()
@@ -112,13 +121,13 @@ namespace ANF.Service
                 .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.AdvertiserProfile.Industry))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.AdvertiserProfile.ImageUrl))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.AdvertiserProfile.Bio));
-            
+
             CreateMap<AdvertiserProfileUpdatedRequest, User>()
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(dest => dest.CitizenId, opt => opt.MapFrom(src => src.CitizenId))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.Address))
                 .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.DateOfBirth));
-            
+
             CreateMap<AdvertiserProfileUpdatedRequest, AdvertiserProfile>()
                 .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.CompanyName))
                 .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.Industry))

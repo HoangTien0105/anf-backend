@@ -33,6 +33,29 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get campaign
+        /// </summary>
+        /// <param name="id">Campaign's id</param>
+        /// <returns></returns>
+        [HttpGet("campaigns/{id}")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser, Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCampaign(long id)
+        {
+            var campaign = await _campaignService.GetCampaign(id);
+            return Ok(new ApiResponse<CampaignDetailedResponse>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = campaign
+            });
+        }
+
+        /// <summary>
         /// Get campaigns including offers for admin with all status
         /// </summary>
         /// <param name="request">Pagination request model</param>
@@ -59,7 +82,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Pagination data</param>
         /// <param name="code">Advertiser's code</param>
         /// <returns></returns>
-        [HttpGet("campaigns/advertisers/{id}/offers")]  //FIX
+        [HttpGet("campaigns/advertisers/{code}/offers")] 
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin, Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -107,8 +130,7 @@ namespace ANF.Application.Controllers.v1
         /// Update cammpaign status
         /// </summary>
         /// <param name="id">Campaign id</param>
-        /// <param name="campaignStatus">Campaign status</param>
-        /// <param name="rejectReason">Reject reason</param>
+        /// <param name="request">Campaign status updated model</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         [HttpPatch("campaigns/admin/{id}/status")]
@@ -116,16 +138,16 @@ namespace ANF.Application.Controllers.v1
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateCampaignStatus(long id, [FromForm] string campaignStatus, [FromForm] string? rejectReason)
+        public async Task<IActionResult> UpdateCampaignStatus(long id, [FromBody] CampaignStatusUpdatedRequest request)
         {
-            var result = await _campaignService.UpdateCampaignStatus(id, campaignStatus, rejectReason);
+            var result = await _campaignService.UpdateCampaignStatus(id, request.CampaignStatus, request.RejectReason);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
                 Message = "Update status successfully"
             });
-        }   //FIX
+        }
 
         /// <summary>
         /// Create campaigns
