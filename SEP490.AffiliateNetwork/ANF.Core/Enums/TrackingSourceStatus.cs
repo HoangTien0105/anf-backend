@@ -3,7 +3,7 @@
     /// <summary>
     /// States of publisher's affiliate sources
     /// </summary>
-    public enum AffSourceStatus
+    public enum TrackingSourceStatus
     {
         Draft,
         Pending,

@@ -5,7 +5,8 @@ namespace ANF.Core.Models.Entities
 {
     public class Policy : IEntity
     {
-        [Column("pol_id")]
+        [Column("id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         [Column("header")]
@@ -17,7 +18,7 @@ namespace ANF.Core.Models.Entities
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
-        [Column("status")]
-        public string? Status { get; set; }
+        //[Column("status")]
+        //public string? Status { get; set; }
     }
 }

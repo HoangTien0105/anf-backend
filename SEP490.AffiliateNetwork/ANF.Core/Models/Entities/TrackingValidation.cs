@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
@@ -18,21 +19,17 @@ namespace ANF.Core.Models.Entities
         [Column("click_id")]
         public string? ClickId { get; set; }
 
-        [Column("offer_id")]
-        public long OfferId { get; set; }
-
         [Column("validated_time")]
         public DateTime ValidatedTime { get; set; }
 
         [Column("click_date")]
         public DateOnly ClickDate { get; set; }
-
-        //TODO: Define status of conversion
+        
         [Column("conversion_status")]
-        public string? ConversionStatus { get; set; }
+        public ConversionStatus? ConversionStatus { get; set; }
 
-        [Column("revenue")]
-        public double? Revenue { get; set; }
+        [Column("revenue", TypeName = "decimal(10,2)")]
+        public decimal? Revenue { get; set; }
 
         public TrackingEvent? TrackingEvent { get; set; }
     }
