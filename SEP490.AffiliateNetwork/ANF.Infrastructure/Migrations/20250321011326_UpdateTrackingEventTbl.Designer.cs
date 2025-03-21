@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250320150648_Reinitial database")]
-    partial class Reinitialdatabase
+    [Migration("20250321011326_UpdateTrackingEventTbl")]
+    partial class UpdateTrackingEventTbl
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -189,8 +189,8 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid>("ClickId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("ClickId")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("click_id");
 
                     b.Property<DateTime>("DetectedTime")
@@ -212,7 +212,8 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClickId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[click_id] IS NOT NULL");
 
                     b.ToTable("FraudDetections");
                 });
@@ -428,9 +429,8 @@ namespace ANF.Infrastructure.Migrations
 
             modelBuilder.Entity("ANF.Core.Models.Entities.TrackingEvent", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("click_id");
 
                     b.Property<string>("Carrier")
@@ -470,8 +470,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("site_id");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)")
+                    b.Property<int?>("Status")
+                        .HasColumnType("int")
                         .HasColumnName("status");
 
                     b.Property<string>("UserAgent")
@@ -622,8 +622,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnType("date")
                         .HasColumnName("click_date");
 
-                    b.Property<Guid>("ClickId")
-                        .HasColumnType("uniqueidentifier")
+                    b.Property<string>("ClickId")
+                        .HasColumnType("nvarchar(450)")
                         .HasColumnName("click_id");
 
                     b.Property<string>("ConversionStatus")
@@ -645,7 +645,8 @@ namespace ANF.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClickId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[click_id] IS NOT NULL");
 
                     b.ToTable("TrackingValidations");
                 });

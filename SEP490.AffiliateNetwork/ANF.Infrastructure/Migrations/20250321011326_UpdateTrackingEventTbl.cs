@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ANF.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Reinitialdatabase : Migration
+    public partial class UpdateTrackingEventTbl : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -370,7 +370,7 @@ namespace ANF.Infrastructure.Migrations
                 name: "TrackingEvents",
                 columns: table => new
                 {
-                    click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    click_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     offer_id = table.Column<long>(type: "bigint", nullable: false),
                     publisher_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ip_address = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -381,7 +381,7 @@ namespace ANF.Infrastructure.Migrations
                     click_time = table.Column<DateTime>(type: "datetime2", nullable: false),
                     referer = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     proxy = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    status = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    status = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -420,7 +420,7 @@ namespace ANF.Infrastructure.Migrations
                 {
                     fraud_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    click_id = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     offer_id = table.Column<long>(type: "bigint", nullable: false),
                     publisher_id = table.Column<long>(type: "bigint", nullable: false),
                     reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -442,7 +442,7 @@ namespace ANF.Infrastructure.Migrations
                 {
                     validation_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    click_id = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     offer_id = table.Column<long>(type: "bigint", nullable: false),
                     validated_time = table.Column<DateTime>(type: "datetime2", nullable: false),
                     click_date = table.Column<DateOnly>(type: "date", nullable: false),
@@ -507,7 +507,8 @@ namespace ANF.Infrastructure.Migrations
                 name: "IX_FraudDetections_click_id",
                 table: "FraudDetections",
                 column: "click_id",
-                unique: true);
+                unique: true,
+                filter: "[click_id] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Offers_camp_id",
@@ -550,7 +551,8 @@ namespace ANF.Infrastructure.Migrations
                 name: "IX_TrackingValidations_click_id",
                 table: "TrackingValidations",
                 column: "click_id",
-                unique: true);
+                unique: true,
+                filter: "[click_id] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TrafficSources_publisher_id",
