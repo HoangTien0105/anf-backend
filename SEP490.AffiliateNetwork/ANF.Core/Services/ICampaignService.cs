@@ -12,5 +12,12 @@ namespace ANF.Core.Services
         Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request);
         Task<bool> UpdateCampaignStatus(long id, string campaignStatus, string? rejectReason);
         Task<bool> DeleteCampaign(long id);
+
+        /// <summary>
+        /// Get a campaign
+        /// </summary>
+        /// <param name="id">Campaign's id</param>
+        /// <returns>Campaign and offer information</returns>
+        Task<CampaignDetailedResponse> GetCampaign(long id);
     }
 }

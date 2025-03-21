@@ -194,6 +194,22 @@ namespace ANF.Service
             }
         }
 
+        public async Task<CampaignDetailedResponse> GetCampaign(long id)
+        {
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var campaign = await campaignRepository.GetAll()
+                .AsNoTracking()
+                .Include(c => c.Images)
+                .Include(c => c.Offers)
+                .Include(c => c.Category)
+                .FirstOrDefaultAsync(c => c.Id == id);
+            if (campaign is null)
+            {
+                throw new KeyNotFoundException("Campaign does not exist!");
+            }
+            return _mapper.Map<CampaignDetailedResponse>(campaign);
+        }
+
         public async Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
@@ -201,6 +217,7 @@ namespace ANF.Service
                             .AsNoTracking()
                             .Include(e => e.Images)
                             .Include(e => e.Category)
+                            .Include(e => e.Offers)
                             .Where(e => e.Status == CampaignStatus.Verified)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
