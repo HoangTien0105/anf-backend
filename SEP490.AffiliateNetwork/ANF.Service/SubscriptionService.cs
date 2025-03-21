@@ -61,6 +61,7 @@ namespace ANF.Service
             }
             catch (Exception)
             {
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -123,7 +124,7 @@ namespace ANF.Service
             }
             catch (Exception)
             {
-
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }

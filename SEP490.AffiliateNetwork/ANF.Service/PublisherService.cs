@@ -131,7 +131,7 @@ namespace ANF.Service
                     .FirstOrDefaultAsync(s => s.Id == sourceId);
                 if (source is null)
                     throw new KeyNotFoundException("Source does not exist!");
-                if (source.Status == AffSourceStatus.Verified)
+                if (source.Status == TrackingSourceStatus.Verified)
                     throw new ArgumentException("The source cannot update because it's verified in system!");
                 pubSourceRepository.Delete(source);
                 return await _unitOfWork.SaveAsync() > 0;
@@ -157,7 +157,7 @@ namespace ANF.Service
                         .FirstOrDefaultAsync(s => s.Id == id);
                     if (affiliateSource is null)
                         throw new KeyNotFoundException("Source does not exist!");
-                    if (affiliateSource.Status == AffSourceStatus.Verified)
+                    if (affiliateSource.Status == TrackingSourceStatus.Verified)
                         throw new ArgumentException("The source cannot update because it's verified in system!");
                     pubSourceRepository.Delete(affiliateSource);
                 }
@@ -246,7 +246,7 @@ namespace ANF.Service
                     .FirstOrDefaultAsync(x => x.Id == sourceId);
                 if (source is null)
                     throw new KeyNotFoundException("Source does not exist!");
-                if (source.Status == AffSourceStatus.Verified)
+                if (source.Status == TrackingSourceStatus.Verified)
                     throw new ArgumentException("The source cannot update because it's verified in system!");  //TODO: Change the suitable exception to handle this error.
                 _ = _mapper.Map(request, source);
 
@@ -270,7 +270,7 @@ namespace ANF.Service
                     var source = await pubSourceRepository.FindByIdAsync(item);
                     if (source is null)
                         throw new KeyNotFoundException("Source does not exist!");
-                    source.Status = AffSourceStatus.Verified;
+                    source.Status = TrackingSourceStatus.Verified;
                     pubSourceRepository.Update(source);
                 }
                 return await _unitOfWork.SaveAsync() > 0;

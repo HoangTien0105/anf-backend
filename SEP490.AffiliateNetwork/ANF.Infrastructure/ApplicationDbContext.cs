@@ -47,6 +47,10 @@ namespace ANF.Infrastructure
         public DbSet<TrackingValidation> TrackingValidations { get; set; } = null!;
         
         public DbSet<FraudDetection> FraudDetections { get; set; } = null!;
+
+        public DbSet<Policy> Policies { get; set; } = null!;
+
+        public DbSet<BatchPayment> BatchPayments { get; set; } = null!;
         
         /// <summary>
         /// Get connection string from appsettings.json

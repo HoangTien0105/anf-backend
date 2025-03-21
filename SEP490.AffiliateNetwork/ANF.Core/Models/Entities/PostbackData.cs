@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
@@ -18,16 +19,14 @@ namespace ANF.Core.Models.Entities
         [Column("offer_id")]
         public long OfferId { get; set; }
 
-        //TODO: Review the field again. Use publisher_id or publisher_code?
-        [Column("publisher_id")]
-        public long PublisherId { get; set; }
+        [Column("publisher_code")]
+        public string PublisherCode { get; set; } = null!;
 
         [Column("amount")]
         public double? Amount { get; set; }
 
-        //TODO: Define status for postback
         [Column("status")]
-        public int Status { get; set; }
+        public PostbackStatus? Status { get; set; }
 
         public Offer Offer { get; set; } = null!;
     }
