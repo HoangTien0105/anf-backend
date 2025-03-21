@@ -18,11 +18,8 @@ namespace ANF.Core.Models.Entities
         [Column("click_id")]
         public string? ClickId { get; set; }
 
-        [Column("offer_id")]
-        public long OfferId { get; set; }
-
-        [Column("publisher_id")]
-        public long PublisherId { get; set; }
+        [Column("publisher_code")]
+        public string PublisherCode { get; set; } = null!;
 
         [Column("reason")]
         public string? Reason { get; set; }

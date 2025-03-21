@@ -11,7 +11,7 @@ namespace ANF.Infrastructure.Configs
             builder.HasOne(x => x.TrackingEvent)
                 .WithOne(c => c.FraudDetection)
                 .HasForeignKey<FraudDetection>(x => x.ClickId)
-            .IsRequired(false);
+                .IsRequired(false);
 
             builder.HasIndex(f => f.ClickId).IsUnique();
         }

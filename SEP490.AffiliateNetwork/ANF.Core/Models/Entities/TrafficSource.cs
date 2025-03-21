@@ -34,7 +34,7 @@ namespace ANF.Core.Models.Entities
         /// Affiliate source status
         /// </summary>
         [Column("status")]
-        public AffSourceStatus Status { get; set; }
+        public TrackingSourceStatus Status { get; set; }
 
         public User Publisher { get; set; } = null!;
     }

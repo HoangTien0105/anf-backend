@@ -8,9 +8,6 @@ namespace ANF.Infrastructure.Configs
     {
         public void Configure(EntityTypeBuilder<TrackingEvent> builder)
         {
-            builder.HasIndex(x => new { x.PublisherCode, x.OfferId })
-                .IsUnique();
-
             builder.HasOne(x => x.Offer)
                 .WithMany(y => y.TrackingEvents)
                 .HasForeignKey(x => x.OfferId)

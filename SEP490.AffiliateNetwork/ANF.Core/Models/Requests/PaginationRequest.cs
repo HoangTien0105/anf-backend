@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Core.Models.Requests
 {
@@ -6,12 +6,12 @@ namespace ANF.Core.Models.Requests
     {
         const int maxPageSize = 100;
 
-        //TODO: Fix the display property, using this to follow camelCase in query parameter
+        //[BindProperty("pageNumber")]
         public int pageNumber { get; set; } = 1;
 
         private int _pageSize = 10;
 
-        //TODO: Fix the display property, using this to follow camelCase in query parameter
+        //[BindProperty("pageSize")]
         public int pageSize
         {
             get => _pageSize;

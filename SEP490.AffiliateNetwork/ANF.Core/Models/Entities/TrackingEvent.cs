@@ -1,5 +1,4 @@
-﻿using ANF.Core.Commons;
-using ANF.Core.Enums;
+﻿using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities

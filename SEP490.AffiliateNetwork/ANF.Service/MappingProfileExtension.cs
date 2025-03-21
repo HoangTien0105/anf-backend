@@ -68,7 +68,7 @@ namespace ANF.Service
 
 
             CreateMap<AffiliateSourceCreateRequest, TrafficSource>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => AffSourceStatus.Pending))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => TrackingSourceStatus.Pending))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.Now))
                 .ForMember(dest => dest.PublisherId, opt => opt.MapFrom((src, dest, destMember, context) => (long)context.Items["PublisherId"]));
 
