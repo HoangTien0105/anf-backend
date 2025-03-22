@@ -2,6 +2,7 @@
 using ANF.Core.Enums;
 using ANF.Core.Models.Entities;
 using ANF.Core.Services;
+using ANF.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -85,7 +86,7 @@ namespace ANF.Service
                 if (campaign.Status != CampaignStatus.Started)
                     throw new ArgumentException("Campaign is not available.");
 
-                string clickId = (DateTimeOffset.Now.ToUnixTimeSeconds() + new Random().Next(10000, 100000)).ToString();
+                string clickId = StringHelper.GenerateUniqueCode();
 
                 var trackingEvent = new TrackingEvent
                 {
