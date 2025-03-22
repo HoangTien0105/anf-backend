@@ -215,6 +215,27 @@ namespace ANF.Service
             return new PaginationResponse<OfferResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
+        public async Task<List<PublisherOfferResponse>> GetPublisherOfOffer(long offerId)
+        {
+            var publisherOffer = _unitOfWork.GetRepository<PublisherOffer>();
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+
+            //TODO: Validate the advertisers can view the campaigns created by them
+            var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            if (string.IsNullOrEmpty(advertiserCode))
+                throw new UnauthorizedAccessException("Advertiser's code is empty!");
+
+            var publishers = await publisherOffer.GetAll()
+                .AsNoTracking()
+                .Where(po => po.OfferId == offerId)
+                .Select(x => x.Publisher)
+                .ToListAsync();
+            if (!publishers.Any())
+                throw new NoDataRetrievalException("No data of publishers!");
+            
+            return _mapper.Map<List<PublisherOfferResponse>>(publishers);
+        }
+
         public async Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason)
         {
             try

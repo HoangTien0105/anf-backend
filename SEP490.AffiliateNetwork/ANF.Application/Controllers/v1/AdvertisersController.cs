@@ -34,6 +34,29 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get verified publisher's traffic sources
+        /// </summary>
+        /// <param name="id">Publisher's id</param>
+        /// <returns></returns>
+        [HttpGet("publishers/{id}/available-traffic-sources")]
+        [Authorize(Roles = "Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetTrafficSources(long id)
+        {
+            //TODO: Is pagination required for endpoint?
+            var sources = await _advertiserService.GetTrafficSourceOfPublisher(id);
+            return Ok(new ApiResponse<List<AffiliateSourceResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = sources
+            });
+        }
+
+        /// <summary>
         /// Update advertiser's profile
         /// </summary>
         /// <param name="id">Advertiser's id</param>

@@ -21,5 +21,7 @@ namespace ANF.Core.Services
         /// <param name="ubIds">List user bank's id</param>
         /// <returns></returns>
         Task<bool> DeleteBankingInformation(List<long> ubIds);
+
+        Task<List<AffiliateSourceResponse>> GetTrafficSourceOfPublisher(long publisherId);
     }
 }

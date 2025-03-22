@@ -143,6 +143,11 @@ namespace ANF.Service
             CreateMap<UserBankUpdateRequest, UserBank>()
                 .ForMember(dest => dest.UserCode, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDate, opt => opt.Ignore());
+
+            CreateMap<User, PublisherOfferResponse>()
+                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode));
+
+            CreateMap<TrafficSource, AffiliateSourceResponse>();
         }
     }
 }
