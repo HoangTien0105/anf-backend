@@ -165,7 +165,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpPatch("offers/pubOffers/{id}/status")]
         [MapToApiVersion(1)]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdatePubOfferStatus(long id, string status, string? rejectReason)

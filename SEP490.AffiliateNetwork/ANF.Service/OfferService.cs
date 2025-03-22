@@ -256,7 +256,9 @@ namespace ANF.Service
                 var campaignExist = await campaignRepository.GetAll()
                                             .AsNoTracking()
                                             .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId &&
-                                            (e.Status == CampaignStatus.Pending || e.Status == CampaignStatus.Verified));
+                                            (e.Status == CampaignStatus.Pending 
+                                            || e.Status == CampaignStatus.Verified 
+                                            || e.Status == CampaignStatus.Started));
                 if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending or Verified for offer to be updated");
 
                 if (!Enum.TryParse<PublisherOfferStatus>(status, true, out var pubOfferStatus))
