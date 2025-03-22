@@ -54,6 +54,7 @@ namespace ANF.Application.Extensions
             services.AddApiVersioning();
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddApplicationService();
+            services.AddMemoryCache();
 
             return services;
         }
@@ -196,8 +197,8 @@ namespace ANF.Application.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPublisherService, PublisherService>();
             services.AddScoped<IAdvertiserService, AdvertiserService>();
+            services.AddScoped<ITrackingService, TrackingService>();
             services.AddScoped<ICategoryService, CategoryService>();
-
             services.AddScoped<IOfferService, OfferService>();
             services.AddScoped<ICloudinaryService, CloudinaryService>();
             services.AddScoped<IEmailService, EmailService>();

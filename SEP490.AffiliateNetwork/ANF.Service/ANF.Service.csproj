@@ -10,6 +10,8 @@
 	  <PackageReference Include="AutoMapper" Version="13.0.1" />
 	  <PackageReference Include="CloudinaryDotNet" Version="1.27.4" />
 	  <PackageReference Include="MailKit" Version="4.10.0" />
+	  <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.3" />
+	  <PackageReference Include="MyCSharp.HttpUserAgentParser" Version="3.0.13" />
 	  <PackageReference Include="payOS" Version="1.0.9" />
 	</ItemGroup>
 
