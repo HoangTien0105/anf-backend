@@ -12,5 +12,7 @@ namespace ANF.Core.Services
         Task<bool> DeleteOffer(long id);
         Task<bool> ApplyOffer(string pubId, long offerId);
         Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason);
+
+        Task<List<PublisherOfferResponse>> GetPublisherOfOffer(long offerId);
     }
 }
