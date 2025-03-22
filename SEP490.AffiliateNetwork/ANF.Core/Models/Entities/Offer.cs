@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -50,7 +51,15 @@ namespace ANF.Core.Models.Entities
 
         [Column("img_url")]
         public string? ImageUrl { get; set; }
-        
+
+        //TODO: REVIEW THE PROPERTY BASED ON PLATFORM BUSINESS
+        [Column("status")]
+        public OfferStatus? Status { get; set; }
+
+        //TODO: REVIEW THE PROPERTY BASED ON PLATFORM BUSINESS
+        [Column("rejected_reason")]
+        public string? RejectedReason { get; set; }
+
         [Column("concurrency_stamp")]
         [Timestamp]
         public byte[] ConcurrencyStamp { get; set; } = null!;

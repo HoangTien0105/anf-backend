@@ -28,6 +28,6 @@
         
         public string? Bio { get; set; }
 
-        public ICollection<UserBankResponse> UserBanks { get; set; } = new List<UserBankResponse>();
+        public ICollection<UserBankResponse>? UserBanks { get; set; }
     }
 }

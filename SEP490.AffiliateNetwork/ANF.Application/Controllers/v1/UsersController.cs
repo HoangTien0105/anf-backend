@@ -78,7 +78,12 @@ namespace ANF.Application.Controllers.v1
         public async Task<IActionResult> GetAdvertisers([FromQuery] PaginationRequest request)
         {
             var advertisers = await _userService.GetAdvertisers(request);
-            return Ok(advertisers);
+            return Ok(new ApiResponse<PaginationResponse<AdvertiserResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = advertisers
+            });
         }
 
         /// <summary>
@@ -94,7 +99,12 @@ namespace ANF.Application.Controllers.v1
         public async Task<IActionResult> GetPublishers([FromQuery] PaginationRequest request)
         {
             var publishers = await _userService.GetPublishers(request);
-            return Ok(publishers);
+            return Ok(new ApiResponse<PaginationResponse<PublisherResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = publishers
+            });
         }
 
         /// <summary>

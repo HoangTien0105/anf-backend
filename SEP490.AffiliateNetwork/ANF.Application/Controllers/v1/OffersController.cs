@@ -178,5 +178,29 @@ namespace ANF.Application.Controllers.v1
                 Message = "Update success."
             });
         }
+
+        /// <summary>
+        /// Get publishers of an offer
+        /// </summary>
+        /// <param name="id">Offer's id</param>
+        /// <returns></returns>
+        [HttpGet("offers/{id}/publishers")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPublisherOfAnOffer(long id)
+        {
+            //TODO: Is pagination required for this endpoint?
+            var publishers = await _offerService.GetPublisherOfOffer(id);
+            return Ok(new ApiResponse<List<PublisherOfferResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = publishers
+            });
+        }
     }
 }

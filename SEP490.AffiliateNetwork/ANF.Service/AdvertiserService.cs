@@ -1,5 +1,6 @@
 ﻿using ANF.Core;
 using ANF.Core.Commons;
+using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
@@ -132,6 +133,23 @@ namespace ANF.Service
                 throw new KeyNotFoundException("Advertiser does not exist!");
             var response = _mapper.Map<AdvertiserProfileResponse>(advertiser);
             return response;
+        }
+
+        public async Task<List<AffiliateSourceResponse>> GetTrafficSourceOfPublisher(long publisherId)
+        {
+            var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            if (string.IsNullOrEmpty(currentAdvertiserCode))
+                throw new UnauthorizedAccessException("Advertiser's code is empty!");
+
+            var trafficSourceRepository = _unitOfWork.GetRepository<TrafficSource>();
+            var sources = await trafficSourceRepository.GetAll()
+                .AsNoTracking()
+                .Where(x => x.PublisherId == publisherId && x.Status == TrackingSourceStatus.Verified)
+                .ToListAsync();
+            if (!sources.Any())
+                throw new NoDataRetrievalException("No data of traffic sources!");
+
+            return _mapper.Map<List<AffiliateSourceResponse>>(sources);
         }
 
         public async Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request)
