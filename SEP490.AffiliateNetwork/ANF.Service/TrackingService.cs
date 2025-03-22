@@ -2,11 +2,13 @@
 using ANF.Core.Enums;
 using ANF.Core.Models.Entities;
 using ANF.Core.Services;
+using ANF.Infrastructure;
 using ANF.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using MyCSharp.HttpUserAgentParser;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -23,8 +25,9 @@ namespace ANF.Service
         private readonly ConcurrentQueue<TrackingEvent> _trackingQueue;
         private readonly CancellationTokenSource _cts;
         private readonly Task _processingTask;
+        private readonly ILogger<TrackingService> _logger;
 
-        public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IServiceScopeFactory scopeFactory)
+        public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger)
         {
             _unitOfWork = unitOfWork;
             _cache = cache;
@@ -32,6 +35,7 @@ namespace ANF.Service
             _cts = new CancellationTokenSource();
             _scopeFactory = scopeFactory;
             _processingTask = Task.Run(() => ProcessQueueAsync(_cts.Token));
+            _logger = logger;
         }
 
         public async Task<string> StoreParams(long offerId, string publisherCode, HttpRequest httpRequest)
@@ -101,7 +105,7 @@ namespace ANF.Service
                 };
 
                 _trackingQueue.Enqueue(trackingEvent);
-                
+
 
                 var trackingData = new Dictionary<string, string>
                 {
@@ -113,7 +117,7 @@ namespace ANF.Service
                     { "referer", referer}
                 }.Where(kv => kv.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-                string redirectUrl = await BuildRedirectUrl(campaign.ProductUrl, campaign.TrackingParams, trackingData);
+                string redirectUrl = BuildRedirectUrl(campaign.ProductUrl, campaign.TrackingParams, trackingData);
                 return redirectUrl;
             }
             catch (Exception)
@@ -124,22 +128,19 @@ namespace ANF.Service
 
         private async Task StoreTrackingData(TrackingEvent trackingEvent)
         {
-            using (var scope = _scopeFactory.CreateScope())
+            try
             {
-                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                var trackingEventRepository = unitOfWork.GetRepository<TrackingEvent>();
-                try
-                {
-                    trackingEventRepository.Add(trackingEvent);
-                    await unitOfWork.SaveAsync();
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Something went wrong with " + trackingEvent.Id);
-                    await unitOfWork.RollbackAsync();
-                    throw;
-                }
+                var trackingEventRepository = _unitOfWork.GetRepository<TrackingEvent>();
+                trackingEventRepository.Add(trackingEvent);
+                await _unitOfWork.SaveAsync();
             }
+            catch (Exception)
+            {
+                _logger.LogDebug("Something went wrong with " + trackingEvent.Id);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
         }
 
         private async Task ProcessQueueAsync(CancellationToken cancellationToken)
@@ -164,7 +165,7 @@ namespace ANF.Service
             }
         }
 
-        private async Task<string> BuildRedirectUrl(string productUrl,
+        private string BuildRedirectUrl(string productUrl,
                                     string trackingParamsJson,
                                     Dictionary<string, string> trackingData)
         {
