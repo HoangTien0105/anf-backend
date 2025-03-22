@@ -302,11 +302,13 @@ namespace ANF.Service
             }
         }
 
-        public async Task<string> Login(string email, string password)
+        public async Task<LoginResponse> Login(string email, string password)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
             var user = await userRepository.GetAll()
                 .AsNoTracking()
+                .Include(u => u.PublisherProfile)
+                .Include(u => u.AdvertiserProfile)
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
             if (user is null) throw new KeyNotFoundException("User does not exist.");
             if (user.Status == UserStatus.Deactive)
@@ -314,7 +316,8 @@ namespace ANF.Service
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
             }
             var token = _tokenService.GenerateToken(user);
-            return token;
+            var response = _mapper.Map<LoginResponse>(user, o => o.Items["Token"] = token);
+            return response;
         }
 
         public async Task<PaginationResponse<AdvertiserResponse>> GetAdvertisers(PaginationRequest request)

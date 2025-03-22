@@ -11,7 +11,7 @@ namespace ANF.Core.Models.Responses
 
         public string PublisherCode { get; init; } = null!;
 
-        public long OfferId { get; set; }
+        public long OfferId { get; init; }
 
         public string? FirstName { get; init; }
 
@@ -19,12 +19,17 @@ namespace ANF.Core.Models.Responses
 
         public string? PhoneNumber { get; init; }
 
-        //public string? CitizenId { get; init; }
-
-        //public string? Address { get; init; }
-
-        //public DateTime? DateOfBirth { get; init; }
-
         public string Email { get; init; } = null!;
+
+        public ICollection<PublisherOfferTrafficSource>? TrafficSources { get; set; }
+    }
+
+    public class PublisherOfferTrafficSource
+    {
+        public string? Provider { get; init; }
+
+        public string SourceUrl { get; init; } = null!;
+
+        public string? Type { get; init; }
     }
 }

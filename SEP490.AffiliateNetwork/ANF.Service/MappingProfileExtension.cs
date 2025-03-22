@@ -11,6 +11,12 @@ namespace ANF.Service
     {
         public MappingProfileExtension()
         {
+            CreateMap<User, LoginResponse>()
+                .ForMember(dest => dest.AccessToken, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["Token"]))
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PublisherProfile.ImageUrl))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.AdvertiserProfile.ImageUrl));
+
             CreateMap<User, DetailedUserResponse>()
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PublisherProfile.ImageUrl))
@@ -143,16 +149,6 @@ namespace ANF.Service
             CreateMap<UserBankUpdateRequest, UserBank>()
                 .ForMember(dest => dest.UserCode, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDate, opt => opt.Ignore());
-
-            CreateMap<PublisherOffer, PublisherOfferResponse>()
-                .ForMember(dest => dest.PublisherId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.Publisher.UserCode))
-                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Publisher.FirstName))
-                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Publisher.LastName))
-                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Publisher.PhoneNumber))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Publisher.Email));
-
-            CreateMap<TrafficSource, AffiliateSourceResponse>();
         }
     }
 }

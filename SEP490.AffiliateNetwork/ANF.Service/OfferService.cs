@@ -11,7 +11,7 @@ using ANF.Core.Commons;
 
 namespace ANF.Service
 {
-    public class OfferService(IUnitOfWork unitOfWork, IMapper mapper, 
+    public class OfferService(IUnitOfWork unitOfWork, IMapper mapper,
         ICloudinaryService cloudinaryService,
         IUserClaimsService userClaimsService) : IOfferService
     {
@@ -220,20 +220,70 @@ namespace ANF.Service
             var publisherOffer = _unitOfWork.GetRepository<PublisherOffer>();
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
 
-            //TODO: Validate the advertisers can view the campaigns created by them
             var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
             if (string.IsNullOrEmpty(advertiserCode))
                 throw new UnauthorizedAccessException("Advertiser's code is empty!");
 
+            // Check whether the offer is belong to the current advertiser
+            var offers = await campaignRepository.GetAll()
+                .AsNoTracking()
+                .Include(c => c.Offers)
+                .Where(c => c.AdvertiserCode == advertiserCode)
+                .SelectMany(c => c.Offers)
+                .ToListAsync();
+            var isExisted = offers.Any(o => o.Id == offerId);
+            if (!isExisted)
+                throw new ForbiddenException("The current advertiser is not the owner of this offer!");
+
             var publishers = await publisherOffer.GetAll()
                 .AsNoTracking()
                 .Include(po => po.Publisher)
+                .ThenInclude(p => p.AffiliateSources)
                 .Where(po => po.OfferId == offerId)
+                .Select(x => new
+                {
+                    x.Id,
+                    PublisherId =  x.Publisher.Id,
+                    x.PublisherCode,
+                    x.OfferId,
+                    FirstName = x.Publisher.FirstName,
+                    LastName = x.Publisher.LastName,
+                    PhoneNumber = x.Publisher.PhoneNumber,
+                    Email = x.Publisher.Email,
+                    TrafficSources = x.Publisher.AffiliateSources.Select(y => new
+                    {
+                        y.Provider,
+                        y.SourceUrl,
+                        y.Type
+                    }).ToList()
+                })
                 .ToListAsync();
             if (!publishers.Any())
                 throw new NoDataRetrievalException("No data of publishers!");
-            
-            return _mapper.Map<List<PublisherOfferResponse>>(publishers);
+
+            var responses = new List<PublisherOfferResponse>();
+            foreach (var item in publishers)
+            {
+                var response = new PublisherOfferResponse()
+                {
+                    Id = item.Id,
+                    PublisherId = item.PublisherId,
+                    OfferId = item.OfferId,
+                    PublisherCode = item.PublisherCode,
+                    FirstName = item.FirstName,
+                    LastName = item.LastName,
+                    PhoneNumber = item.PhoneNumber,
+                    Email = item.Email,
+                    TrafficSources = item.TrafficSources.Select(x => new PublisherOfferTrafficSource
+                    {
+                        Provider = x.Provider,
+                        SourceUrl = x.SourceUrl,
+                        Type = x.Type
+                    }).ToList(),
+                };
+                responses.Add(response);
+            }
+            return responses;
         }
 
         public async Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason)
@@ -256,8 +306,8 @@ namespace ANF.Service
                 var campaignExist = await campaignRepository.GetAll()
                                             .AsNoTracking()
                                             .FirstOrDefaultAsync(e => e.Id == offerExist.CampaignId &&
-                                            (e.Status == CampaignStatus.Pending 
-                                            || e.Status == CampaignStatus.Verified 
+                                            (e.Status == CampaignStatus.Pending
+                                            || e.Status == CampaignStatus.Verified
                                             || e.Status == CampaignStatus.Started));
                 if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending or Verified for offer to be updated");
 

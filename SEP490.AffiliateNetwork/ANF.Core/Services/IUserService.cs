@@ -5,7 +5,7 @@ namespace ANF.Core.Services
 {
     public interface IUserService
     {
-        Task<string> Login(string email, string password);
+        Task<LoginResponse> Login(string email, string password);
 
         Task<bool> RegisterAccount(AccountCreateRequest request);
 
