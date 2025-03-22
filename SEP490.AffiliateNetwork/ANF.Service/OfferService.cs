@@ -227,8 +227,8 @@ namespace ANF.Service
 
             var publishers = await publisherOffer.GetAll()
                 .AsNoTracking()
+                .Include(po => po.Publisher)
                 .Where(po => po.OfferId == offerId)
-                .Select(x => x.Publisher)
                 .ToListAsync();
             if (!publishers.Any())
                 throw new NoDataRetrievalException("No data of publishers!");

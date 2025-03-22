@@ -144,8 +144,13 @@ namespace ANF.Service
                 .ForMember(dest => dest.UserCode, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDate, opt => opt.Ignore());
 
-            CreateMap<User, PublisherOfferResponse>()
-                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode));
+            CreateMap<PublisherOffer, PublisherOfferResponse>()
+                .ForMember(dest => dest.PublisherId, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.Publisher.UserCode))
+                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.Publisher.FirstName))
+                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.Publisher.LastName))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.Publisher.PhoneNumber))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Publisher.Email));
 
             CreateMap<TrafficSource, AffiliateSourceResponse>();
         }
