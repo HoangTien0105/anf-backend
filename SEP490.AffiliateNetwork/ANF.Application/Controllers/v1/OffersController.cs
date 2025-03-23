@@ -137,17 +137,16 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Apply offer for publishers
         /// </summary>
-        /// <param name="pubId">Publisher code</param>
-        /// <param name="offerId">Offer id</param>
+        /// <param name="offerId">Offer's id</param>
         /// <returns></returns>
         [HttpPost("offers/publisher")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> ApplyOffer(string pubId, long offerId)
+        public async Task<IActionResult> ApplyOffer(long offerId)
         {
-            var result = await _offerService.ApplyOffer(pubId, offerId);
+            var result = await _offerService.ApplyOffer(offerId);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {

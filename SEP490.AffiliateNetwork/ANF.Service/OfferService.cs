@@ -20,28 +20,26 @@ namespace ANF.Service
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
         private readonly IMapper _mapper = mapper;
 
-        public async Task<bool> ApplyOffer(string pubId, long offerId)
+        public async Task<bool> ApplyOffer(long offerId)
         {
             try
             {
-                var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (currentPublisherCode != pubId)
-                    throw new UnauthorizedAccessException("Publisher's code does not match!");
-                if (pubId is null) throw new NullReferenceException("Invalid request data. Please check again!");
-
+                var pubId = _userClaimsService.GetClaim(ClaimConstants.NameId);
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
                 var userRepository = _unitOfWork.GetRepository<User>();
 
+                var publisherExist = await userRepository.GetAll()
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(e => e.UserCode.ToString() == pubId);
+                if (publisherExist is null || publisherExist.Role != UserRoles.Publisher) 
+                    throw new ForbiddenException("This user does not have access permission");
+
                 var offerExist = await offerRepository.GetAll()
                                         .AsNoTracking().FirstOrDefaultAsync(e => e.Id == offerId);
                 if (offerExist is null) throw new KeyNotFoundException("Offer does not exists");
 
-                var publisherExist = await userRepository.GetAll()
-                                        .AsNoTracking()
-                                        .FirstOrDefaultAsync(e => e.UserCode.ToString() == pubId && e.Role == UserRoles.Publisher);
-                if (publisherExist is null) throw new KeyNotFoundException("Publisher does not exists");
 
                 var campaignExist = await campaignRepository.GetAll()
                                         .AsNoTracking()

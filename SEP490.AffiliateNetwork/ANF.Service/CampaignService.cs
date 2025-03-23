@@ -223,7 +223,7 @@ namespace ANF.Service
 
             if (publisher is null) throw new KeyNotFoundException("Publisher does not exist!");
             if (publisher.Role != UserRoles.Publisher)
-                throw new UnauthorizedAccessException("This user is not authorized for this function.");
+                throw new ForbiddenException("This user does not have access permission.");
 
             var campaign = await campaignRepository.GetAll()
                .AsNoTracking()
