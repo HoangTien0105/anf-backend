@@ -7,6 +7,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ANF.Core.Enums;
 using ANF.Core.Commons;
+using ANF.Core.Exceptions;
 
 namespace ANF.Service
 {
@@ -210,6 +211,36 @@ namespace ANF.Service
             return _mapper.Map<CampaignDetailedResponse>(campaign);
         }
 
+        public async Task<CampaignPubDetailedResponse> GetCampaignForPublisher(long id)
+        {
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var publisherCode = long.Parse(_userClaimsService.GetClaim(ClaimConstants.Primarysid));
+
+            var publisher = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == publisherCode);
+
+            if (publisher is null) throw new KeyNotFoundException("Publisher does not exist!");
+            if (publisher.Role != UserRoles.Publisher)
+                throw new UnauthorizedAccessException("This user is not authorized for this function.");
+
+            var campaign = await campaignRepository.GetAll()
+               .AsNoTracking()
+               .Include(c => c.Images)
+               .Include(c => c.Offers)
+               .Include(c => c.Category)
+               .FirstOrDefaultAsync(c => c.Id == id && 
+               (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started));
+
+            if (campaign is null)
+            {
+                throw new KeyNotFoundException("Campaign does not exist!");
+            }
+
+            return _mapper.Map<CampaignPubDetailedResponse>(campaign);
+        }
+
         public async Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
@@ -233,7 +264,7 @@ namespace ANF.Service
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="request">Pagination request</param>
         /// <param name="id">Advertiser's code</param>
         /// <returns></returns>
         /// <exception cref="UnauthorizedAccessException"></exception>

@@ -56,6 +56,29 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get campaign for publisher
+        /// </summary>
+        /// <param name="id">Campaign's id</param>
+        /// <returns></returns>
+        [HttpGet("campaigns/{id}/publishers")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCampaignForPublisher(long id)
+        {
+            var campaign = await _campaignService.GetCampaignForPublisher(id);
+            return Ok(new ApiResponse<CampaignPubDetailedResponse>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = campaign
+            });
+        }
+
+        /// <summary>
         /// Get campaigns including offers for admin with all status
         /// </summary>
         /// <param name="request">Pagination request model</param>

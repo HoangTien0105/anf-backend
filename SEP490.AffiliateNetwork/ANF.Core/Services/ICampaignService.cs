@@ -19,5 +19,12 @@ namespace ANF.Core.Services
         /// <param name="id">Campaign's id</param>
         /// <returns>Campaign and offer information</returns>
         Task<CampaignDetailedResponse> GetCampaign(long id);
+
+        /// <summary>
+        /// Get a campaign for publisher
+        /// </summary>
+        /// <param name="id">Campaign's id</param>
+        /// <returns>Campaign and offer information for publisher</returns>
+        Task<CampaignPubDetailedResponse> GetCampaignForPublisher(long id);
     }
 }

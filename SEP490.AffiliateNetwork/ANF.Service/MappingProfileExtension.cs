@@ -106,6 +106,11 @@ namespace ANF.Service
                 .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
+            CreateMap<Campaign, CampaignPubDetailedResponse>()
+                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images.Select(x => x.ImageUrl)))
+                .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers
+                    .Where(offer => offer.Status == OfferStatus.Started || offer.Status == OfferStatus.Approved)));
+
             CreateMap<OfferForCampaignCreateRequest, OfferCreateRequest>();
 
             CreateMap<OfferCreateRequest, Offer>()
