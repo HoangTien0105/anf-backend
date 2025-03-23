@@ -249,7 +249,7 @@ namespace ANF.Service
                             .Include(e => e.Images)
                             .Include(e => e.Category)
                             .Include(e => e.Offers)
-                            .Where(e => e.Status == CampaignStatus.Verified)
+                            .Where(e => e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
