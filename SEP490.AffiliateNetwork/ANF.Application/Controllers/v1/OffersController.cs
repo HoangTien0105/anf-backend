@@ -144,6 +144,7 @@ namespace ANF.Application.Controllers.v1
         [Authorize(Roles = "Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> ApplyOffer(long offerId)
         {
             var result = await _offerService.ApplyOffer(offerId);
@@ -156,9 +157,9 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Update apply offer request for advertiser
+        /// Apply publisher request for advertiser
         /// </summary>
-        /// <param name="id">Publisher Offer Id</param>
+        /// <param name="id">Publisher offer Id</param>
         /// <param name="status">Request status</param>
         /// <param name="rejectReason">Reject reason</param>
         /// <returns></returns>
@@ -167,9 +168,10 @@ namespace ANF.Application.Controllers.v1
         [Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdatePubOfferStatus(long id, string status, string? rejectReason)
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> ApplyPublisherfferStatus(long id, string status, string? rejectReason)
         {
-            var result = await _offerService.UpdateApplyOfferStatus(id, status, rejectReason);
+            var result = await _offerService.ApplyPublisherOffer(id, status, rejectReason);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {

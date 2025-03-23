@@ -17,7 +17,14 @@ namespace ANF.Core.Services
         /// <param name="offerId">Offer's id</param>
         /// <returns></returns>
         Task<bool> ApplyOffer(long offerId);
-        Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason);
+        /// <summary>
+        /// Apply publisher for advertiser
+        /// </summary>
+        /// <param name="pubOfferId">Publisher's offer id</param>
+        /// <param name="status">Publisher's offer status</param>
+        /// <param name="rejectReason">Reject reason</param>
+        /// <returns></returns>
+        Task<bool> ApplyPublisherOffer(long pubOfferId, string status, string? rejectReason);
 
         Task<List<PublisherOfferResponse>> GetPublisherOfOffer(long offerId);
     }

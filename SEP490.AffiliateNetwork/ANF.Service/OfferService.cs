@@ -284,13 +284,14 @@ namespace ANF.Service
             return responses;
         }
 
-        public async Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason)
+        public async Task<bool> ApplyPublisherOffer(long pubOfferId, string status, string? rejectReason)
         {
             try
             {
                 var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
 
                 var pubOfferExist = await pubOfferRepository.GetAll()
                                             .AsNoTracking()
@@ -307,14 +308,17 @@ namespace ANF.Service
                                             (e.Status == CampaignStatus.Pending
                                             || e.Status == CampaignStatus.Verified
                                             || e.Status == CampaignStatus.Started));
-                if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending or Verified for offer to be updated");
+                if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending, Verified or Started for offer to be updated");
+
+                if(campaignExist.AdvertiserCode != advertiserCode)
+                    throw new ForbiddenException("The current advertiser is not the owner of this offer!");
 
                 if (!Enum.TryParse<PublisherOfferStatus>(status, true, out var pubOfferStatus))
                     throw new ArgumentException("Invalid offer's status. Please check again!");
 
                 pubOfferExist.Status = pubOfferStatus;
-                pubOfferExist.JoiningDate = DateTime.UtcNow;    //TODO: Fix (joining_date phải là ngày publisher apply, k update field này ở method này)
-                                                                // Db có thể bổ sung thêm 1 field approved_date, chỗ này đưa value vào
+                pubOfferExist.ApprovedDate = DateTime.UtcNow;    
+
                 if (pubOfferStatus == PublisherOfferStatus.Rejected)
                 {
                     pubOfferExist.RejectReason = rejectReason;
