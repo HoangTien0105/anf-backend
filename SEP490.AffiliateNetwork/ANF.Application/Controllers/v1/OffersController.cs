@@ -115,7 +115,7 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Delete offer
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="id">Offer's id</param>
         /// <returns></returns>
         [HttpDelete("offers/{id}")]
         [MapToApiVersion(1)]

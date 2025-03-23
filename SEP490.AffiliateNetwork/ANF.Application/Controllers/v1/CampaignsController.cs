@@ -124,7 +124,7 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Update campaign
         /// </summary>
-        /// <param name="id">Campaign Id</param>
+        /// <param name="id">Campaign's id</param>
         /// <param name="request">Campaign update request</param>
         /// <returns></returns>
         [HttpPut("campaigns/{id}")]
@@ -152,10 +152,9 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Update cammpaign status
         /// </summary>
-        /// <param name="id">Campaign id</param>
+        /// <param name="id">Campaign's id</param>
         /// <param name="request">Campaign status updated model</param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
         [HttpPatch("campaigns/admin/{id}/status")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin")]
@@ -202,7 +201,7 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Delete campaigns
         /// </summary>
-        /// <param name="id">Campaign id</param>
+        /// <param name="id">Campaign's id</param>
         /// <returns></returns>
         [HttpDelete("campaigns/{id}")]
         [Authorize(Roles = "Admin, Advertiser")]
