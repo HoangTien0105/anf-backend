@@ -215,11 +215,11 @@ namespace ANF.Service
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var userRepository = _unitOfWork.GetRepository<User>();
-            var publisherCode = long.Parse(_userClaimsService.GetClaim(ClaimConstants.Primarysid));
+            var publisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
 
             var publisher = await userRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(e => e.Id == publisherCode);
+                    .FirstOrDefaultAsync(e => e.UserCode == publisherCode);
 
             if (publisher is null) throw new KeyNotFoundException("Publisher does not exist!");
             if (publisher.Role != UserRoles.Publisher)
