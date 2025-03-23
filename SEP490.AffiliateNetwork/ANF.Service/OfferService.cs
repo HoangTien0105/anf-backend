@@ -317,12 +317,13 @@ namespace ANF.Service
                     throw new ArgumentException("Invalid offer's status. Please check again!");
 
                 pubOfferExist.Status = pubOfferStatus;
-                pubOfferExist.ApprovedDate = DateTime.UtcNow;    
+
+                if(pubOfferStatus == PublisherOfferStatus.Approved) pubOfferExist.ApprovedDate = DateTime.UtcNow;    
 
                 if (pubOfferStatus == PublisherOfferStatus.Rejected)
                 {
                     pubOfferExist.RejectReason = rejectReason;
-                }
+                } 
 
                 pubOfferRepository.Update(pubOfferExist);
                 return await _unitOfWork.SaveAsync() > 0;
