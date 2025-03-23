@@ -12,7 +12,6 @@ namespace ANF.Core.Models.Entities
     public class Transaction : IEntity
     {
         [Column("trans_id")]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         [Column("user_code")]

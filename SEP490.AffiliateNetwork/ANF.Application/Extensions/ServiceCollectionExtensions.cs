@@ -204,6 +204,8 @@ namespace ANF.Application.Extensions
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped(typeof(TokenService));
             services.AddScoped<IUserClaimsService, UserClaimsService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<ITransactionService, TransactionService>();
 
             return services;
         }

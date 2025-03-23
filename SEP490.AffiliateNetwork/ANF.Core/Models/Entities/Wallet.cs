@@ -8,8 +8,8 @@ namespace ANF.Core.Models.Entities
         [Column("id")]
         public long Id { get; set; }
 
-        [Column("balance")]
-        public double Balance { get; set; } = 0;
+        [Column("balance", TypeName = "decimal(10,2)")]
+        public decimal Balance { get; set; } = 0;
 
         [Column("is_active")]
         public bool IsActive { get; set; } = false;
