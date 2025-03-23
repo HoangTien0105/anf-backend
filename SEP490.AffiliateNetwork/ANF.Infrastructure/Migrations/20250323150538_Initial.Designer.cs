@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250321125355_AddProperties")]
-    partial class AddProperties
+    [Migration("20250323150538_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -773,11 +773,8 @@ namespace ANF.Infrastructure.Migrations
             modelBuilder.Entity("ANF.Core.Models.Entities.Transaction", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasColumnName("trans_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(10, 2)")
@@ -954,8 +951,8 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<double>("Balance")
-                        .HasColumnType("float")
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(10,2)")
                         .HasColumnName("balance");
 
                     b.Property<bool>("IsActive")
@@ -984,12 +981,12 @@ namespace ANF.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<bool>("BalanceType")
+                    b.Property<bool?>("BalanceType")
                         .HasColumnType("bit")
                         .HasColumnName("balance_type");
 
-                    b.Property<double?>("CurrentBalance")
-                        .HasColumnType("float")
+                    b.Property<decimal?>("CurrentBalance")
+                        .HasColumnType("decimal(10,2)")
                         .HasColumnName("current_balance");
 
                     b.Property<long?>("TransactionId")

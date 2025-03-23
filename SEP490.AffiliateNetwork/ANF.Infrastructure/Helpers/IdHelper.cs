@@ -16,5 +16,12 @@
             return _random.NextInt64(1, maxValue + 1);
         }
 
+        /// <summary>
+        /// Generate transaction's id
+        /// </summary>
+        /// <returns>Transaction's id</returns>
+        public static long GenerateTransactionId()
+            => long.Parse(DateTimeOffset.Now.ToString("ffffff"));
+
     }
 }

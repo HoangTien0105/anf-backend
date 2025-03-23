@@ -2,10 +2,10 @@
 {
     public class PayOSSettings
     {
-        public string PayOSClientId { get; init; } = null!;
+        public string ClientId { get; init; } = null!;
 
-        public string PayOSApiKey { get; init; } = null!;
+        public string ApiKey { get; init; } = null!;
         
-        public string PayOSChecksumKey { get; init; } = null!;
+        public string ChecksumKey { get; init; } = null!;
     }
 }

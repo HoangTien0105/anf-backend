@@ -8,6 +8,9 @@ namespace ANF.Infrastructure.Configs
     {
         public void Configure(EntityTypeBuilder<Transaction> builder)
         {
+            builder.Property(x => x.Id)
+                .ValueGeneratedNever();
+
             builder.HasOne(pt => pt.User)
                 .WithMany(u => u.Transactions)
                 .HasForeignKey(pt => pt.UserCode)

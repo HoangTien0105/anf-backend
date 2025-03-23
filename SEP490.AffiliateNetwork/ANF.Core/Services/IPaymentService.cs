@@ -5,7 +5,7 @@
     /// </summary>
     public interface IPaymentService
     {
-        Task<string> CreatePaymentLink();
+        Task<string> CreatePaymentLink(long transactionId);
 
         Task<string> GetPaymentLinkInformation();
 

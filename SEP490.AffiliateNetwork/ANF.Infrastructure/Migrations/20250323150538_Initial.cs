@@ -8,11 +8,31 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ANF.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateTrackingEventTbl : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "BatchPayments",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    transaction_id = table.Column<long>(type: "bigint", nullable: false),
+                    from_account = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    amount = table.Column<decimal>(type: "decimal(10,0)", nullable: false),
+                    beneficiary_name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    beneficiary_account = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    reason = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    beneficiary_bank_code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    beneficiary_bank_name = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BatchPayments", x => x.id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
@@ -24,6 +44,21 @@ namespace ANF.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.cate_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Policies",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    header = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    created_at = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Policies", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,7 +246,7 @@ namespace ANF.Infrastructure.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    balance = table.Column<double>(type: "float", nullable: false),
+                    balance = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
                     is_active = table.Column<bool>(type: "bit", nullable: false),
                     user_code = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
@@ -263,6 +298,8 @@ namespace ANF.Infrastructure.Migrations
                     commission_rate = table.Column<double>(type: "float", nullable: true),
                     order_return_time = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     img_url = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    status = table.Column<int>(type: "int", nullable: true),
+                    rejected_reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     concurrency_stamp = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false)
                 },
                 constraints: table =>
@@ -280,8 +317,7 @@ namespace ANF.Infrastructure.Migrations
                 name: "Transactions",
                 columns: table => new
                 {
-                    trans_id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    trans_id = table.Column<long>(type: "bigint", nullable: false),
                     user_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     wallet_id = table.Column<long>(type: "bigint", nullable: false),
                     amount = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
@@ -324,9 +360,9 @@ namespace ANF.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     click_id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     offer_id = table.Column<long>(type: "bigint", nullable: false),
-                    publisher_id = table.Column<long>(type: "bigint", nullable: false),
+                    publisher_code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     amount = table.Column<double>(type: "float", nullable: true),
-                    status = table.Column<int>(type: "int", nullable: false)
+                    status = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -372,7 +408,7 @@ namespace ANF.Infrastructure.Migrations
                 {
                     click_id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     offer_id = table.Column<long>(type: "bigint", nullable: false),
-                    publisher_code = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    publisher_code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ip_address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     user_agent = table.Column<string>(type: "text", nullable: true),
                     site_id = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -401,8 +437,8 @@ namespace ANF.Infrastructure.Migrations
                     wh_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     transaction_id = table.Column<long>(type: "bigint", nullable: true),
-                    current_balance = table.Column<double>(type: "float", nullable: true),
-                    balance_type = table.Column<bool>(type: "bit", nullable: false)
+                    current_balance = table.Column<decimal>(type: "decimal(10,2)", nullable: true),
+                    balance_type = table.Column<bool>(type: "bit", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -421,8 +457,7 @@ namespace ANF.Infrastructure.Migrations
                     fraud_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     click_id = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    offer_id = table.Column<long>(type: "bigint", nullable: false),
-                    publisher_id = table.Column<long>(type: "bigint", nullable: false),
+                    publisher_code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     detected_time = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -443,11 +478,10 @@ namespace ANF.Infrastructure.Migrations
                     validation_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     click_id = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    offer_id = table.Column<long>(type: "bigint", nullable: false),
                     validated_time = table.Column<DateTime>(type: "datetime2", nullable: false),
                     click_date = table.Column<DateOnly>(type: "date", nullable: false),
-                    conversion_status = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    revenue = table.Column<double>(type: "float", nullable: true)
+                    conversion_status = table.Column<int>(type: "int", nullable: true),
+                    revenue = table.Column<decimal>(type: "decimal(10,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -542,12 +576,6 @@ namespace ANF.Infrastructure.Migrations
                 column: "offer_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TrackingEvents_publisher_code_offer_id",
-                table: "TrackingEvents",
-                columns: new[] { "publisher_code", "offer_id" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_TrackingValidations_click_id",
                 table: "TrackingValidations",
                 column: "click_id",
@@ -618,10 +646,16 @@ namespace ANF.Infrastructure.Migrations
                 name: "AdvertiserProfiles");
 
             migrationBuilder.DropTable(
+                name: "BatchPayments");
+
+            migrationBuilder.DropTable(
                 name: "CampaignImages");
 
             migrationBuilder.DropTable(
                 name: "FraudDetections");
+
+            migrationBuilder.DropTable(
+                name: "Policies");
 
             migrationBuilder.DropTable(
                 name: "PostbackData");

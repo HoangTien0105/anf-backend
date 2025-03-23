@@ -1,6 +1,5 @@
 ﻿using ANF.Core;
 using ANF.Core.Commons;
-using ANF.Core.Models.Entities;
 using ANF.Core.Services;
 using Microsoft.Extensions.Options;
 using Net.payOS;
@@ -12,35 +11,36 @@ namespace ANF.Service
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly PayOSSettings _options = options.Value;
+        private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
 
         public Task<bool> CancelPaymentLink()
         {
             throw new NotImplementedException();
         }
 
-        public async Task<string> CreatePaymentLink()
+        public async Task<string> CreatePaymentLink(long transactionId)
         {
-            try
-            {
-                var transactionRepository = _unitOfWork.GetRepository<Core.Models.Entities.Transaction>();
-                var userRepository = _unitOfWork.GetRepository<User>();
+            var transactionRepository = _unitOfWork.GetRepository<Core.Models.Entities.Transaction>();
+            PayOS payOS = new PayOS(_options.ClientId, _options.ApiKey, _options.ChecksumKey);
+            List<ItemData> items = new List<ItemData>();
 
-                PayOS payOS = new PayOS(_options.PayOSClientId, _options.PayOSApiKey, _options.PayOSChecksumKey);
-                ItemData data = new ItemData("Nạp tiền vào hệ thống ANF", 1, 1000); //TODO: Change the amount of money based on the requested data
-                List<ItemData> items = new List<ItemData>();
-                items.Add(data);
-
-                PaymentData paymentData = new PaymentData(orderCode: 1, amount: 2, description: "Nạp tiền cho xxx", 
-                    items, cancelUrl: string.Empty, returnUrl: string.Empty);   //TODO: Change the value of these parameters
-                CreatePaymentResult result = await payOS.createPaymentLink(paymentData);
-                return result.checkoutUrl;
-            }
-            catch (Exception)
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-            throw new NotImplementedException();
+            var transaction = await transactionRepository.FindByIdAsync(transactionId);
+            if (transaction is null)
+                throw new KeyNotFoundException("Transaction does not exist!");
+            ItemData item = new ItemData(transaction.Reason ?? string.Empty, 1, (int)transaction.Amount);
+            items.Add(item);
+            
+            //NOTE: Please change the base url based on the environment (Dev, Prod)
+            var paymentData = new PaymentData(
+                orderCode: transaction.Id,
+                amount: (int)transaction.Amount,
+                description: transaction.Reason ?? string.Empty,
+                items: items,
+                cancelUrl: _appBaseUrl + $"/users/revoke-payment?transactionId={transaction.Id}",
+                returnUrl: _appBaseUrl + $"/users/confirm-payment?transactionId={transaction.Id}"
+            );  
+            var paymentResult = await payOS.createPaymentLink(paymentData);
+            return paymentResult.checkoutUrl;
         }
 
         public Task<string> GetPaymentLinkInformation()

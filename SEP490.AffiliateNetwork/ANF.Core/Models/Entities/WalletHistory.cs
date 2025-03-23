@@ -18,14 +18,14 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Current wallet balance at the time when transaction occurs
         /// </summary>
-        [Column("current_balance")]
-        public double? CurrentBalance { get; set; }
+        [Column("current_balance", TypeName = "decimal(10,2)")]
+        public decimal? CurrentBalance { get; set; }
 
         /// <summary>
         /// Money changes: if current_balance > balance then money is decreased otherwise.
         /// </summary>
         [Column("balance_type")]
-        public bool BalanceType { get; set; }
+        public bool? BalanceType { get; set; }
 
         public Transaction? Transaction { get; set; }
     }
