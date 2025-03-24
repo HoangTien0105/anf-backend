@@ -9,5 +9,9 @@ namespace ANF.Core.Services
         Task<string> ConfirmPayment(long transactionId);
 
         Task<string> CancelTransaction(long transactionId);
+
+        Task<bool> CreateWithdrawalRequest(WithdrawalRequest request);
+
+        Task<bool> UpdateWithdrawalRequestStatus(long transactionId, string status, long bankingNo);
     }
 }

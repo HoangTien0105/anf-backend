@@ -1,5 +1,6 @@
 ﻿using ANF.Core;
 using ANF.Core.Commons;
+using ANF.Core.Enums;
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Services;
@@ -42,7 +43,7 @@ namespace ANF.Service
                     .FirstOrDefaultAsync(wh => wh.TransactionId == transactionId);
                 if (walletHistory is null)
                     throw new KeyNotFoundException("No record of wallet history with transaction!");
-                
+
                 walletHistoryRepository.Delete(walletHistory);
                 transactionRepository.Delete(transaction);
                 await _unitOfWork.SaveAsync();
@@ -66,17 +67,17 @@ namespace ANF.Service
 
                 var transaction = await transactionRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == transactionId) ?? 
+                    .FirstOrDefaultAsync(t => t.Id == transactionId) ??
                             throw new KeyNotFoundException("Transaction does not exist!");
-                
+
                 var walletHistory = await walletHistoryRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(wh => wh.TransactionId == transactionId) ?? 
+                    .FirstOrDefaultAsync(wh => wh.TransactionId == transactionId) ??
                             throw new KeyNotFoundException("No record of wallet history with this transaction!");
-                
+
                 var wallet = await walletRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(w => w.UserCode == transaction.UserCode) ?? 
+                    .FirstOrDefaultAsync(w => w.UserCode == transaction.UserCode) ??
                             throw new KeyNotFoundException("Wallet does not exist!");
 
                 // Add the money to the wallet
@@ -134,7 +135,7 @@ namespace ANF.Service
                 transactionRepository.Add(transaction);
                 if (await _unitOfWork.SaveAsync() <= 0)
                     throw new Exception("An error occured when storing the data!"); //TODO: Cần check lại error handle ở đây
-                
+
                 var walletHistory = new WalletHistory
                 {
                     TransactionId = transaction.Id,
@@ -150,6 +151,88 @@ namespace ANF.Service
             catch (Exception ex)
             {
                 _logger.Log(LogLevel.Error, ex.Message, ex.InnerException);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> CreateWithdrawalRequest(WithdrawalRequest request)
+        {
+            try
+            {
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (string.IsNullOrEmpty(currentUserCode))
+                    throw new UnauthorizedAccessException("Cannot access to this endpoint because user's code is empty!");
+
+                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var transaction = new Transaction
+                {
+                    Id = IdHelper.GenerateTransactionId(),
+                    Amount = request.Amount,
+                    Reason = request.Reason,
+                    UserCode = currentUserCode,
+                    Status = Core.Enums.TransactionStatus.Pending,
+                };
+                transactionRepository.Add(transaction);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, ex.Message, ex.StackTrace);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateWithdrawalRequestStatus(long transactionId, string status, long bankingNo)
+        {
+            try
+            {
+                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+
+                if (!Enum.TryParse(status, true, out TransactionStatus transactionStatus))
+                    throw new ArgumentException("Invalid transaction status!");
+
+                var transaction = await transactionRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.Id == transactionId) ??
+                    throw new KeyNotFoundException("Transaction does not exist!");
+
+                var currentStatus = (TransactionStatus)Enum.Parse(typeof(TransactionStatus), status);
+                if (currentStatus == TransactionStatus.Canceled)
+                {
+                    transactionRepository.Delete(transaction);
+                    return await _unitOfWork.SaveAsync() > 0;
+                }
+                else if (currentStatus == TransactionStatus.Success)
+                {
+                    var userCode = transaction.UserCode;
+                    transaction.Status = currentStatus;
+                    var bankingInfo = await userBankRepository.GetAll()
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(ub => ub.UserCode == userCode && ub.BankingNo == bankingNo) ??
+                            throw new KeyNotFoundException("Banking information does not exist!");
+
+                    var payment = new BatchPayment
+                    {
+                        TransactionId = transactionId,
+                        FromAccount = string.Empty, // Tài khoản ngân hàng của hệ thống
+                        Amount = transaction.Amount,
+                        BeneficiaryAccount = bankingInfo.BankingNo.ToString(),
+                        BeneficiaryBankCode = string.Empty, // Lấy dữ liệu từ template 
+                        BeneficiaryBankName = string.Empty, // Lấy dữ liệu từ template
+                        Reason = transaction.Reason ?? string.Empty,
+                    };
+                    batchPaymentRepository.Add(payment);
+                    return await _unitOfWork.SaveAsync() > 0;
+                }
+                else throw new Exception("Exception");  // Sửa lại message exception
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, ex.Message, ex.StackTrace);
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
