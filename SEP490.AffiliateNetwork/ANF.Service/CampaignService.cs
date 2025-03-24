@@ -246,11 +246,11 @@ namespace ANF.Service
                 var pubOffer = await pubOfferRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.OfferId == item.Id && e.PublisherCode == publisherCode);
                 if(pubOffer is null)
                 {
-                    item.PubOfferStatus = "Not Joined";
+                    item.PubOfferStatus = 0;
                 }
                 else
                 {
-                    item.PubOfferStatus = pubOffer.Status.ToString();
+                    item.PubOfferStatus = (int)pubOffer.Status;
                 }
             }
 
