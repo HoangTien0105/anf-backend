@@ -257,7 +257,7 @@ namespace ANF.Service
             return data;
         }
 
-        public async Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request)
+        public async Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var campaigns = await campaignRepository.GetAll()
@@ -273,8 +273,8 @@ namespace ANF.Service
                 throw new KeyNotFoundException("No data for campaigns!");
             var totalCounts = campaigns.Count();
 
-            var data = _mapper.Map<List<CampaignResponse>>(campaigns);
-            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            var data = _mapper.Map<List<CampaignDetailedResponse>>(campaigns);
+            return new PaginationResponse<CampaignDetailedResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
         /// <summary>
