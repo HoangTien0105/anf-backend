@@ -7,6 +7,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using ANF.Core.Enums;
 using ANF.Core.Commons;
+using ANF.Core.Exceptions;
 
 namespace ANF.Service
 {
@@ -210,6 +211,36 @@ namespace ANF.Service
             return _mapper.Map<CampaignDetailedResponse>(campaign);
         }
 
+        public async Task<CampaignPubDetailedResponse> GetCampaignForPublisher(long id)
+        {
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var publisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+
+            var publisher = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.UserCode == publisherCode);
+
+            if (publisher is null) throw new KeyNotFoundException("Publisher does not exist!");
+            if (publisher.Role != UserRoles.Publisher)
+                throw new ForbiddenException("This user does not have access permission.");
+
+            var campaign = await campaignRepository.GetAll()
+               .AsNoTracking()
+               .Include(c => c.Images)
+               .Include(c => c.Offers)
+               .Include(c => c.Category)
+               .FirstOrDefaultAsync(c => c.Id == id && 
+               (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started));
+
+            if (campaign is null)
+            {
+                throw new KeyNotFoundException("Campaign does not exist!");
+            }
+
+            return _mapper.Map<CampaignPubDetailedResponse>(campaign);
+        }
+
         public async Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
@@ -218,7 +249,7 @@ namespace ANF.Service
                             .Include(e => e.Images)
                             .Include(e => e.Category)
                             .Include(e => e.Offers)
-                            .Where(e => e.Status == CampaignStatus.Verified)
+                            .Where(e => e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started)
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
@@ -233,7 +264,7 @@ namespace ANF.Service
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="request">Pagination request</param>
         /// <param name="id">Advertiser's code</param>
         /// <returns></returns>
         /// <exception cref="UnauthorizedAccessException"></exception>

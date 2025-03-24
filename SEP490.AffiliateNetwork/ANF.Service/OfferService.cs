@@ -20,28 +20,26 @@ namespace ANF.Service
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
         private readonly IMapper _mapper = mapper;
 
-        public async Task<bool> ApplyOffer(string pubId, long offerId)
+        public async Task<bool> ApplyOffer(long offerId)
         {
             try
             {
-                var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (currentPublisherCode != pubId)
-                    throw new UnauthorizedAccessException("Publisher's code does not match!");
-                if (pubId is null) throw new NullReferenceException("Invalid request data. Please check again!");
-
+                var pubId = _userClaimsService.GetClaim(ClaimConstants.NameId);
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
                 var userRepository = _unitOfWork.GetRepository<User>();
 
+                var publisherExist = await userRepository.GetAll()
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(e => e.UserCode.ToString() == pubId);
+                if (publisherExist is null || publisherExist.Role != UserRoles.Publisher) 
+                    throw new ForbiddenException("This user does not have access permission");
+
                 var offerExist = await offerRepository.GetAll()
                                         .AsNoTracking().FirstOrDefaultAsync(e => e.Id == offerId);
                 if (offerExist is null) throw new KeyNotFoundException("Offer does not exists");
 
-                var publisherExist = await userRepository.GetAll()
-                                        .AsNoTracking()
-                                        .FirstOrDefaultAsync(e => e.UserCode.ToString() == pubId && e.Role == UserRoles.Publisher);
-                if (publisherExist is null) throw new KeyNotFoundException("Publisher does not exists");
 
                 var campaignExist = await campaignRepository.GetAll()
                                         .AsNoTracking()
@@ -286,13 +284,14 @@ namespace ANF.Service
             return responses;
         }
 
-        public async Task<bool> UpdateApplyOfferStatus(long pubOfferId, string status, string? rejectReason)
+        public async Task<bool> ApplyPublisherOffer(long pubOfferId, string status, string? rejectReason)
         {
             try
             {
                 var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
 
                 var pubOfferExist = await pubOfferRepository.GetAll()
                                             .AsNoTracking()
@@ -309,18 +308,22 @@ namespace ANF.Service
                                             (e.Status == CampaignStatus.Pending
                                             || e.Status == CampaignStatus.Verified
                                             || e.Status == CampaignStatus.Started));
-                if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending or Verified for offer to be updated");
+                if (campaignExist is null) throw new KeyNotFoundException("Campaign must be Pending, Verified or Started for offer to be updated");
+
+                if(campaignExist.AdvertiserCode != advertiserCode)
+                    throw new ForbiddenException("The current advertiser is not the owner of this offer!");
 
                 if (!Enum.TryParse<PublisherOfferStatus>(status, true, out var pubOfferStatus))
                     throw new ArgumentException("Invalid offer's status. Please check again!");
 
                 pubOfferExist.Status = pubOfferStatus;
-                pubOfferExist.JoiningDate = DateTime.UtcNow;    //TODO: Fix (joining_date phải là ngày publisher apply, k update field này ở method này)
-                                                                // Db có thể bổ sung thêm 1 field approved_date, chỗ này đưa value vào
+
+                if(pubOfferStatus == PublisherOfferStatus.Approved) pubOfferExist.ApprovedDate = DateTime.UtcNow;    
+
                 if (pubOfferStatus == PublisherOfferStatus.Rejected)
                 {
                     pubOfferExist.RejectReason = rejectReason;
-                }
+                } 
 
                 pubOfferRepository.Update(pubOfferExist);
                 return await _unitOfWork.SaveAsync() > 0;
