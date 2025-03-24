@@ -14,6 +14,6 @@
         public double? CommissionRate { get; set; }
         public string? OrderReturnTime { get; set; }
         public string? ImageUrl { get; set; }
-        public string? Status { get; set; }
+        public string? PubOfferStatus { get; set; }
     }
 }
