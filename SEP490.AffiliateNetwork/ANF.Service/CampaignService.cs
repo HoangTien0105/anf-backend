@@ -214,6 +214,7 @@ namespace ANF.Service
         public async Task<CampaignPubDetailedResponse> GetCampaignForPublisher(long id)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
             var userRepository = _unitOfWork.GetRepository<User>();
             var publisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
 
@@ -238,10 +239,25 @@ namespace ANF.Service
                 throw new KeyNotFoundException("Campaign does not exist!");
             }
 
-            return _mapper.Map<CampaignPubDetailedResponse>(campaign);
+            var data = _mapper.Map<CampaignPubDetailedResponse>(campaign);
+
+            foreach(var item in data.Offers)
+            {
+                var pubOffer = await pubOfferRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.OfferId == item.Id && e.PublisherCode == publisherCode);
+                if(pubOffer is null)
+                {
+                    item.PubOfferStatus = 0;
+                }
+                else
+                {
+                    item.PubOfferStatus = (int)pubOffer.Status;
+                }
+            }
+
+            return data;
         }
 
-        public async Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request)
+        public async Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var campaigns = await campaignRepository.GetAll()
@@ -257,8 +273,8 @@ namespace ANF.Service
                 throw new KeyNotFoundException("No data for campaigns!");
             var totalCounts = campaigns.Count();
 
-            var data = _mapper.Map<List<CampaignResponse>>(campaigns);
-            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            var data = _mapper.Map<List<CampaignDetailedResponse>>(campaigns);
+            return new PaginationResponse<CampaignDetailedResponse>(data, totalCounts, request.pageNumber, request.pageSize);
         }
 
         /// <summary>

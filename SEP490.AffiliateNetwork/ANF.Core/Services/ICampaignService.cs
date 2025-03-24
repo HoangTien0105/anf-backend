@@ -5,7 +5,7 @@ namespace ANF.Core.Services
 {
     public interface ICampaignService
     {
-        Task<PaginationResponse<CampaignResponse>> GetCampaigns(PaginationRequest request);
+        Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request);
         Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request);
         Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id);
         Task<bool> CreateCampaign(CampaignCreateRequest request);

@@ -24,7 +24,7 @@ namespace ANF.Application.Controllers.v1
         public async Task<IActionResult> GetCampaigns([FromQuery] PaginationRequest request)
         {
             var campaigns = await _campaignService.GetCampaigns(request);
-            return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
+            return Ok(new ApiResponse<PaginationResponse<CampaignDetailedResponse>>
             {
                 IsSuccess = true,
                 Message = "Success.",
@@ -33,7 +33,7 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get campaign
+        /// Get campaign for advertiser, admin
         /// </summary>
         /// <param name="id">Campaign's id</param>
         /// <returns></returns>
