@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ANF.Core.Models.Responses
+﻿namespace ANF.Core.Models.Responses
 {
     public class CampaignPubDetailedResponse
     {
