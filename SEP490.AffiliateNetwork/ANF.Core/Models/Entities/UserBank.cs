@@ -12,6 +12,9 @@ namespace ANF.Core.Models.Entities
         [Column("user_code")]
         public string? UserCode { get; set; }
 
+        [Column("user_name")]
+        public string UserName { get; set; } = null!;
+
         [Column("banking_no")]
         public long BankingNo { get; set; }
 

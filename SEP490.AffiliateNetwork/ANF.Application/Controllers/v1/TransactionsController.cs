@@ -86,6 +86,23 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
+        [HttpPost("users/withdrawals-status")]
+        [Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateWithdrawalRequest()  //FIX THE ENDPOINT LATER
+        {
+            var result = true;
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Request is created successfully! Please wait for admin to approve the request."
+            });
+        }
+
         /// <summary>
         /// Revoke transaction
         /// </summary>

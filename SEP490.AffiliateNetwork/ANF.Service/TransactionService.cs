@@ -164,16 +164,50 @@ namespace ANF.Service
                 if (string.IsNullOrEmpty(currentUserCode))
                     throw new UnauthorizedAccessException("Cannot access to this endpoint because user's code is empty!");
 
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
+
+                var bankAccount = await userBankRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.BankingNo == long.Parse(request.BankingNo))
+                    ?? throw new KeyNotFoundException("Banking number does not exist!");
+
+                var wallet = await walletRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(w => w.UserCode == currentUserCode)
+                    ?? throw new KeyNotFoundException("Wallet does not exist!");
+
+                // Check withdrawal amount and current balance in the wallet
+                if (request.Amount > wallet.Balance)
+                    throw new ArgumentException("Số tiền rút vượt quá số dư hiện tại trong ví!");
+
                 var transaction = new Transaction
                 {
                     Id = IdHelper.GenerateTransactionId(),
                     Amount = request.Amount,
                     Reason = request.Reason,
                     UserCode = currentUserCode,
-                    Status = Core.Enums.TransactionStatus.Pending,
+                    CurrentBankingNo = request.BankingNo,
+                    Status = TransactionStatus.Pending,
+                    CreatedAt = DateTime.Now
+                };
+
+                var batchPaymentData = new BatchPayment
+                {
+                    TransactionId = transaction.Id,
+                    Amount = request.Amount,
+                    Reason = request.Reason,
+                    FromAccount = PlatformSourceBankingNo.PlatformBankingNo,
+                    BeneficiaryAccount = request.BankingNo,
+                    BeneficiaryName = bankAccount.UserName,
+                    BeneficiaryBankCode = request.BeneficiaryBankCode,
+                    BeneficiaryBankName = request.BeneficiaryBankName,
                 };
                 transactionRepository.Add(transaction);
+                batchPaymentRepository.Add(batchPaymentData);
+
                 return await _unitOfWork.SaveAsync() > 0;
             }
             catch (Exception ex)
@@ -184,51 +218,55 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> UpdateWithdrawalRequestStatus(long transactionId, string status, long bankingNo)
+        public async Task<bool> UpdateWithdrawalStatus(List<long> tIds, string status)
         {
+            var result = false;
             try
             {
                 var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
 
-                if (!Enum.TryParse(status, true, out TransactionStatus transactionStatus))
-                    throw new ArgumentException("Invalid transaction status!");
-
-                var transaction = await transactionRepository.GetAll()
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == transactionId) ??
-                    throw new KeyNotFoundException("Transaction does not exist!");
-
-                var currentStatus = (TransactionStatus)Enum.Parse(typeof(TransactionStatus), status);
-                if (currentStatus == TransactionStatus.Canceled)
+                foreach (var item in tIds)
                 {
-                    transactionRepository.Delete(transaction);
-                    return await _unitOfWork.SaveAsync() > 0;
-                }
-                else if (currentStatus == TransactionStatus.Success)
-                {
-                    var userCode = transaction.UserCode;
-                    transaction.Status = currentStatus;
-                    var bankingInfo = await userBankRepository.GetAll()
+                    var transaction = await transactionRepository.GetAll()
                         .AsNoTracking()
-                        .FirstOrDefaultAsync(ub => ub.UserCode == userCode && ub.BankingNo == bankingNo) ??
-                            throw new KeyNotFoundException("Banking information does not exist!");
+                        .FirstOrDefaultAsync(t => t.Id == item)
+                        ?? throw new KeyNotFoundException("Transaction does not exist!");
+                    if (!Enum.TryParse(status, true, out TransactionStatus tranStatus))
+                        throw new ArgumentException("Invalid transaction's status! Accept two value: Approved or Rejected");
 
-                    var payment = new BatchPayment
+                    if (tranStatus == TransactionStatus.Approved)
                     {
-                        TransactionId = transactionId,
-                        FromAccount = string.Empty, // Tài khoản ngân hàng của hệ thống
-                        Amount = transaction.Amount,
-                        BeneficiaryAccount = bankingInfo.BankingNo.ToString(),
-                        BeneficiaryBankCode = string.Empty, // Lấy dữ liệu từ template 
-                        BeneficiaryBankName = string.Empty, // Lấy dữ liệu từ template
-                        Reason = transaction.Reason ?? string.Empty,
-                    };
-                    batchPaymentRepository.Add(payment);
-                    return await _unitOfWork.SaveAsync() > 0;
+                        transaction.Status = TransactionStatus.Approved;
+                        transaction.ApprovedAt = DateTime.Now;
+
+                        transactionRepository.Update(transaction);
+
+                        var batchData = await batchPaymentRepository.GetAll()
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(bp => bp.TransactionId == item)
+                            ?? throw new KeyNotFoundException("No data of batch payment!");
+                        batchData.Date = transaction.ApprovedAt;
+
+                        batchPaymentRepository.Update(batchData);
+                        result = await _unitOfWork.SaveAsync() > 0;
+
+                    }
+                    else if (tranStatus == TransactionStatus.Rejected)
+                    {
+                        var batchData = await batchPaymentRepository.GetAll()
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(bp => bp.TransactionId == item)
+                            ?? throw new KeyNotFoundException("No data of batch payment!");
+
+                        batchPaymentRepository.Delete(batchData);
+                        transaction.Status = TransactionStatus.Rejected;
+                        transactionRepository.Update(transaction);
+
+                        result = await _unitOfWork.SaveAsync() > 0;
+                    }
                 }
-                else throw new Exception("Exception");  // Sửa lại message exception
             }
             catch (Exception ex)
             {
@@ -236,6 +274,7 @@ namespace ANF.Service
                 await _unitOfWork.RollbackAsync();
                 throw;
             }
+            return result;
         }
     }
 }

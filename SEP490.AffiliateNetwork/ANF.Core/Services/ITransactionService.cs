@@ -12,6 +12,6 @@ namespace ANF.Core.Services
 
         Task<bool> CreateWithdrawalRequest(WithdrawalRequest request);
 
-        Task<bool> UpdateWithdrawalRequestStatus(long transactionId, string status, long bankingNo);
+        Task<bool> UpdateWithdrawalStatus(List<long> tIds, string status);
     }
 }
