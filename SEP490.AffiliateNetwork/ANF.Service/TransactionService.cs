@@ -181,11 +181,12 @@ namespace ANF.Service
 
                 // Check withdrawal amount and current balance in the wallet
                 if (request.Amount > wallet.Balance)
-                    throw new ArgumentException("Số tiền rút vượt quá số dư hiện tại trong ví!");
-
+                    throw new ArgumentException("Withdrawal amount exceeds current balance in wallet!");
+                
                 var transaction = new Transaction
                 {
                     Id = IdHelper.GenerateTransactionId(),
+                    WalletId = wallet.Id,
                     Amount = request.Amount,
                     Reason = request.Reason,
                     UserCode = currentUserCode,
@@ -227,14 +228,19 @@ namespace ANF.Service
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
 
+                if (!Enum.TryParse(status, true, out TransactionStatus tranStatus))
+                    throw new ArgumentException("Invalid transaction's status! Accept two value: Approved or Rejected");
                 foreach (var item in tIds)
                 {
                     var transaction = await transactionRepository.GetAll()
                         .AsNoTracking()
                         .FirstOrDefaultAsync(t => t.Id == item)
                         ?? throw new KeyNotFoundException("Transaction does not exist!");
-                    if (!Enum.TryParse(status, true, out TransactionStatus tranStatus))
-                        throw new ArgumentException("Invalid transaction's status! Accept two value: Approved or Rejected");
+
+                    var wallet = await walletRepository.GetAll()
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(w => w.UserCode == transaction.UserCode) 
+                        ?? throw new KeyNotFoundException("Wallet does not exist!");
 
                     if (tranStatus == TransactionStatus.Approved)
                     {
@@ -250,8 +256,13 @@ namespace ANF.Service
                         batchData.Date = transaction.ApprovedAt;
 
                         batchPaymentRepository.Update(batchData);
-                        result = await _unitOfWork.SaveAsync() > 0;
+                        
+                        // New balance for wallet
+                        var balance = wallet.Balance - transaction.Amount;
+                        wallet.Balance = balance;
+                        walletRepository.Update(wallet);
 
+                        result = await _unitOfWork.SaveAsync() > 0;
                     }
                     else if (tranStatus == TransactionStatus.Rejected)
                     {

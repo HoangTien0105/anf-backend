@@ -70,7 +70,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("users/withdrawal-request")]
-        [Authorize]
+        [Authorize(Roles = "Publisher, Advertiser")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -86,7 +86,12 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        [HttpPost("users/withdrawals-status")]
+        /// <summary>
+        /// Update withdrawal status batch (for Admin)
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("users/withdrawal-status")]
         [Authorize(Roles = "Admin")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
