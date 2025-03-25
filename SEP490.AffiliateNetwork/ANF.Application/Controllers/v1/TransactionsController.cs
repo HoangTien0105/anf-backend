@@ -92,14 +92,14 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateWithdrawalRequest()  //FIX THE ENDPOINT LATER
+        public async Task<IActionResult> UpdateWithdrawalRequest([FromBody] UpdatedWithdrawalRequest request)
         {
-            var result = true;
+            var result = await _transactionService.UpdateWithdrawalStatus(request.TransactionIds, request.Status);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
-                Message = "Request is created successfully! Please wait for admin to approve the request."
+                Message = "Success."
             });
         }
 
