@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
 {
-    public class CommonsController : BaseApiController
+    public class CommonsController(HttpClient httpClient, ILogger<CommonsController> logger) : BaseApiController
     {
         private static List<DomesticBeneficiaryBank> banks =
         [
@@ -129,30 +129,8 @@ namespace ANF.Application.Controllers.v1
                 BranchName = "SAI GON - HA NOI (SHB)-01348002"
             },
         ];
-
-        private static List<BankingInformation> bankingInformation = new List<BankingInformation>()
-        {
-            new BankingInformation
-            {
-                Name = "Vietcombank",
-                LogoImgUrl = "https://logos.fandom.com/wiki/File:Vietcombank_logo.svg"
-            },
-            new BankingInformation
-            {
-                Name = "VietinBank",
-                LogoImgUrl = "https://logos.fandom.com/wiki/File:VietinBank_logo.svg"
-            },
-            new BankingInformation
-            {
-                Name = "MB Bank",
-                LogoImgUrl = "https://logos.fandom.com/wiki/File:MB_Bank_logo.svg"
-            },
-            new BankingInformation
-            {
-                Name = "Sacombank",
-                LogoImgUrl = "https://logos.fandom.com/wiki/File:Sacombank_logo.svg"
-            },
-        };
+        private readonly HttpClient _httpClient = httpClient;
+        private readonly ILogger<CommonsController> _logger = logger;
 
         /// <summary>
         /// Get all pricing models
@@ -194,7 +172,7 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get data of domestic beneficiary banks (from Techcombank template)
+        /// Get supported domestic beneficiary banks from Techcombank template
         /// </summary>
         /// <returns></returns>
         [HttpGet("domestic-beneficiary-banks")]
@@ -206,22 +184,34 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Get banks' name and image (svg format)
+        /// Integrate third-party endpoint from Bank Lookup API to get supported banks 
         /// </summary>
         /// <returns></returns>
-        [HttpGet("banks")]
+        [HttpGet("supported-banks")]
         [MapToApiVersion(1)]
-        [ProducesResponseType(200)]
-        public IActionResult GetBankingInfo()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetSupportedBanks()
         {
-            return Ok(bankingInformation);
+            try
+            {
+                //TODO: REVIEW WITH FE TO ADD PAGINATION, FILTER DATA (e.g, select top xx), etc.
+                var response = await _httpClient.GetAsync("https://api.banklookup.net/api/bank/list");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Failed to fetch bank list. Status code: {response.StatusCode}");
+                    return StatusCode((int)response.StatusCode, "Failed to fetch bank list");
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                return Content(content, "application/json");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception occurred while fetching bank list: {ex.Message}");
+                return StatusCode(500, "Internal Server Error");
+            }
         }
-    }
-
-    internal class BankingInformation
-    {
-        public string Name { get; set; } = null!;
-
-        public string? LogoImgUrl { get; set; }
     }
 }

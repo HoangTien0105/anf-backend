@@ -26,5 +26,7 @@ namespace ANF.Core.Services
         Task<bool> ActivateWallet(string userCode);
 
         Task<DetailedUserResponse> GetUserInformation();
+
+        Task<bool> AddBankingInformation(List<UserBankCreateRequest> requests);
     }
 }

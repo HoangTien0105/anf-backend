@@ -252,5 +252,23 @@ namespace ANF.Application.Controllers.v1
                 Message = "Wallet is actived successfully!"
             });
         }
+
+        [HttpPost("users/bank-accounts")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser, Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AddBankingInformation(List<UserBankCreateRequest> requests)
+        {
+            var result = await _userService.AddBankingInformation(requests);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
+        }
+
+        // TODO: Update, Delete banking accounts
     }
 }

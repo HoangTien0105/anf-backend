@@ -4,11 +4,16 @@ namespace ANF.Core.Models.Requests
 {
     public class UserBankCreateRequest
     {
-        [Required(ErrorMessage = "Banking number is required!")]
-        [Range(1, double.MaxValue, ErrorMessage = "Banking number must be a non-negative value.")]
-        public long BankingNo { get; set; }
+        [Required(ErrorMessage = "Account's name is required!", AllowEmptyStrings = false)]
+        public string AccountName { get; set; } = null!;
 
-        [Required(ErrorMessage = "Banking provider is required!", AllowEmptyStrings = false)]
-        public string BankingProvider { get; set; } = null!;
+        [Required(ErrorMessage = "Banking number is required!")]
+        [RegularExpression(@"^\d+$", ErrorMessage = "Banking number must contain only numbers.")]
+        public string BankingNo { get; set; } = null!;
+
+        public string BankingCode { get; set; } = null!;
+
+        [Required(ErrorMessage = "Banking name is required!", AllowEmptyStrings = false)]
+        public string BankingName { get; set; } = null!;
     }
 }

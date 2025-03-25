@@ -53,31 +53,31 @@ namespace ANF.Service
 
         public async Task<bool> AddBankingInformation(string publisherCode, List<UserBankCreateRequest> requests)
         {
-            try
-            {
-                var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (publisherCode != currentPublisherCode)
-                    throw new UnauthorizedAccessException("Publisher's id does not match!");
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                if (!requests.Any())
-                    throw new ArgumentException("Invalid requested data!");
-                foreach (var item in requests)
-                {
-                    var isDuplicate = await userBankRepository.GetAll()
-                        .AsNoTracking()
-                        .AnyAsync(ub => ub.UserCode == publisherCode && ub.BankingNo == item.BankingNo);
-                    if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
-                }
-                var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = publisherCode);
-                userBankRepository.AddRange(banks);
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-
+            //try
+            //{
+            //    var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            //    if (publisherCode != currentPublisherCode)
+            //        throw new UnauthorizedAccessException("Publisher's id does not match!");
+            //    var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+            //    if (!requests.Any())
+            //        throw new ArgumentException("Invalid requested data!");
+            //    foreach (var item in requests)
+            //    {
+            //        var isDuplicate = await userBankRepository.GetAll()
+            //            .AsNoTracking()
+            //            .AnyAsync(ub => ub.UserCode == publisherCode && ub.BankingNo == item.BankingNo);
+            //        if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
+            //    }
+            //    var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = publisherCode);
+            //    userBankRepository.AddRange(banks);
+            //    return await _unitOfWork.SaveAsync() > 0;
+            //}
+            //catch
+            //{
+            //    await _unitOfWork.RollbackAsync();
+            //    throw;
+            //}
+            throw new NotImplementedException();
         }
 
         public async Task<bool> AddProfile(long publisherId, PublisherProfileCreatedRequest value)

@@ -10,22 +10,34 @@ using ANF.Infrastructure.Helpers;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace ANF.Service
 {
     public class UserService(IUnitOfWork unitOfWork,
                              TokenService tokenService,
                              IMapper mapper, IEmailService emailService,
-                             IUserClaimsService userClaimsService) : IUserService
+                             IUserClaimsService userClaimsService,
+                             ILogger<UserService> logger, HttpClient httpClient,
+                             IOptions<BankLookupSettings> options) : IUserService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly TokenService _tokenService = tokenService;
         private readonly IMapper _mapper = mapper;
         private readonly IEmailService _emailService = emailService;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
+        private readonly ILogger<UserService> _logger = logger;
+        private readonly HttpClient _httpClient = httpClient;
+        private readonly BankLookupSettings _options = options.Value;
 
         //TODO: Change the application host when deploying successfully!
         private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
+
+        // URL for account number lookup
+        private readonly string _bankLookupUrl = "https://api.banklookup.net/api/bank/id-lookup-prod";
 
         public async Task<bool> ActivateWallet(string userCode)
         {
@@ -352,6 +364,61 @@ namespace ANF.Service
 
             var data = _mapper.Map<List<PublisherResponse>>(users);
             return new PaginationResponse<PublisherResponse>(data, totalCount, request.pageNumber, request.pageSize);
+        }
+
+        public async Task<bool> AddBankingInformation(List<UserBankCreateRequest> requests)
+        {
+            var result = false;
+            try
+            {
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (string.IsNullOrEmpty(currentUserCode))
+                    throw new UnauthorizedAccessException("Invalid user's token!");
+
+                foreach (var request in requests)
+                {
+                    var isDuplicated = await userBankRepository.GetAll()
+                        .AsNoTracking()
+                        .AnyAsync(ub => ub.BankingNo == long.Parse(request.BankingNo));
+                    if (isDuplicated)
+                        throw new DuplicatedException("This banking number has already existed in the platform!");
+                    
+                    var payload = new
+                    {
+                        Bank = request.BankingCode,
+                        Account = request.BankingNo
+                    };
+                    var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
+                    {
+                        Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json")
+                    };
+                    httpRequest.Headers.Add("x-api-key", _options.ApiKey);
+                    httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
+                    
+                    var response = await _httpClient.SendAsync(httpRequest);
+                    if (!response.IsSuccessStatusCode)
+                        throw new Exception($"Failed to verify bank account {request.BankingNo}");
+                    
+                    var userBank = new UserBank
+                    {
+                        UserCode = currentUserCode,
+                        UserName = request.AccountName,
+                        BankingNo = long.Parse(request.BankingNo),
+                        BankingProvider = request.BankingName,
+                        AddedDate = DateTime.Now,
+                    };
+                    userBankRepository.Add(userBank);
+                    result = await _unitOfWork.SaveAsync() > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, ex.Message, ex.InnerException);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+            return result;
         }
     }
 }

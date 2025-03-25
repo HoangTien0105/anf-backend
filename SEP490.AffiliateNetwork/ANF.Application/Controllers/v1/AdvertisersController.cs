@@ -110,33 +110,6 @@ namespace ANF.Application.Controllers.v1
                 Message = "Success"
             });
         }
-
-        /// <summary>
-        /// Add bank accounts of an advertiser
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="value">Bank accounts' data</param>
-        /// <returns></returns>
-        [HttpPost("advertiser/{code}/bank-accounts")]
-        [MapToApiVersion(1)]
-        [Authorize(Roles = "Advertiser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AddBankingInformation(string code, [FromBody] List<UserBankCreateRequest> value)
-        {
-            var validationResult = HandleValidationErrors();
-            if (validationResult is not null)
-            {
-                return validationResult;
-            }
-            var result = await _advertiserService.AddBankingInformation(code, value);
-            if (!result) return BadRequest();
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Success"
-            });
-        }
         
         /// <summary>
         /// Update advertiser's bank account information
