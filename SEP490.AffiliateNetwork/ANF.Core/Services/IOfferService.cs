@@ -26,6 +26,12 @@ namespace ANF.Core.Services
         /// <returns></returns>
         Task<bool> ApplyPublisherOffer(long pubOfferId, string status, string? rejectReason);
 
+        /// <summary>
+        /// Get all pending and verified offers by a publisher
+        /// </summary>
+        /// <returns></returns>
+        Task<List<OfferResponse>> GetOffersByPublisher(); 
+
         Task<List<PublisherOfferResponse>> GetPublisherOfOffer(long offerId);
     }
 }

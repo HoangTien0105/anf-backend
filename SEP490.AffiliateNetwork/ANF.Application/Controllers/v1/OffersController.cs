@@ -203,5 +203,26 @@ namespace ANF.Application.Controllers.v1
                 Value = publishers
             });
         }
+
+        /// <summary>
+        /// Get offers of a publisher
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("offers/publishers")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetOfferOfPublisher()
+        {
+            var offers = await _offerService.GetOffersByPublisher();
+            return Ok(new ApiResponse<List<OfferResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = offers
+            });
+        }
     }
 }
