@@ -28,5 +28,7 @@ namespace ANF.Core.Services
         Task<DetailedUserResponse> GetUserInformation();
 
         Task<bool> AddBankingInformation(List<UserBankCreateRequest> requests);
+
+        Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdatedRequest request);
     }
 }

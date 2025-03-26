@@ -111,55 +111,6 @@ namespace ANF.Application.Controllers.v1
             });
         }
         
-        /// <summary>
-        /// Update advertiser's bank account information
-        /// </summary>
-        /// <param name="id">Bank account's id</param>
-        /// <param name="request">Requested data to update</param>
-        /// <returns></returns>
-        [HttpPut("advertiser/bank-account/{id}")]
-        [Authorize(Roles = "Advertiser")]
-        [MapToApiVersion(1)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateBankingInformation(long id, [FromBody] UserBankUpdateRequest request)
-        {
-            var validationResult = HandleValidationErrors();
-            if (validationResult is not null)
-                return validationResult;
-            var result = await _advertiserService.UpdateBankingInformation(id, request);
-            if (!result) return BadRequest();
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Update bank account successfully!"
-            });
-        }
 
-        /// <summary>
-        /// Delete bank account(s)
-        /// </summary>
-        /// <param name="ubIds">List user's banking id (advertiser)</param>
-        /// <returns></returns>
-        [HttpDelete("advertiser/bank-accounts")]
-        [Authorize(Roles = "Advertiser")]
-        [MapToApiVersion(1)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> DeleteBankingAccounts(List<long> ubIds)
-        {
-            var validationResult = HandleValidationErrors();
-            if (validationResult is not null)
-                return validationResult;
-            var result = await _advertiserService.DeleteBankingInformation(ubIds);
-            if (!result) return BadRequest();
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Delete account successfully!"
-            });
-        }
     }
 }

@@ -62,7 +62,7 @@ namespace ANF.Application.Controllers.v1
                 });
             }
             else return BadRequest();
-            
+
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace ANF.Application.Controllers.v1
                 Message = "Register account successfully. Please wait for admin to accept the registration."
             });
         }
-        
+
         [HttpDelete("users/{id}")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin")]
@@ -253,6 +253,16 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
+        /// <summary>
+        /// Add banking information for a user.
+        /// </summary>
+        /// <param name="requests">A list of banking information to be added.</param>
+        /// <returns>
+        /// A response indicating the success or failure of the add operation.
+        /// </returns>
+        /// <response code="200">If the banking information was added successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="404">If the user was not found.</response>
         [HttpPost("users/bank-accounts")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Advertiser, Publisher")]
@@ -260,6 +270,10 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AddBankingInformation(List<UserBankCreateRequest> requests)
         {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+                return validationResult;
+
             var result = await _userService.AddBankingInformation(requests);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
@@ -269,6 +283,40 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        // TODO: Update, Delete banking accounts
+
+        /// <summary>
+        /// Update the banking information of a user.
+        /// </summary>
+        /// <param name="id">User bank's id (ub_id).</param>
+        /// <param name="request">The request containing the updated banking information.</param>
+        /// <returns>
+        /// A response indicating the success or failure of the update operation.
+        /// </returns>
+        /// <response code="200">If the banking information was updated successfully.</response>
+        /// <response code="400">If the request is invalid.</response>
+        /// <response code="401">If the user is not authorized to perform this action.</response>
+        /// <response code="404">If the user's bank account was not found.</response>
+        [HttpPut("users/bank-accounts/{id}")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser, Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateBankingInformation(long id, UserBankUpdatedRequest request)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+                return validationResult;
+
+            var result = await _userService.UpdateBankingInformation(id, request);
+            if (!result) return BadRequest();
+
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update successfully!"
+            });
+        }
     }
 }

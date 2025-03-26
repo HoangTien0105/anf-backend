@@ -6,9 +6,7 @@ using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
-using ANF.Infrastructure.Helpers;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -383,11 +381,11 @@ namespace ANF.Service
                         .AnyAsync(ub => ub.BankingNo == long.Parse(request.BankingNo));
                     if (isDuplicated)
                         throw new DuplicatedException("This banking number has already existed in the platform!");
-                    
+                    // Check the bank account number and name
                     var payload = new
                     {
-                        Bank = request.BankingCode,
-                        Account = request.BankingNo
+                        bank = request.BankingCode,
+                        account = request.BankingNo
                     };
                     var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
                     {
@@ -403,7 +401,7 @@ namespace ANF.Service
                     var userBank = new UserBank
                     {
                         UserCode = currentUserCode,
-                        UserName = request.AccountName,
+                        UserName = request.AccountName.ToUpper(),
                         BankingNo = long.Parse(request.BankingNo),
                         BankingProvider = request.BankingName,
                         AddedDate = DateTime.Now,
@@ -419,6 +417,51 @@ namespace ANF.Service
                 throw;
             }
             return result;
+        }
+
+        public async Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdatedRequest request)
+        {
+            try
+            {
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (string.IsNullOrEmpty(currentUserCode))
+                    throw new UnauthorizedAccessException("Invalid user's code!");
+
+                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
+                var bankingInformation = await userBankRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.Id == userBankId) ?? 
+                        throw new KeyNotFoundException("User's banking information does not exist!");
+
+                var payload = new
+                {
+                    Bank = request.BankingCode,
+                    Account = request.BankingNo
+                };
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json")
+                };
+                httpRequest.Headers.Add("x-api-key", _options.ApiKey);
+                httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
+
+                var response = await _httpClient.SendAsync(httpRequest);
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"Failed to verify bank account {request.BankingNo}");
+
+                bankingInformation.UserName = request.AccountName.ToUpper();
+                bankingInformation.BankingNo = long.Parse(request.BankingNo);
+                bankingInformation.BankingProvider = request.BankingName;
+                userBankRepository.Update(bankingInformation);
+
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception e)
+            {
+                _logger.Log(LogLevel.Error, e.Message, e.StackTrace);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
 }
