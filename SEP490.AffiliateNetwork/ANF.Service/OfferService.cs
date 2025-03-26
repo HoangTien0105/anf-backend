@@ -475,5 +475,83 @@ namespace ANF.Service
             }
             return responses;
         }
+
+        public async Task<bool> UpdateOfferStatus(long offerId, string status, string? rejectReason)
+        {
+            try
+            {
+                var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var offer = await offerRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.Id ==  offerId);
+                if (offer is null) throw new KeyNotFoundException("Offer does not exists.");
+
+                if (!Enum.TryParse<OfferStatus>(status, true, out var offerStatus))
+                    throw new ArgumentException("Invalid offer's status. Please check again!");
+
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var campaign = await campaignRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(c => c.Id == offer.CampaignId);
+
+                if (campaign is null) throw new KeyNotFoundException("Campaign does not exists.");
+
+                if (campaign.Status == CampaignStatus.Rejected)
+                    throw new ArgumentException("Campaign must be pending or verified to update offer's status");
+
+                if(offerStatus == OfferStatus.Ended) throw new ArgumentException("This status can only changed automatically!");
+
+                if (offerStatus == OfferStatus.Pending)
+                {
+                    if(offer.Status != OfferStatus.Rejected) throw new ArgumentException("Offer must be rejected to return to pending");
+                    offer.Status = offerStatus;
+                    offer.RejectedReason = string.Empty;
+                }
+
+                if (offerStatus == OfferStatus.Rejected) {
+                    if(offer.Status != OfferStatus.Pending) throw new ArgumentException("Offer must be pending to be rejected");
+                    offer.RejectedReason = rejectReason;
+                    offer.Status = offerStatus;
+                }
+
+                if (offerStatus == OfferStatus.Approved)
+                {
+                    if (offer.Status != OfferStatus.Pending) throw new ArgumentException("Offer status must be pending to be approved");
+
+                    if (campaign.Status == CampaignStatus.Ended || campaign.Status == CampaignStatus.Rejected)
+                        throw new ArgumentException("This campaign's offer can't be approved");
+
+                    if(campaign.Status == CampaignStatus.Pending)
+                    {
+                        campaign.Status = CampaignStatus.Verified;
+                    }
+                     
+                    offer.Status = offerStatus;
+                    offer.RejectedReason = string.Empty;
+                }
+
+                if(offerStatus == OfferStatus.Started)
+                {
+                    if (offer.Status != OfferStatus.Approved) throw new ArgumentException("Offer status must be approved to start");
+
+                    if (campaign.Status == CampaignStatus.Ended || campaign.Status == CampaignStatus.Rejected)
+                        throw new ArgumentException("This campaign's offer can't be started");
+
+                    if(campaign.Status == CampaignStatus.Pending)
+                    {
+                        campaign.Status = CampaignStatus.Started;
+                    }
+
+                    offer.Status = offerStatus;
+                    offer.RejectedReason = string.Empty;
+                }
+
+                campaignRepository.Update(campaign);
+                offerRepository.Update(offer);
+
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();  
+                throw;
+            }
+        }
     }
 }
