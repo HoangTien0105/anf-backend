@@ -65,6 +65,50 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Create withdrawal request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("users/withdrawal-request")]
+        [Authorize(Roles = "Publisher, Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CreateWithdrawalRequest(WithdrawalRequest request)
+        {
+            var result = await _transactionService.CreateWithdrawalRequest(request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Request is created successfully! Please wait for admin to approve the request."
+            });
+        }
+
+        /// <summary>
+        /// Update withdrawal status batch (for Admin)
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("users/withdrawal-status")]
+        [Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateWithdrawalRequest([FromBody] UpdatedWithdrawalRequest request)
+        {
+            var result = await _transactionService.UpdateWithdrawalStatus(request.TransactionIds, request.Status);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success."
+            });
+        }
+
+        /// <summary>
         /// Revoke transaction
         /// </summary>
         /// <param name="transactionId">Transaction's id</param>

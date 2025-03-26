@@ -151,7 +151,7 @@ namespace ANF.Service
                 .ForMember(dest => dest.UserCode, opt => opt.MapFrom((src, dest, destMember, context) => (Guid)context.Items["UserCode"]))
                 .ForMember(dest => dest.AddedDate, opt => opt.MapFrom(_ => DateTime.Now));
 
-            CreateMap<UserBankUpdateRequest, UserBank>()
+            CreateMap<UserBankUpdatedRequest, UserBank>()
                 .ForMember(dest => dest.UserCode, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDate, opt => opt.Ignore());
         }

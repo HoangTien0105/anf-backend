@@ -34,6 +34,7 @@ namespace ANF.Application.Extensions
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
+            services.Configure<BankLookupSettings>(configuration.GetSection("BankLookup"));
             
             // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>
@@ -206,6 +207,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IUserClaimsService, UserClaimsService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<ITransactionService, TransactionService>();
+            services.AddTransient(typeof(HttpClient));
 
             return services;
         }

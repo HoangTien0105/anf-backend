@@ -11,17 +11,6 @@ namespace ANF.Core.Services
 
         Task<bool> UpdateProfile(long advertiserId, AdvertiserProfileUpdatedRequest request);
 
-        Task<bool> AddBankingInformation(string advertiserCode, List<UserBankCreateRequest> requests);
-
-        Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request);
-
-        /// <summary>
-        /// Remove user bank accounts
-        /// </summary>
-        /// <param name="ubIds">List user bank's id</param>
-        /// <returns></returns>
-        Task<bool> DeleteBankingInformation(List<long> ubIds);
-
         Task<List<AffiliateSourceResponse>> GetTrafficSourceOfPublisher(long publisherId);
     }
 }

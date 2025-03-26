@@ -51,35 +51,6 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> AddBankingInformation(string publisherCode, List<UserBankCreateRequest> requests)
-        {
-            try
-            {
-                var currentPublisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (publisherCode != currentPublisherCode)
-                    throw new UnauthorizedAccessException("Publisher's id does not match!");
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                if (!requests.Any())
-                    throw new ArgumentException("Invalid requested data!");
-                foreach (var item in requests)
-                {
-                    var isDuplicate = await userBankRepository.GetAll()
-                        .AsNoTracking()
-                        .AnyAsync(ub => ub.UserCode == publisherCode && ub.BankingNo == item.BankingNo);
-                    if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
-                }
-                var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = publisherCode);
-                userBankRepository.AddRange(banks);
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-
-        }
-
         public async Task<bool> AddProfile(long publisherId, PublisherProfileCreatedRequest value)
         {
             try
@@ -170,32 +141,6 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> DeleteBankingInformation(List<long> ubIds)
-        {
-            try
-            {
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                var isFound = false;
-                foreach (var item in ubIds)
-                {
-                    var bankingInfo = await userBankRepository.FindByIdAsync(item);
-                    if (bankingInfo is not null)
-                    {
-                        userBankRepository.Delete(bankingInfo);
-                        isFound = true;
-                    }
-                }
-                if (!isFound)
-                    throw new KeyNotFoundException("Banking information does not exist!");
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
         public async Task<List<AffiliateSourceResponse>> GetAffiliateSourceOfPublisher(long publisherId)
         {
             var currentPublisherId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
@@ -276,29 +221,6 @@ namespace ANF.Service
                 return await _unitOfWork.SaveAsync() > 0;
             }
             catch (Exception)
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request)
-        {
-            try
-            {
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                if (request is null)
-                    throw new ArgumentException("Invalid requested data!");
-                var bank = await userBankRepository.FindByIdAsync(userBankId);
-                if (bank is null)
-                    throw new KeyNotFoundException("Banking information does not exist!");
-                if (bank.BankingNo == request.BankingNo && bank.BankingProvider == request.BankingProvider)
-                    throw new DuplicatedException("No changes detected. Banking information is identical!");
-                _ = _mapper.Map(request, bank);
-                userBankRepository.Update(bank);
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
             {
                 await _unitOfWork.RollbackAsync();
                 throw;

@@ -32,5 +32,8 @@ namespace ANF.Core.Models.Entities
 
         [Column("beneficiary_bank_name")]
         public string BeneficiaryBankName { get; set; } = null!;
+
+        [Column("date")]
+        public DateTime? Date { get; set; }
     }
 }

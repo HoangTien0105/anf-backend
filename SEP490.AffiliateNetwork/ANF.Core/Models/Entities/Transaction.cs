@@ -34,7 +34,13 @@ namespace ANF.Core.Models.Entities
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
-        
+
+        [Column("approved_at")]
+        public DateTime? ApprovedAt { get; set; }
+
+        [Column("current_banking_no")]
+        public string? CurrentBankingNo { get; set; }
+
         [Column("status")]
         public TransactionStatus Status { get; set; }
 

@@ -20,34 +20,6 @@ namespace ANF.Service
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
 
-        public async Task<bool> AddBankingInformation(string advertiserCode, List<UserBankCreateRequest> requests)
-        {
-            try
-            {
-                var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-                if (advertiserCode != currentAdvertiserCode)
-                    throw new UnauthorizedAccessException("Advertiser's code does not match!");
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                if (!requests.Any())
-                    throw new ArgumentException("Invalid requested data!");
-                foreach (var item in requests)
-                {
-                    var isDuplicate = await userBankRepository.GetAll()
-                        .AsNoTracking()
-                        .AnyAsync(ub => ub.UserCode == advertiserCode && ub.BankingNo == item.BankingNo);
-                    if (isDuplicate) throw new DuplicatedException("This banking number has already existed!");
-                }
-                var banks = _mapper.Map<List<UserBank>>(requests, opt => opt.Items["UserCode"] = advertiserCode);
-                userBankRepository.AddRange(banks);
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
         public async Task<bool> AddProfile(long advertiserId, AdvertiserProfileRequest profile)
         {
             try
@@ -91,32 +63,6 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> DeleteBankingInformation(List<long> ubIds)
-        {
-            try
-            {
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                var isFound = false;
-                foreach (var item in ubIds)
-                {
-                    var bankingInfo = await userBankRepository.FindByIdAsync(item);
-                    if (bankingInfo is not null)
-                    {
-                        userBankRepository.Delete(bankingInfo);
-                        isFound = true;
-                    }
-                }
-                if (!isFound)
-                    throw new KeyNotFoundException("Banking information does not exist!");
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-        }
-
         public async Task<AdvertiserProfileResponse> GetAdvertiserProfile(long advertiserId)
         {
             var currentAdvertiserId = _userClaimsService.GetClaim(ClaimConstants.Primarysid);
@@ -150,29 +96,6 @@ namespace ANF.Service
                 throw new NoDataRetrievalException("No data of traffic sources!");
 
             return _mapper.Map<List<AffiliateSourceResponse>>(sources);
-        }
-
-        public async Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdateRequest request)
-        {
-            try
-            {
-                var userBankRepository = _unitOfWork.GetRepository<UserBank>();
-                if (request is null)
-                    throw new ArgumentException("Invalid requested data!");
-                var bank = await userBankRepository.FindByIdAsync(userBankId);
-                if (bank is null)
-                    throw new KeyNotFoundException("Banking information does not exist!");
-                if (bank.BankingNo == request.BankingNo && bank.BankingProvider == request.BankingProvider)
-                    throw new DuplicatedException("No changes detected. Banking information is identical!");
-                _ = _mapper.Map(request, bank);
-                userBankRepository.Update(bank);
-                return await _unitOfWork.SaveAsync() > 0;
-            }
-            catch
-            {
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
         }
 
         public async Task<bool> UpdateProfile(long advertiserId, AdvertiserProfileUpdatedRequest request)
