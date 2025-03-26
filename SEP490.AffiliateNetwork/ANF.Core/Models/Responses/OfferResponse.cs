@@ -14,6 +14,9 @@
         public double? CommissionRate { get; set; }
         public string? OrderReturnTime { get; set; }
         public string? ImageUrl { get; set; }
+        public string? Status { get; set; }
+        public string? RejectedReason { get; set; }
         public int PubOfferStatus { get; set; }
+        public CampaignDetailedResponse? Campaign { get; set; } 
     }
 }

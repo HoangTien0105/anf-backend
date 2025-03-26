@@ -409,5 +409,71 @@ namespace ANF.Service
                 throw;
             }
         }
+
+        public async Task<List<OfferResponse>> GetOffersByPublisher()
+        {
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
+            var offerRepository = _unitOfWork.GetRepository<Offer>();
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+
+            var publisherCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            if (string.IsNullOrEmpty(publisherCode))
+                throw new UnauthorizedAccessException("Publisher's code is empty!");
+
+            var pubOffers = await pubOfferRepository.GetAll()
+                                .AsNoTracking()
+                                .Where(e => e.PublisherCode == publisherCode 
+                                && (e.Status == PublisherOfferStatus.Pending || e.Status == PublisherOfferStatus.Approved))
+                                .ToListAsync();
+
+            if (!pubOffers.Any()) throw new NoDataRetrievalException("This publisher doesn't apply offer");
+
+            var responses = new List<OfferResponse>();
+            foreach (var i in pubOffers)
+            {
+                var offer = await offerRepository.GetAll()
+                                .AsNoTracking()
+                                .Include(e => e.Campaign)
+                                .ThenInclude(e => e.Images)
+                                .Where(e => e.Id == i.OfferId)
+                                .Select(e => new OfferResponse
+                                {
+                                    Id = e.Id,
+                                    CampaignId = e.CampaignId,
+                                    PricingModel = e.PricingModel,
+                                    Description = e.Description,
+                                    StepInfo = e.StepInfo,
+                                    StartDate = e.StartDate,
+                                    EndDate = e.EndDate,
+                                    Bid = e.Bid,
+                                    Budget = e.Budget,
+                                    CommissionRate = e.CommissionRate,
+                                    OrderReturnTime = e.OrderReturnTime,
+                                    ImageUrl = e.ImageUrl,
+                                    Status = e.Status.ToString(),
+                                    PubOfferStatus = (int)i.Status,
+                                    Campaign = new CampaignDetailedResponse
+                                    {
+                                        Id = e.Campaign.Id,
+                                        Name = e.Campaign.Name,
+                                        Description = e.Campaign.Description,
+                                        StartDate = e.Campaign.StartDate,
+                                        EndDate = e.Campaign.EndDate,
+                                        ProductUrl = e.Campaign.ProductUrl,
+                                        TrackingParams = e.Campaign.TrackingParams,
+                                        CategoryId = e.Campaign.CategoryId,
+                                        CategoryName = e.Campaign.Name,
+                                        Status = e.Campaign.Status.ToString(),
+                                        CampImages = e.Campaign.Images.Select(e => e.ImageUrl).ToList()
+                                    }
+                                }).FirstOrDefaultAsync();
+                if(offer is not null)
+                {
+                    responses.Add(offer);
+                }
+            }
+            return responses;
+        }
     }
 }
