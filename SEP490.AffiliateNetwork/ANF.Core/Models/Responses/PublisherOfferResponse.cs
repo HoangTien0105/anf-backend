@@ -20,6 +20,7 @@ namespace ANF.Core.Models.Responses
         public string? PhoneNumber { get; init; }
 
         public string Email { get; init; } = null!;
+        public int PubOfferStatus { get; init; } 
 
         public ICollection<PublisherOfferTrafficSource>? TrafficSources { get; set; }
     }
