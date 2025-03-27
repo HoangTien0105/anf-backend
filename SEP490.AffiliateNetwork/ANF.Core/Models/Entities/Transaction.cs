@@ -1,6 +1,5 @@
 ﻿using ANF.Core.Commons;
 using ANF.Core.Enums;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
@@ -40,6 +39,9 @@ namespace ANF.Core.Models.Entities
 
         [Column("current_banking_no")]
         public string? CurrentBankingNo { get; set; }
+
+        [Column("is_withdrawal")]
+        public bool IsWithdrawal { get; set; } = false;
 
         [Column("status")]
         public TransactionStatus Status { get; set; }

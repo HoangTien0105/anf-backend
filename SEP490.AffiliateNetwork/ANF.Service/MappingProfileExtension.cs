@@ -154,6 +154,10 @@ namespace ANF.Service
             CreateMap<UserBankUpdatedRequest, UserBank>()
                 .ForMember(dest => dest.UserCode, opt => opt.Ignore())
                 .ForMember(dest => dest.AddedDate, opt => opt.Ignore());
+
+            CreateMap<Transaction, WithdrawalResponse>();
+
+            CreateMap<BatchPayment, ExportedBatchDataResponse>();
         }
     }
 }
