@@ -128,19 +128,22 @@ namespace ANF.Service
 
         private async Task StoreTrackingData(TrackingEvent trackingEvent)
         {
-            try
+            using (var scope = _scopeFactory.CreateScope())
             {
-                var trackingEventRepository = _unitOfWork.GetRepository<TrackingEvent>();
-                trackingEventRepository.Add(trackingEvent);
-                await _unitOfWork.SaveAsync();
+                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var trackingEventRepository = unitOfWork.GetRepository<TrackingEvent>();
+                try
+                {
+                    trackingEventRepository.Add(trackingEvent);
+                    await unitOfWork.SaveAsync();
+                }
+                catch (Exception)
+                {
+                    _logger.Log(LogLevel.Error, "Something went wrong with " + trackingEvent.Id);
+                    await unitOfWork.RollbackAsync();
+                    throw;
+                }
             }
-            catch (Exception)
-            {
-                _logger.LogDebug("Something went wrong with " + trackingEvent.Id);
-                await _unitOfWork.RollbackAsync();
-                throw;
-            }
-
         }
 
         private async Task ProcessQueueAsync(CancellationToken cancellationToken)
