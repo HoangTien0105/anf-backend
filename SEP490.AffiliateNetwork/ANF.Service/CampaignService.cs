@@ -437,22 +437,45 @@ namespace ANF.Service
             try
             {
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var offerRepository = _unitOfWork.GetRepository<Offer>();
 
-                if(!Enum.TryParse<CampaignStatus>(campaignStatus, true, out var status))
+                if (!Enum.TryParse<CampaignStatus>(campaignStatus, true, out var status))
                     throw new ArgumentException("Invalid campaign's status. Please check again!");
 
                 var campaign = await campaignRepository.GetAll()
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(e => e.Id == id);
                 if(campaign is null)
-                    throw new KeyNotFoundException("Campaign does not exist!");
+                    throw new KeyNotFoundException("Campaign does not exist!");            
 
-                if (status != CampaignStatus.Rejected)
-                    rejectReason = String.Empty;
-
+                if(status == CampaignStatus.Rejected)
+                {
+                    campaign.RejectReason = rejectReason;
+                }
                 campaign.Status = status;
-                campaign.RejectReason = rejectReason;
 
+                var offers = await offerRepository.GetAll().AsNoTracking().Where(e => e.CampaignId == id).ToListAsync();
+
+                if (offers.Count > 0) 
+                {
+                    switch (status)
+                    {
+                        case CampaignStatus.Verified:
+                            offers.ForEach(offer => offer.Status = OfferStatus.Approved);
+                            break;
+                        case CampaignStatus.Started:
+                            offers.ForEach(offer => offer.Status = OfferStatus.Started);
+                            break;
+                        case CampaignStatus.Rejected:
+                            offers.ForEach(offer => offer.Status = OfferStatus.Rejected);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    offerRepository.UpdateRange(offers);
+                }
+                
                 campaignRepository.Update(campaign);
                 return await _unitOfWork.SaveAsync() > 0;
             }
