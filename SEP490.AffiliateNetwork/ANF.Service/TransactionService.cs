@@ -1,13 +1,17 @@
 ﻿using ANF.Core;
 using ANF.Core.Commons;
 using ANF.Core.Enums;
+using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
+using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using ANF.Infrastructure.Helpers;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OfficeOpenXml;
 
 namespace ANF.Service
 {
@@ -22,7 +26,7 @@ namespace ANF.Service
         private readonly ILogger<TransactionService> _logger = logger;
         private readonly IMapper _mapper = mapper;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
-        private readonly string _cancelUrl = string.Empty;  // Cancel url is the default page of platform
+        private readonly string _cancelUrl = "https://vnexpress.net";  // Cancel url is the default page of platform
         private readonly string _returnUrl = "https://payos.vn";    // Payment successful page
 
         public async Task<string> CancelTransaction(long transactionId)
@@ -127,14 +131,12 @@ namespace ANF.Service
                     Id = IdHelper.GenerateTransactionId(),
                     UserCode = currentUserCode,
                     WalletId = wallet.Id,
-                    Reason = $"Nạp số tiền {request.Amount} vào ví",
+                    Reason = $"Nạp vào ví {wallet.Id}",
                     Amount = request.Amount,
                     CreatedAt = DateTime.Now,
-                    Status = Core.Enums.TransactionStatus.Pending,
+                    Status = TransactionStatus.Pending,
                 };
                 transactionRepository.Add(transaction);
-                if (await _unitOfWork.SaveAsync() <= 0)
-                    throw new Exception("An error occured when storing the data!"); //TODO: Cần check lại error handle ở đây
 
                 var walletHistory = new WalletHistory
                 {
@@ -142,8 +144,13 @@ namespace ANF.Service
                     CurrentBalance = wallet.Balance
                 };
                 walletHistoryRepository.Add(walletHistory);
-                if (await _unitOfWork.SaveAsync() <= 0)
-                    throw new Exception("An error occured when storing the data!"); //TODO: Cần check lại error handle ở đây
+                
+                //WARNING: Khi tạo link thanh toán gặp lỗi (vượt độ dài ký tự, key k đúng...)
+                // thì data đã được save thành công trong database
+                //TODO: Trong tương lai có thể tìm 1 workflow khác để handle dữ liệu tốt hơn.
+                var affectedRows = await _unitOfWork.SaveAsync();
+                if (affectedRows <= 0)
+                    throw new Exception("An error occured when storing the data in database!");
 
                 var paymentLink = await _paymentService.CreatePaymentLink(transaction.Id);
                 return paymentLink;
@@ -167,6 +174,7 @@ namespace ANF.Service
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 var transactionRepository = _unitOfWork.GetRepository<Transaction>();
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var walletHistory = _unitOfWork.GetRepository<WalletHistory>();
                 var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
 
                 var bankAccount = await userBankRepository.GetAll()
@@ -182,24 +190,33 @@ namespace ANF.Service
                 // Check withdrawal amount and current balance in the wallet
                 if (request.Amount > wallet.Balance)
                     throw new ArgumentException("Withdrawal amount exceeds current balance in wallet!");
-                
+
                 var transaction = new Transaction
                 {
                     Id = IdHelper.GenerateTransactionId(),
                     WalletId = wallet.Id,
                     Amount = request.Amount,
-                    Reason = request.Reason,
+                    Reason = $"Rút tiền từ ví {wallet.Id} về tài khoản {request.BankingNo}",
                     UserCode = currentUserCode,
                     CurrentBankingNo = request.BankingNo,
                     Status = TransactionStatus.Pending,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsWithdrawal = true,    // flag to recognize this is a withdrawal transaction
+                };
+
+                // Store the current balance in wallet history
+                var walletHistoryData = new WalletHistory
+                {
+                    TransactionId = transaction.Id,
+                    CurrentBalance = wallet.Balance
+                    // Don't need to set BalanceType
                 };
 
                 var batchPaymentData = new BatchPayment
                 {
                     TransactionId = transaction.Id,
                     Amount = request.Amount,
-                    Reason = request.Reason,
+                    Reason = transaction.Reason,
                     FromAccount = PlatformSourceBankingNo.PlatformBankingNo,
                     BeneficiaryAccount = request.BankingNo,
                     BeneficiaryName = bankAccount.UserName,
@@ -208,6 +225,7 @@ namespace ANF.Service
                 };
                 transactionRepository.Add(transaction);
                 batchPaymentRepository.Add(batchPaymentData);
+                walletHistory.Add(walletHistoryData);
 
                 return await _unitOfWork.SaveAsync() > 0;
             }
@@ -216,6 +234,138 @@ namespace ANF.Service
                 _logger.Log(LogLevel.Error, ex.Message, ex.StackTrace);
                 await _unitOfWork.RollbackAsync();
                 throw;
+            }
+        }
+
+        public async Task<IActionResult> ExportBatchPaymentData(List<ExportedBatchDataResponse> data)
+        {
+            try
+            {
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                var fileContents = await Task.Run(() =>
+                {
+                    using var package = new ExcelPackage();
+                    var worksheet = package.Workbook.Worksheets.Add("Batch Payment Data");
+                    // Header row
+                    string[] headers =
+                    {
+                        "Reference number",
+                        "From Account",
+                        "Amount (VND)",
+                        "Beneficiary name",
+                        "Beneficiary Account",
+                        "Description",
+                        "Beneficiary Bank code",
+                        "Beneficiary Bank name"
+                    };
+
+                    for (int col = 0; col < headers.Length; col++)
+                    {
+                        worksheet.Cells[1, col + 1].Value = headers[col];
+                        worksheet.Cells[1, col + 1].Style.Font.Bold = true;
+                    }
+
+                    // Populate data rows
+                    for (int row = 0; row < data.Count; row++)
+                    {
+                        var item = data[row];
+                        worksheet.Cells[row + 2, 1].Value = item.TransactionId;
+                        worksheet.Cells[row + 2, 2].Value = item.FromAccount;
+                        worksheet.Cells[row + 2, 3].Value = item.Amount;
+                        worksheet.Cells[row + 2, 4].Value = item.BeneficiaryName;
+                        worksheet.Cells[row + 2, 5].Value = item.BeneficiaryAccount;
+                        worksheet.Cells[row + 2, 6].Value = item.Reason;
+                        worksheet.Cells[row + 2, 7].Value = item.BeneficiaryBankCode;
+                        worksheet.Cells[row + 2, 8].Value = item.BeneficiaryBankName;
+                    }
+
+                    // Auto-fit columns
+                    worksheet.Cells.AutoFitColumns();
+
+                    return package.GetAsByteArray();
+                });
+
+                return new FileContentResult(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                {
+                    FileDownloadName = "BatchPaymentData.xlsx"
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.Log(LogLevel.Error, e.Message, e.StackTrace);
+                throw;
+            }
+        }
+
+        public async Task<PaginationResponse<ExportedBatchDataResponse>> GetBatchPaymentDataForExporting(int pageNumber, int pageSize, 
+            string fromDate, 
+            string toDate)
+        {
+            var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
+            if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(toDate))
+                throw new ArgumentException("From date and to date must not be empty!");
+            
+            DateTime from = DateTime.Parse(fromDate ?? throw new ArgumentException(nameof(fromDate)));
+            DateTime to = DateTime.Parse(toDate ?? throw new ArgumentException(nameof(toDate)));
+            var data = await batchPaymentRepository.GetAll()
+                .AsNoTracking()
+                .Where(bp => bp.Date >= from && bp.Date <= to)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            if (!data.Any()) throw new NoDataRetrievalException("No data of batch payment!");
+            var count = data.Count;
+            var response = _mapper.Map<List<ExportedBatchDataResponse>>(data);
+            return new PaginationResponse<ExportedBatchDataResponse>(response, count, pageNumber, pageSize);
+        }
+
+        public async Task<PaginationResponse<WithdrawalResponse>> GetWithdrawalRequests(int pageNumber, int pageSize, 
+            string fromDate, 
+            string toDate)
+        {
+            var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+            if (string.IsNullOrEmpty(fromDate) || string.IsNullOrEmpty(toDate))
+                throw new ArgumentException("From date and to date must not be empty!");
+
+            if (string.IsNullOrEmpty(fromDate) && string.IsNullOrEmpty(toDate))
+            {
+                var withdrawalRequests = await transactionRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(t => t.Status == TransactionStatus.Pending && 
+                        t.IsWithdrawal == true)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+                if (!withdrawalRequests.Any())
+                    throw new NoDataRetrievalException("No data of withdrawal requests!");
+                
+                var count = withdrawalRequests.Count;
+                var data = _mapper.Map<List<WithdrawalResponse>>(withdrawalRequests);
+                return new PaginationResponse<WithdrawalResponse>(data, count, pageNumber, pageSize);
+            }
+            else
+            {
+                DateTime from = DateTime.Parse(fromDate ?? throw new ArgumentException(nameof(fromDate)));
+                DateTime to = DateTime.Parse(toDate ?? throw new ArgumentException(nameof(toDate)));
+
+                if (from >= to)
+                    throw new ArgumentException("From date must be less than to date!");
+                
+                var withdrawalRequests = await transactionRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(t => t.Status == TransactionStatus.Pending &&
+                        t.IsWithdrawal == true &&
+                        t.CreatedAt >= from && t.CreatedAt <= to)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+                if (!withdrawalRequests.Any())
+                    throw new NoDataRetrievalException("No data of withdrawal requests!");
+                
+                var count = withdrawalRequests.Count;
+                var data = _mapper.Map<List<WithdrawalResponse>>(withdrawalRequests);
+                return new PaginationResponse<WithdrawalResponse>(data, count, pageNumber, pageSize);
             }
         }
 
@@ -239,7 +389,7 @@ namespace ANF.Service
 
                     var wallet = await walletRepository.GetAll()
                         .AsNoTracking()
-                        .FirstOrDefaultAsync(w => w.UserCode == transaction.UserCode) 
+                        .FirstOrDefaultAsync(w => w.UserCode == transaction.UserCode)
                         ?? throw new KeyNotFoundException("Wallet does not exist!");
 
                     if (tranStatus == TransactionStatus.Approved)
@@ -256,7 +406,7 @@ namespace ANF.Service
                         batchData.Date = transaction.ApprovedAt;
 
                         batchPaymentRepository.Update(batchData);
-                        
+
                         // New balance for wallet
                         var balance = wallet.Balance - transaction.Amount;
                         wallet.Balance = balance;

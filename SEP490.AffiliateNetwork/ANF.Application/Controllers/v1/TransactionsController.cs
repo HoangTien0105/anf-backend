@@ -7,41 +7,46 @@ using Microsoft.AspNetCore.Authorization;
 using Asp.Versioning;
 using ANF.Core.Services;
 using ANF.Core.Commons;
+using ANF.Core.Models.Responses;
 
 namespace ANF.Application.Controllers.v1
 {
     public class TransactionsController : BaseApiController
     {
-        private readonly ApplicationDbContext _context;
         private readonly ITransactionService _transactionService;
 
-        public TransactionsController(ApplicationDbContext context, ITransactionService transactionService)
+        public TransactionsController(ITransactionService transactionService)
         {
-            _context = context;
             _transactionService = transactionService;
         }
 
-        // GET: api/Transactions
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Transaction>>> GetPaymentTransactions()
+        /// <summary>
+        /// Get withdrawal requests with pagination and optional date filters
+        /// </summary>
+        /// <param name="request">Pagination request containing page number and page size</param>
+        /// <param name="fromDate">Optional start date for filtering requests</param>
+        /// <param name="toDate">Optional end date for filtering requests</param>
+        /// <returns>Paginated list of withdrawal requests</returns>
+        [HttpGet("users/withdrawal-requests")]
+        [Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetWithdrawalRequests([FromQuery] PaginationRequest request,
+            [FromQuery] string fromDate,
+            [FromQuery] string toDate)
         {
-            return await _context.PaymentTransactions.ToListAsync();
-        }
-
-        // GET: api/Transactions/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Transaction>> GetTransaction(long id)
-        {
-            var transaction = await _context.PaymentTransactions.FindAsync(id);
-
-            if (transaction == null)
+            var response = await _transactionService.GetWithdrawalRequests(request.pageNumber, request.pageSize, fromDate, toDate);
+            return Ok(new ApiResponse<PaginationResponse<WithdrawalResponse>>
             {
-                return NotFound();
-            }
-
-            return transaction;
+                IsSuccess = true,
+                Message = "Success.",
+                Value = response
+            });
         }
-        
+
         /// <summary>
         /// Deposit money from users
         /// </summary>
@@ -82,7 +87,9 @@ namespace ANF.Application.Controllers.v1
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
-                Message = "Request is created successfully! Please wait for admin to approve the request."
+                Message = @"Request is created successfully! Please wait for admin to approve the request, 
+                            normally it takes a week to have the money back to the account 
+                            due to collecting requests from other users."
             });
         }
 
@@ -136,6 +143,51 @@ namespace ANF.Application.Controllers.v1
         {
             var url = await _transactionService.ConfirmPayment(transactionId);
             return Redirect(url);
+        }
+
+        /// <summary>
+        /// Get batch payment data for exporting
+        /// </summary>
+        /// <param name="request">Pagination request</param>
+        /// <param name="fromDate">From date</param>
+        /// <param name="toDate">To date</param>
+        /// <returns></returns>
+        [HttpGet("batch-payment-data")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetBatchPaymentData([FromQuery] PaginationRequest request,
+            [FromQuery] string fromDate,
+            [FromQuery] string toDate)
+        {
+            var response = await _transactionService.GetBatchPaymentDataForExporting(request.pageNumber, 
+                request.pageSize, 
+                fromDate, 
+                toDate);
+            return Ok(new ApiResponse<PaginationResponse<ExportedBatchDataResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = response
+            });
+        }
+
+        /// <summary>
+        /// Export batch payment data
+        /// </summary>
+        /// <param name="data">List of exported batch data</param>
+        /// <returns>BatchPaymentData.xlsx</returns>
+        [HttpPost("export-batch-payment-data")]
+        //[Authorize(Roles = "Admin")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ExportBatchPaymentData([FromBody] List<ExportedBatchDataResponse> data)
+        {
+            return await _transactionService.ExportBatchPaymentData(data);
         }
 
     }
