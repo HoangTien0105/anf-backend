@@ -145,7 +145,13 @@ namespace ANF.Application.Controllers.v1
             return Redirect(url);
         }
 
-
+        /// <summary>
+        /// Get batch payment data for exporting
+        /// </summary>
+        /// <param name="request">Pagination request</param>
+        /// <param name="fromDate">From date</param>
+        /// <param name="toDate">To date</param>
+        /// <returns></returns>
         [HttpGet("batch-payment-data")]
         //[Authorize(Roles = "Admin")]
         [MapToApiVersion(1)]

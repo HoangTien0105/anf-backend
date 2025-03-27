@@ -131,14 +131,12 @@ namespace ANF.Service
                     Id = IdHelper.GenerateTransactionId(),
                     UserCode = currentUserCode,
                     WalletId = wallet.Id,
-                    Reason = $"Nạp vào ví {wallet.Id} số tiền {request.Amount}",
+                    Reason = $"Nạp vào ví {wallet.Id}",
                     Amount = request.Amount,
                     CreatedAt = DateTime.Now,
                     Status = TransactionStatus.Pending,
                 };
                 transactionRepository.Add(transaction);
-                if (await _unitOfWork.SaveAsync() <= 0)
-                    throw new Exception("An error occured when storing the data in Transactions!"); //TODO: Cần check lại error handle ở đây
 
                 var walletHistory = new WalletHistory
                 {
@@ -146,8 +144,13 @@ namespace ANF.Service
                     CurrentBalance = wallet.Balance
                 };
                 walletHistoryRepository.Add(walletHistory);
-                if (await _unitOfWork.SaveAsync() <= 0)
-                    throw new Exception("An error occured when storing the data in WalletHistories!"); //TODO: Cần check lại error handle ở đây
+                
+                //WARNING: Khi tạo link thanh toán gặp lỗi (vượt độ dài ký tự, key k đúng...)
+                // thì data đã được save thành công trong database
+                //TODO: Trong tương lai có thể tìm 1 workflow khác để handle dữ liệu tốt hơn.
+                var affectedRows = await _unitOfWork.SaveAsync();
+                if (affectedRows <= 0)
+                    throw new Exception("An error occured when storing the data in database!");
 
                 var paymentLink = await _paymentService.CreatePaymentLink(transaction.Id);
                 return paymentLink;
@@ -171,6 +174,7 @@ namespace ANF.Service
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 var transactionRepository = _unitOfWork.GetRepository<Transaction>();
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var walletHistory = _unitOfWork.GetRepository<WalletHistory>();
                 var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
 
                 var bankAccount = await userBankRepository.GetAll()
@@ -200,6 +204,14 @@ namespace ANF.Service
                     IsWithdrawal = true,    // flag to recognize this is a withdrawal transaction
                 };
 
+                // Store the current balance in wallet history
+                var walletHistoryData = new WalletHistory
+                {
+                    TransactionId = transaction.Id,
+                    CurrentBalance = wallet.Balance
+                    // Don't need to set BalanceType
+                };
+
                 var batchPaymentData = new BatchPayment
                 {
                     TransactionId = transaction.Id,
@@ -213,6 +225,7 @@ namespace ANF.Service
                 };
                 transactionRepository.Add(transaction);
                 batchPaymentRepository.Add(batchPaymentData);
+                walletHistory.Add(walletHistoryData);
 
                 return await _unitOfWork.SaveAsync() > 0;
             }
