@@ -224,5 +224,30 @@ namespace ANF.Application.Controllers.v1
                 Value = offers
             });
         }
+
+        /// <summary>
+        /// Update offer status for admin
+        /// </summary>
+        /// <param name="id">Offer's id</param>
+        /// <param name="status">Offer's status</param>
+        /// <param name="rejectedReason">Rejected reason</param>
+        /// <returns></returns>
+        [HttpPatch("offers/{id}")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetOfferOfPublisher(long id, string status, string? rejectedReason)
+        {
+            var result = await _offerService.UpdateOfferStatus(id, status, rejectedReason);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update success."
+            });
+        }
     }
 }

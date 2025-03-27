@@ -33,5 +33,6 @@ namespace ANF.Core.Services
         Task<List<OfferResponse>> GetOffersByPublisher(); 
 
         Task<List<PublisherOfferResponse>> GetPublisherOfOffer(long offerId);
+        Task<bool> UpdateOfferStatus(long offerId, string status, string? rejectReason);
     }
 }
