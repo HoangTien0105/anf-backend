@@ -248,6 +248,7 @@ namespace ANF.Service
                     LastName = x.Publisher.LastName,
                     PhoneNumber = x.Publisher.PhoneNumber,
                     Email = x.Publisher.Email,
+                    Status = x.Status,
                     TrafficSources = x.Publisher.AffiliateSources.Select(y => new
                     {
                         y.Provider,
@@ -272,6 +273,7 @@ namespace ANF.Service
                     LastName = item.LastName,
                     PhoneNumber = item.PhoneNumber,
                     Email = item.Email,
+                    PubOfferStatus = (int)item.Status,
                     TrafficSources = item.TrafficSources.Select(x => new PublisherOfferTrafficSource
                     {
                         Provider = x.Provider,
