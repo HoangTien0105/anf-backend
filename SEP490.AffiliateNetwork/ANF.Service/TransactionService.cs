@@ -249,14 +249,14 @@ namespace ANF.Service
                     // Header row
                     string[] headers =
                     {
-                        "Reference number",
-                        "From Account",
-                        "Amount (VND)",
-                        "Beneficiary name",
-                        "Beneficiary Account",
-                        "Description",
-                        "Beneficiary Bank code",
-                        "Beneficiary Bank name"
+                        "Reference number\nSố tham chiếu\n(Nhập ký tự số/chữ. Tránh các ký tự đặc biệt)",
+                        "From Account\nTài khoản chuyển tiền\n(Nhập tối đa 14 ký tự số)",
+                        "Amount (VND)\nSố tiền\n(Chỉ nhập ký tự số)",
+                        "Beneficiary name\nTên người thụ hưởng\n(Nhập ký tự số và chữ)",
+                        "Beneficiary Account\nTài khoản đích\n(Nhập ký tự số/chữ)",
+                        "Beneficiary Account\nTài khoản đích\n(Nhập ký tự số/chữ)",
+                        "Beneficiary Bank code\nMã ngân hàng hưởng\n(Nhập 8 ký tự số)",
+                        "Beneficiary Bank name\nTên ngân hàng hưởng"
                     };
 
                     for (int col = 0; col < headers.Length; col++)
