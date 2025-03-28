@@ -1,4 +1,5 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Enums;
 using ANF.Core.Models.Entities;
 using ANF.Core.Services;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MyCSharp.HttpUserAgentParser;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -21,6 +23,8 @@ namespace ANF.Service
 {
     public class TrackingService : ITrackingService
     {
+        private static readonly string _ipApiBaseUrl = "http://ip-api.com/json/";
+        
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMemoryCache _cache;
         private readonly IServiceScopeFactory _scopeFactory;
@@ -29,10 +33,11 @@ namespace ANF.Service
         private readonly Task _processingTask;
         private readonly ILogger<TrackingService> _logger;
         private readonly HttpClient _httpClient;
-        private readonly IConfiguration _configuration;
+        private readonly IpApiSettings _ipApiSettings;
 
         public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IHttpClientFactory httpClientFactory,
-            IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger, IConfiguration configuration)
+            IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger,
+            IOptions<IpApiSettings> options)
         {
             _unitOfWork = unitOfWork;
             _cache = cache;
@@ -41,9 +46,9 @@ namespace ANF.Service
             _scopeFactory = scopeFactory;
             _processingTask = Task.Run(() => ProcessQueueAsync(_cts.Token));
             _logger = logger;
+            _ipApiSettings = options.Value;
             _httpClient = httpClientFactory.CreateClient();
-            _httpClient.BaseAddress = new Uri("http://ip-api.com/json/");
-            _configuration = configuration;
+            _httpClient.BaseAddress = new Uri(_ipApiBaseUrl);
         }
 
         public async Task<string> StoreParams(long offerId, string publisherCode, string? siteId, HttpRequest httpRequest)
@@ -216,12 +221,12 @@ namespace ANF.Service
         {
             try
             {
-                string apiKey = _configuration["IpApi:ApiKey"];
+                string apiKey = _ipApiSettings.ApiKey;
                 string url = $"{ipAddress}?key={apiKey}&fields=status,message,country,isp,proxy";
                 var response = await _httpClient.GetAsync(url);
                 response.EnsureSuccessStatusCode();
                 var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<IpInfor>(json);
+                return JsonSerializer.Deserialize<IpInfor>(json) ?? throw new ArgumentException("Error!");
             }
             catch (Exception ex)
             {

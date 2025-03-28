@@ -35,6 +35,7 @@ namespace ANF.Application.Extensions
             services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
             services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
             services.Configure<BankLookupSettings>(configuration.GetSection("BankLookup"));
+            services.Configure<IpApiSettings>(configuration.GetSection("IpApi"));
             
             // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>

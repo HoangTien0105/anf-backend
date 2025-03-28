@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ANF.Core
+namespace ANF.Core.Commons
 {
     public class IpInfor
     {
