@@ -56,6 +56,7 @@ namespace ANF.Application.Extensions
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddApplicationService();
             services.AddMemoryCache();
+            services.AddHttpClient();
 
             return services;
         }

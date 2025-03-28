@@ -7,11 +7,13 @@ using ANF.Infrastructure.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MyCSharp.HttpUserAgentParser;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Net.Http;
 using System.Text.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -26,8 +28,11 @@ namespace ANF.Service
         private readonly CancellationTokenSource _cts;
         private readonly Task _processingTask;
         private readonly ILogger<TrackingService> _logger;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-        public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger)
+        public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IHttpClientFactory httpClientFactory,
+            IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger, IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _cache = cache;
@@ -36,9 +41,12 @@ namespace ANF.Service
             _scopeFactory = scopeFactory;
             _processingTask = Task.Run(() => ProcessQueueAsync(_cts.Token));
             _logger = logger;
+            _httpClient = httpClientFactory.CreateClient();
+            _httpClient.BaseAddress = new Uri("http://ip-api.com/json/");
+            _configuration = configuration;
         }
 
-        public async Task<string> StoreParams(long offerId, string publisherCode, HttpRequest httpRequest)
+        public async Task<string> StoreParams(long offerId, string publisherCode, string? siteId, HttpRequest httpRequest)
         {
             try
             {
@@ -52,22 +60,13 @@ namespace ANF.Service
                 string referer = httpRequest.Headers["Referer"].ToString();
 
                 string userAgent = httpRequest.Headers["User-Agent"];
-                string ipAddress = httpRequest.HttpContext.Connection.RemoteIpAddress.ToString();
+                var remoteIpAddress = httpRequest.HttpContext.Connection.RemoteIpAddress;
+                if (remoteIpAddress == null) throw new InvalidOperationException("Cannot determine the client's IP address.");
 
-                // Tạo key duy nhất cho rate limiting dựa trên IP và User-Agent
-                //string deviceKey = $"{ipAddress}-{userAgent}";
-                //string cacheKey = $"tracking_requests_{deviceKey}";
-                //int maxRequests = 5;
-                //TimeSpan delayTimes = TimeSpan.FromSeconds(10);
+                var ipAddress = remoteIpAddress.MapToIPv4().ToString();
 
-                //// Kiểm tra rate limiting
-                //int requestCount = _cache.Get<int>(cacheKey);
-                //if (requestCount >= maxRequests)
-                //{
-                //    throw new ArgumentException("Too many requests.");
-                //}
-                //_cache.Set(cacheKey, requestCount + 1, delayTimes);
-
+                // Bỏ comment đoạn dưới để test trên localhost
+                //if(ipAddress == "0.0.0.1") ipAddress = "your-ip";
 
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
                 if (offerId < 1 || uaInfor.IsRobot())
@@ -90,6 +89,8 @@ namespace ANF.Service
                 if (campaign.Status != CampaignStatus.Started)
                     throw new ArgumentException("Campaign is not available.");
 
+                var ipInfo = await GetIpInfoAsync(ipAddress);
+
                 string clickId = StringHelper.GenerateUniqueCode();
 
                 var trackingEvent = new TrackingEvent
@@ -99,22 +100,28 @@ namespace ANF.Service
                     OfferId = offerId,
                     IpAddress = ipAddress,
                     UserAgent = userAgent,
+                    SiteId = siteId,
+                    Country = ipInfo.Country,
+                    Carrier = ipInfo.Isp,
                     ClickTime = DateTime.UtcNow,
                     Referer = referer,
+                    Proxy = ipInfo.Proxy.ToString(),
                     Status = TrackingEventStatus.Pending
                 };
 
                 _trackingQueue.Enqueue(trackingEvent);
 
-
                 var trackingData = new Dictionary<string, string>
                 {
-                    { "publisher_id", publisherCode },
                     { "click_id",trackingEvent.Id },
-                    { "offer_id", offerId.ToString() },
-                    { "user_agent", uaInfor.UserAgent },
-                    { "ip_address", ipAddress},
-                    { "referer", referer}
+                    { "publisher_code", publisherCode },
+                    { "offer_id", trackingEvent.OfferId.ToString() },
+                    { "ip_address", trackingEvent.IpAddress},
+                    { "user_agent", trackingEvent.SiteId },
+                    { "site_id", trackingEvent.UserAgent },
+                    { "country", trackingEvent.Country},
+                    { "click_time", trackingEvent.ClickTime.ToString()},
+                    { "referer", trackingEvent.Referer},
                 }.Where(kv => kv.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value);
 
                 string redirectUrl = BuildRedirectUrl(campaign.ProductUrl, campaign.TrackingParams, trackingData);
@@ -125,7 +132,6 @@ namespace ANF.Service
                 throw;
             }
         }
-
         private async Task StoreTrackingData(TrackingEvent trackingEvent)
         {
             using (var scope = _scopeFactory.CreateScope())
@@ -203,6 +209,24 @@ namespace ANF.Service
             catch (Exception)
             {
                 throw;
+            }
+        }
+
+        private async Task<IpInfor> GetIpInfoAsync(string ipAddress)
+        {
+            try
+            {
+                string apiKey = _configuration["IpApi:ApiKey"];
+                string url = $"{ipAddress}?key={apiKey}&fields=status,message,country,isp,proxy";
+                var response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                var json = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<IpInfor>(json);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error fetching IP info from ipapi.co for {ipAddress}: {ex.Message}");
+                return new IpInfor { Ip = ipAddress };
             }
         }
     }

@@ -11,18 +11,19 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Store tracking data and redirect
         /// </summary>
-        /// <param name="offerId"></param>
-        /// <param name="publisherCode"></param>
+        /// <param name="offerId">Offer's id</param>
+        /// <param name="publisherCode">Publisher's code</param>
+        /// <param name="siteId">Site's id</param>
         /// <returns></returns>
         [HttpGet("tracking")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Store(long offerId, string publisherCode)
+        public async Task<IActionResult> Store(long offerId, string publisherCode, string? siteId)
         {
             try
             {
-                string redirectUrl = await _trackingService.StoreParams(offerId, publisherCode, HttpContext.Request);
+                string redirectUrl = await _trackingService.StoreParams(offerId, publisherCode, siteId ,HttpContext.Request);
                 return Redirect(redirectUrl);
             }
             catch
