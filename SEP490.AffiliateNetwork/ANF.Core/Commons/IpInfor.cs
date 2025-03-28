@@ -8,7 +8,7 @@ namespace ANF.Core.Commons
         [JsonPropertyName("country")]
         public string Country { get; set; } = null!;
         [JsonPropertyName("isp")]
-        public string Isp { get; set; } = null!; // Carrier
+        public string Carrier { get; set; } = null!;
         [JsonPropertyName("proxy")]
         public bool? Proxy { get; set; }
     }
