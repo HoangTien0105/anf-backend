@@ -158,6 +158,13 @@ namespace ANF.Service
             CreateMap<Transaction, WithdrawalResponse>();
 
             CreateMap<BatchPayment, ExportedBatchDataResponse>();
+
+            CreateMap<PolicyCreateRequest, Policy>();
+
+            CreateMap<PolicyUpdateRequest, Policy>();
+
+            CreateMap<Policy, PolicyResponse>();
+
         }
     }
 }
