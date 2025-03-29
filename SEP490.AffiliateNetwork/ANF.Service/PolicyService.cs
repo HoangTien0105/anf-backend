@@ -4,15 +4,8 @@ using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
-using ANF.Infrastructure;
 using AutoMapper;
-using Azure;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ANF.Service
 {
@@ -101,7 +94,7 @@ namespace ANF.Service
             if (policy is null) throw new KeyNotFoundException("not found policy with Id:" + policyId);
 
             var response = _mapper.Map<PolicyResponse>(policy);
-            return response;
+            return response;            
 
         }
 
