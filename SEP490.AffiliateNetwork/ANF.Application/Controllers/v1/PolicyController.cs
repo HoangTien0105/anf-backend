@@ -32,13 +32,12 @@ namespace ANF.Application.Controllers.v1
                 return validationResult;
             }
             var result = await _policyService.CreatePolicy(request);
-            if (result is null) return BadRequest();
+            if (!result) return BadRequest();
 
-            return Ok(new ApiResponse<PolicyResponse>
+            return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
                 Message = "Create offer successfully",
-                Value = result
             });
         }
         /// <summary>

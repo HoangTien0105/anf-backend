@@ -12,7 +12,7 @@ namespace ANF.Core.Services
     {
         Task<PaginationResponse<PolicyResponse>> GetPolicies(PaginationRequest request);
         Task<PolicyResponse> GetPolicyById(long policyId);
-        Task<PolicyResponse> CreatePolicy(PolicyCreateRequest request);
+        Task<bool> CreatePolicy(PolicyCreateRequest request);
         Task<bool> UpdatePolicy(long id, PolicyUpdateRequest request);
         Task<bool> DeletePolicy(long id);
     }

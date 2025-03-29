@@ -21,7 +21,7 @@ namespace ANF.Service
         private readonly IUnitOfWork _unitOfWork = unitOfWork; 
         private readonly IMapper _mapper = mapper;
 
-        public async Task<PolicyResponse> CreatePolicy(PolicyCreateRequest request)
+        public async Task<bool> CreatePolicy(PolicyCreateRequest request)
         {
             try
             {
@@ -38,11 +38,9 @@ namespace ANF.Service
                     if (existedPolicy != null) { throw new DuplicatedException("policy \"" + request.Header + "\" already in database"); }
 
                     var policy = _mapper.Map<Policy>(request);
-                    policy.CreatedAt = DateTime.Now;
+                    policy.CreatedAt = DateTime.UtcNow;
                     policyRepo.Add(policy);
-                    await _unitOfWork.SaveAsync();
-                    var response = _mapper.Map<PolicyResponse>(policy);
-                    return response; 
+                    return await _unitOfWork.SaveAsync() > 0;
                 }
                 else
                 {
@@ -98,7 +96,7 @@ namespace ANF.Service
         public async Task<PolicyResponse> GetPolicyById(long policyId)
         {
             var policyRepo = _unitOfWork.GetRepository<Policy>();
-            var policy = policyRepo.GetAll().AsNoTracking().FirstOrDefault(p => p.Id == policyId);
+            var policy = await policyRepo.GetAll().AsNoTracking().FirstOrDefaultAsync(p => p.Id == policyId);
 
             if (policy is null) throw new KeyNotFoundException("not found policy with Id:" + policyId);
 
