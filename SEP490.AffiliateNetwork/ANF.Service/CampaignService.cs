@@ -37,7 +37,7 @@ namespace ANF.Service
                     throw new UnauthorizedAccessException("Advertiser's code does not match!");
                 }
                 if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
-                
+
                 var advertiser = await userRepository.GetAll()
                                             .AsNoTracking()
                                             .Where(e => e.UserCode.ToString() == request.AdvertiserCode && e.Role == UserRoles.Advertiser)
@@ -231,7 +231,7 @@ namespace ANF.Service
                .Include(c => c.Images)
                .Include(c => c.Offers)
                .Include(c => c.Category)
-               .FirstOrDefaultAsync(c => c.Id == id && 
+               .FirstOrDefaultAsync(c => c.Id == id &&
                (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started));
 
             if (campaign is null)
@@ -241,10 +241,10 @@ namespace ANF.Service
 
             var data = _mapper.Map<CampaignPubDetailedResponse>(campaign);
 
-            foreach(var item in data.Offers)
+            foreach (var item in data.Offers)
             {
                 var pubOffer = await pubOfferRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.OfferId == item.Id && e.PublisherCode == publisherCode);
-                if(pubOffer is null)
+                if (pubOffer is null)
                 {
                     item.PubOfferStatus = 0;
                 }
@@ -285,7 +285,7 @@ namespace ANF.Service
         /// <returns></returns>
         /// <exception cref="UnauthorizedAccessException"></exception>
         /// <exception cref="KeyNotFoundException"></exception>
-        public async Task<PaginationResponse<CampaignResponse>> 
+        public async Task<PaginationResponse<CampaignResponse>>
             GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id)
         {
             var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
@@ -295,7 +295,7 @@ namespace ANF.Service
             var offerRepository = _unitOfWork.GetRepository<Offer>();
             var campaigns = await campaignRepository.GetAll()
                             .AsNoTracking()
-                            .Where(e => e.AdvertiserCode.ToString() == id)  
+                            .Where(e => e.AdvertiserCode.ToString() == id)
                             .Include(e => e.Category)
                             .Include(e => e.Images)
                             .Skip((request.pageNumber - 1) * request.pageSize)
@@ -400,7 +400,6 @@ namespace ANF.Service
 
                 var allowedImagesTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
 
-                // Need to review update image function
                 foreach (var image in request.ImgFiles)
                 {
                     if (!allowedImagesTypes.Contains(image.ContentType))
@@ -445,37 +444,61 @@ namespace ANF.Service
                 var campaign = await campaignRepository.GetAll()
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(e => e.Id == id);
-                if(campaign is null)
-                    throw new KeyNotFoundException("Campaign does not exist!");            
+                if (campaign is null)
+                    throw new KeyNotFoundException("Campaign does not exist!");
 
-                if(status == CampaignStatus.Rejected)
+                if (status == CampaignStatus.Rejected)
                 {
                     campaign.RejectReason = rejectReason;
                 }
-                campaign.Status = status;
 
                 var offers = await offerRepository.GetAll().AsNoTracking().Where(e => e.CampaignId == id).ToListAsync();
 
-                if (offers.Count > 0) 
+                if (offers.Count > 0)
                 {
                     switch (status)
                     {
                         case CampaignStatus.Verified:
-                            offers.ForEach(offer => offer.Status = OfferStatus.Approved);
-                            break;
+                            {
+                                if (campaign.Status != CampaignStatus.Pending)
+                                    throw new ArgumentException("Campaign must be pending to be applied");
+                                offers.ForEach(offer => offer.Status = OfferStatus.Approved);
+                                break;
+                            }
                         case CampaignStatus.Started:
-                            offers.ForEach(offer => offer.Status = OfferStatus.Started);
-                            break;
+                            {
+                                if (campaign.Status != CampaignStatus.Verified)
+                                    throw new ArgumentException("Campaign must be verified to start");
+                                offers.ForEach(offer => offer.Status = OfferStatus.Started);
+                                break;
+                            }
                         case CampaignStatus.Rejected:
-                            offers.ForEach(offer => offer.Status = OfferStatus.Rejected);
-                            break;
+                            {
+                                if (campaign.Status != CampaignStatus.Pending)
+                                    throw new ArgumentException("Campaign can't be rejected anymore");
+                                offers.ForEach(offer => offer.Status = OfferStatus.Rejected);
+                                break;
+                            }
+                        case CampaignStatus.Pending:
+                            {
+                                if (campaign.Status != CampaignStatus.Rejected)
+                                    throw new ArgumentException("Campaign must be rejected to be pending again");
+                                offers.ForEach(offer => offer.Status = OfferStatus.Pending);
+                                break;
+                            }
+
+                        case CampaignStatus.Ended:
+                            {
+                                throw new ArgumentException("Campaign can't be end manually!");
+                            }
                         default:
                             break;
                     }
 
+                    campaign.Status = status;
                     offerRepository.UpdateRange(offers);
                 }
-                
+
                 campaignRepository.Update(campaign);
                 return await _unitOfWork.SaveAsync() > 0;
             }

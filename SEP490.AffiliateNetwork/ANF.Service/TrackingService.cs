@@ -107,7 +107,7 @@ namespace ANF.Service
                     UserAgent = userAgent,
                     SiteId = siteId,
                     Country = ipInfo.Country,
-                    Carrier = ipInfo.Isp,
+                    Carrier = ipInfo.Carrier,
                     ClickTime = DateTime.UtcNow,
                     Referer = referer,
                     Proxy = ipInfo.Proxy.ToString(),
