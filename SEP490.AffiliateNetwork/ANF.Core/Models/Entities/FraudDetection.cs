@@ -18,9 +18,6 @@ namespace ANF.Core.Models.Entities
         [Column("click_id")]
         public string? ClickId { get; set; }
 
-        [Column("publisher_code")]
-        public string PublisherCode { get; set; } = null!;
-
         [Column("reason")]
         public string? Reason { get; set; }
 

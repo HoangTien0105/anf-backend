@@ -1,5 +1,4 @@
 -- Script chạy data cho affiliate_network_dev và affiliate-network-prod
-
 INSERT INTO affiliate_network_dev.dbo.TrackingParams (name,description) VALUES
 	 (N'click_id',N'Unique identifier for each click'),
 	 (N'utm_source',N'UTM parameter for traffic source'),
