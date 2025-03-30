@@ -109,8 +109,8 @@ namespace ANF.Service
                 //check duplicate by header
                 var existedHeaderPolicy = await policyRepo.GetAll()
                                         .AsNoTracking()
-                                        .FirstOrDefaultAsync(p => p.Header == request.Header);
-                if (existedHeaderPolicy != null) { throw new DuplicatedException("policy \"" + request.Header + "\" already in database"); }
+                                        .FirstOrDefaultAsync(p => p.Header == request.Header & p.Id != id);
+                if (existedHeaderPolicy != null) { throw new DuplicatedException("policy '" + request.Header + "' already in database"); }
 
                 request.Header = CleanAndTrim(request.Header);
                 request.Description = CleanAndTrim(request.Description);
