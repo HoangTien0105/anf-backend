@@ -36,7 +36,7 @@ namespace ANF.Application.Controllers.v1
             return Ok(new ApiResponse<string>
             {
                 IsSuccess = true,
-                Message = "Create offer successfully",
+                Message = "Create successfully",
             });
         }
         /// <summary>
@@ -44,7 +44,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="request">Pagination request model</param>
         /// <returns></returns>
-        [HttpGet("policy")]
+        [HttpGet("policies")]
         [AllowAnonymous]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
