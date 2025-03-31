@@ -14,7 +14,7 @@ namespace ANF.Service
         private readonly ILogger<SampleIdDetectionService> _logger;
         private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
 
-        public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory, 
+        public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory,
             ILogger<SampleIdDetectionService> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
@@ -24,7 +24,7 @@ namespace ANF.Service
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("Spam IP Detection Service started at: {time}", DateTime.Now);
-            
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -36,7 +36,7 @@ namespace ANF.Service
                     _logger.LogError(e, "Error occurred while checking for spam IPs", e.StackTrace);
                     //throw;
                 }
-            await Task.Delay(_checkInterval, stoppingToken);
+                await Task.Delay(_checkInterval, stoppingToken);
             }
         }
 
@@ -68,10 +68,10 @@ namespace ANF.Service
                 .Select(g => g.Key)
                 .ToList();
 
-            var fraudEvents = new List<TrackingEvent>();
-            var validEvents = new List<TrackingEvent>();
+            var fraudEvents = new List<TrackingEvent>();    // For logging purpose
+            var validEvents = new List<TrackingEvent>();    // For logging purpose
 
-            foreach(var trackingItem in trackingData)
+            foreach (var trackingItem in trackingData)
             {
                 if (spamIps.Contains(trackingItem.IpAddress))
                 {
@@ -80,7 +80,7 @@ namespace ANF.Service
                     var fraudDetection = new FraudDetection
                     {
                         ClickId = trackingItem.Id,
-                        Reason = string.Empty,  // Add a short reason for the fraud detection
+                        Reason = $"Detect duplicated IP address: {trackingItem.IpAddress}",
                         DetectedTime = DateTime.Now,
                     };
                     fraudDetectionRepository.Add(fraudDetection);
@@ -104,7 +104,7 @@ namespace ANF.Service
                 _logger.LogInformation("Updated {count} tracking events as fraud", fraudEvents.Count);
             if (validEvents.Any())
                 _logger.LogInformation("Updated {count} tracking events as valid", validEvents.Count);
- 
+
         }
     }
 }
