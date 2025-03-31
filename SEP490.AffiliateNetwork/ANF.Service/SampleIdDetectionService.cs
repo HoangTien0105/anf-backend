@@ -36,8 +36,8 @@ namespace ANF.Service
                     _logger.LogError(e, "Error occurred while checking for spam IPs", e.StackTrace);
                     //throw;
                 }
-            }
             await Task.Delay(_checkInterval, stoppingToken);
+            }
         }
 
         private async Task CheckForSpamIps()
@@ -56,7 +56,7 @@ namespace ANF.Service
             var tenMinutesAgo = DateTime.Now.AddMinutes(-10);
             var trackingData = await trackingEventRepository
                 .GetAll()
-                .Where(e => e.ClickTime > tenMinutesAgo && e.ClickTime <= DateTime.Now)
+                .Where(e => e.ClickTime > tenMinutesAgo && e.ClickTime <= DateTime.Now && e.Status == Core.Enums.TrackingEventStatus.Pending)
                 .ToListAsync();
 
             if (!trackingData.Any())
@@ -68,47 +68,43 @@ namespace ANF.Service
                 .Select(g => g.Key)
                 .ToList();
 
-            if (spamIps.Any())
+            var fraudEvents = new List<TrackingEvent>();
+            var validEvents = new List<TrackingEvent>();
+
+            foreach(var trackingItem in trackingData)
             {
-                // Update records with spam IPs to mark them as fraud
-                var fraudData = trackingData
-                    .Where(e => spamIps.Contains(e.IpAddress))
-                    .ToList();
-
-                foreach (var item in fraudData)
+                if (spamIps.Contains(trackingItem.IpAddress))
                 {
-                    item.Status = Core.Enums.TrackingEventStatus.Fraud;
-                    trackingEventRepository.Update(item);
-
+                    trackingItem.Status = Core.Enums.TrackingEventStatus.Fraud;
+                    fraudEvents.Add(trackingItem);
                     var fraudDetection = new FraudDetection
                     {
-                        ClickId = item.Id,
+                        ClickId = trackingItem.Id,
                         Reason = string.Empty,  // Add a short reason for the fraud detection
                         DetectedTime = DateTime.Now,
                     };
                     fraudDetectionRepository.Add(fraudDetection);
                 }
-                await unitOfWork.SaveAsync();
-
-                _logger.LogInformation("Updated {count} tracking events as fraud", fraudData.Count);
-            }
-            else
-            {
-                foreach (var item in trackingData)
+                else
                 {
-                    item.Status = Core.Enums.TrackingEventStatus.Valid;
-                    trackingEventRepository.Update(item);
-
-                    var validation = new TrackingValidation
+                    trackingItem.Status = Core.Enums.TrackingEventStatus.Valid;
+                    validEvents.Add(trackingItem);
+                    trackingValidationRepository.Add(new TrackingValidation
                     {
-                        ClickId = item.Id,
+                        ClickId = trackingItem.Id,
                         ValidatedTime = DateTime.Now,
-                        // Conversion status and revenue will be set later...
-                    };
-                    await unitOfWork.SaveAsync();
+                    });
                 }
-                _logger.LogInformation("Updated {count} tracking events as valid", trackingData.Count);
+                trackingEventRepository.Update(trackingItem);
             }
+
+            await unitOfWork.SaveAsync();
+
+            if (fraudEvents.Any())
+                _logger.LogInformation("Updated {count} tracking events as fraud", fraudEvents.Count);
+            if (validEvents.Any())
+                _logger.LogInformation("Updated {count} tracking events as valid", validEvents.Count);
+ 
         }
     }
 }
