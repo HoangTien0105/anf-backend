@@ -21,9 +21,6 @@ namespace ANF.Core.Models.Entities
 
         [Column("validated_time")]
         public DateTime ValidatedTime { get; set; }
-
-        [Column("click_date")]
-        public DateOnly ClickDate { get; set; }
         
         [Column("conversion_status")]
         public ConversionStatus? ConversionStatus { get; set; }

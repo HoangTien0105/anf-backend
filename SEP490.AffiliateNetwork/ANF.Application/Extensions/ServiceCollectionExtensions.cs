@@ -59,6 +59,8 @@ namespace ANF.Application.Extensions
             services.AddMemoryCache();
             services.AddHttpClient();
 
+            services.AddHostedService<SampleIdDetectionService>();
+
             return services;
         }
 
@@ -211,6 +213,8 @@ namespace ANF.Application.Extensions
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddTransient(typeof(HttpClient));
             services.AddScoped<IPolicyService, PolicyService>();
+
+            services.AddSingleton<SampleIdDetectionService>();
 
             return services;
         }
