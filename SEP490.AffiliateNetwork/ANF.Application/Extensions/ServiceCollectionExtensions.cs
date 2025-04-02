@@ -36,6 +36,7 @@ namespace ANF.Application.Extensions
             services.Configure<PayOSSettings>(configuration.GetSection("PayOS"));
             services.Configure<BankLookupSettings>(configuration.GetSection("BankLookup"));
             services.Configure<IpApiSettings>(configuration.GetSection("IpApi"));
+            services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
             
             // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>
@@ -60,6 +61,10 @@ namespace ANF.Application.Extensions
             services.AddHttpClient();
 
             services.AddHostedService<SampleIdDetectionService>();
+
+            services.AddSingleton<RabbitMQPublisher>();
+
+            services.AddSingleton<RabbitMQConsumer>();
 
             return services;
         }

@@ -24,7 +24,7 @@ namespace ANF.Service
     public class TrackingService : ITrackingService
     {
         private static readonly string _ipApiBaseUrl = "http://ip-api.com/json/";
-        
+
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMemoryCache _cache;
         private readonly IServiceScopeFactory _scopeFactory;
@@ -57,6 +57,7 @@ namespace ANF.Service
             {
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var publiserOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
                 var userRepository = _unitOfWork.GetRepository<User>();
 
                 var userExist = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode.ToString() == publisherCode);
@@ -83,6 +84,13 @@ namespace ANF.Service
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(e => e.Id == offerId);
                 if (offer is null) throw new KeyNotFoundException("Offer does not exists");
+
+                // Check whether the publisher is running the offer
+                var isExisted = await publiserOfferRepository.GetAll()
+                    .AsNoTracking()
+                    .AnyAsync(e => e.PublisherCode == publisherCode && e.OfferId == offerId);
+                if (!isExisted) 
+                    throw new KeyNotFoundException("This offer is not run by this publisher!");
 
                 if (DateTime.UtcNow < offer.StartDate || DateTime.UtcNow > offer.EndDate)
                     throw new ArgumentException("Offer is not available.");
@@ -137,6 +145,7 @@ namespace ANF.Service
                 throw;
             }
         }
+        
         private async Task StoreTrackingData(TrackingEvent trackingEvent)
         {
             using (var scope = _scopeFactory.CreateScope())
@@ -233,6 +242,11 @@ namespace ANF.Service
                 _logger.LogError($"Error fetching IP info from ipapi.co for {ipAddress}: {ex.Message}");
                 return new IpInfor { Ip = ipAddress };
             }
+        }
+
+        public Task ProcessTrackingData(string queueName, object sampleObject)
+        {
+            throw new NotImplementedException();
         }
     }
 }
