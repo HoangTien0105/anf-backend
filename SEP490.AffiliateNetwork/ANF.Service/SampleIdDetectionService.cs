@@ -1,4 +1,5 @@
 ﻿using ANF.Core;
+using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,7 @@ namespace ANF.Service
                 try
                 {
                     await CheckForSpamIps();
+                    await PublishData();
                 }
                 catch (Exception e)
                 {
@@ -37,6 +39,72 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
+            }
+        }
+
+        /// <summary>
+        /// Publish data to RabbitMQ
+        /// </summary>
+        /// <returns></returns>
+        private async Task PublishData()
+        {
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var rabbitMQPublisher = scope.ServiceProvider.GetRequiredService<RabbitMQPublisher>();
+
+                // Batch time window (getting data in a time range)
+                var fromTime = DateTime.Now.AddMinutes(-6);
+                var toTime = DateTime.Now;
+
+                var trackingValidationRepository = unitOfWork.GetRepository<TrackingValidation>();
+                var trackingEventRepository = unitOfWork.GetRepository<TrackingEvent>();
+                var offerRepository = unitOfWork.GetRepository<Offer>();
+
+                // Get valid tracking data based on pricing models
+                // The response model to store the data from queue is ConversionResponse.cs
+                // The file can change the name to a suitable one with the context
+
+                var query = from tv in trackingValidationRepository
+                                .GetAll()
+                                .AsNoTracking()
+                            join te in trackingEventRepository
+                                .GetAll()
+                                .AsNoTracking()
+                            on tv.ClickId equals te.Id
+                            join o in offerRepository
+                                .GetAll()
+                                .AsNoTracking()
+                            on te.OfferId equals o.Id
+                            where te.Status == TrackingEventStatus.Valid &&
+                                (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
+                                (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
+                            select new
+                            {
+                                tv.Id,
+                                tv.ClickId,
+                                te.PublisherCode,
+                                te.OfferId,
+                                o.PricingModel,
+                                tv.Revenue
+                            };
+
+                var data = await query.ToListAsync();
+                
+                foreach (var item in data)
+                {
+                    // Use the pricing model to set the queue name
+                    string queueName = item.PricingModel.ToLower(); // CPC, CPA, CPS
+                    await rabbitMQPublisher.PublishAsync(queueName, item);
+
+                    _logger.LogInformation($"Published event for click_id: {item.ClickId} to queue: {queueName}");
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.StackTrace);
+                throw;
             }
         }
 
@@ -100,11 +168,11 @@ namespace ANF.Service
 
             await unitOfWork.SaveAsync();
 
+
             if (fraudEvents.Any())
                 _logger.LogInformation("Updated {count} tracking events as fraud", fraudEvents.Count);
             if (validEvents.Any())
                 _logger.LogInformation("Updated {count} tracking events as valid", validEvents.Count);
-
         }
     }
 }
