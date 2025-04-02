@@ -120,7 +120,11 @@ namespace ANF.Service
 
             CreateMap<Subscription, SubscriptionResponse>();
 
-            CreateMap<Campaign, CampaignResponse>();
+            CreateMap<Campaign, CampaignResponse>()
+                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images.Select(x => x.ImageUrl)))
+                .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
             
             CreateMap<CampaignImage, CampaignImageResponse>();
             
