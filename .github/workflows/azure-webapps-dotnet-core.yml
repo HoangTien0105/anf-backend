@@ -2,7 +2,7 @@ name: Build and deploy ASP.Net Core app to an Azure Web App
 
 env:
   AZURE_WEBAPP_NAME: affiliate-network    
-  AZURE_WEBAPP_PACKAGE_PATH: SEP490.AffiliateNetwork/ANF.Application
+  AZURE_WEBAPP_PACKAGE_PATH: 'SEP490.AffiliateNetwork/ANF.Application'
   DOTNET_VERSION: '8.0.x'                 
 
 on:
