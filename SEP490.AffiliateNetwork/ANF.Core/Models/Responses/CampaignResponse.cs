@@ -20,7 +20,7 @@
         public string? RejectReason { get; set; }
 
         public long? CategoryId { get; set; }
-        public string? CategoryName { get; init; }
+        public string? CategoryName { get; set; }
 
         public string Status { get; set; } = null!;
         public ICollection<string> CampImages { get; set; } = new List<string>();
