@@ -1,9 +1,9 @@
 name: Build and deploy Docker Compose to Azure Web App for Containers
 
 env:
-  AZURE_WEBAPP_NAME: affiliate-network          # Tên Azure App Service
-  AZURE_WEBAPP_COMPOSE_FILE: docker-compose.yml # Đường dẫn đến docker-compose
-  DOCKER_REGISTRY: docker.io                    # Nếu bạn dùng Docker Hub hoặc private registry
+  AZURE_WEBAPP_NAME: affiliate-network          
+  AZURE_WEBAPP_COMPOSE_FILE: SEP490.AffiliateNetwork/docker-compose.yml 
+  DOCKER_REGISTRY: docker.io               
 
 on:
   push:
