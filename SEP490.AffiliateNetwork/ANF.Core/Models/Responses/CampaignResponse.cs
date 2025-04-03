@@ -20,9 +20,10 @@
         public string? RejectReason { get; set; }
 
         public long? CategoryId { get; set; }
+        public string? CategoryName { get; set; }
 
         public string Status { get; set; } = null!;
-        public CategoryResponse? Category { get; set; }
+        public ICollection<string> CampImages { get; set; } = new List<string>();
         public ICollection<OfferResponse>? Offers { get; set; }
 
         public ICollection<CampaignImageResponse>? Images { get; set; }
