@@ -1,15 +1,14 @@
-name: Build and Deploy ASP.NET Web API to Azure Web App
+name: Build and Deploy ASP.NET Core App to Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: affiliate-network       # Tên Azure Web App
-  DOTNET_VERSION: '8.0.x'                    # Phiên bản .NET
-  PROJECT_PATH: 'SEP490.AffiliateNetwork/ANF.Application'   # Đường dẫn tới project Web API
-  PUBLISH_OUTPUT: 'published'               # Thư mục chứa output sau publish
+  AZURE_WEBAPP_NAME: affiliate-network                     
+  DOTNET_VERSION: '8.0.x'                                  
+  PROJECT_PATH: SEP490.AffiliateNetwork/ANF.Application    
+  PUBLISH_DIR: release-publish                             
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -31,17 +30,17 @@ jobs:
       - name: 📦 Restore dependencies
         run: dotnet restore ${{ env.PROJECT_PATH }}
 
-      - name: 🛠️ Build
+      - name: 🛠 Build application
         run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-      - name: 🚀 Publish
-        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --output ${{ env.PUBLISH_OUTPUT }}
+      - name: 🚀 Publish application
+        run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --output ${{ env.PUBLISH_DIR }} --no-build
 
-      - name: ⬆️ Upload artifact
+      - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: webapi-artifact
-          path: ${{ env.PUBLISH_OUTPUT }}
+          name: webapp-artifact
+          path: ${{ env.PUBLISH_DIR }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,12 +50,13 @@ jobs:
       - name: 📥 Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: webapi-artifact
-          path: ${{ env.PUBLISH_OUTPUT }}
+          name: webapp-artifact
+          path: ${{ env.PUBLISH_DIR }}
 
       - name: 🚀 Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ env.PUBLISH_OUTPUT }}
+          package: ${{ env.PUBLISH_DIR }}
