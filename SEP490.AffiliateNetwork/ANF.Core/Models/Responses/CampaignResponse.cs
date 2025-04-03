@@ -24,7 +24,6 @@
 
         public string Status { get; set; } = null!;
         public ICollection<string> CampImages { get; set; } = new List<string>();
-        //public CategoryResponse? Category { get; set; }
         public ICollection<OfferResponse>? Offers { get; set; }
 
         public ICollection<CampaignImageResponse>? Images { get; set; }
