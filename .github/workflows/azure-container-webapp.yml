@@ -1,0 +1,46 @@
+name: Build and deploy Docker Compose to Azure Web App for Containers
+
+env:
+  AZURE_WEBAPP_NAME: affiliate-network          # Tên Azure App Service
+  AZURE_WEBAPP_COMPOSE_FILE: docker-compose.yml # Đường dẫn đến docker-compose
+  DOCKER_REGISTRY: docker.io                    # Nếu bạn dùng Docker Hub hoặc private registry
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout source code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Build Compose (no push, Azure sẽ dùng file này để chạy container)
+        run: docker compose -f ${{ env.AZURE_WEBAPP_COMPOSE_FILE }} config
+
+      # ✅ Nếu bạn cần build và push image riêng, bạn có thể thêm bước này:
+      # - name: Build and push Docker image to registry (optional)
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     file: ANF.Application/Dockerfile
+      #     push: true
+      #     tags: your-registry/image-name:tag
+
+      - name: 🚀 Deploy Docker Compose to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          # Azure will use this file to spin up the multi-container app
+          compose-file: ${{ env.AZURE_WEBAPP_COMPOSE_FILE }}
