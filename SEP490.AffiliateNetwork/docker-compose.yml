@@ -1,11 +1,53 @@
+﻿version: '3.8'
+
 services:
   anf.application:
-    image: longv102/anf-webapi:production 
+    image: longv102/anf-webapi:production
     build:
       context: .
       dockerfile: ANF.Application/Dockerfile
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "80:8080"  # Azure chỉ expose cổng 80 và 443
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+
+      # --- ConnectionStrings ---
+      # - ConnectionStrings__Default=${CONNECTIONSTRINGS_DEFAULT}
+      - ConnectionStrings__Azure=${CONNECTIONSTRINGS_AZURE}
+
+      # --- JWT ---
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__Key=${JWT_KEY}
+
+      # --- Email ---
+      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER}
+      - EmailSettings__Port=${EMAIL_PORT}
+      - EmailSettings__SenderEmail=${EMAIL_SENDER_EMAIL}
+      - EmailSettings__SenderName=${EMAIL_SENDER_NAME}
+      - EmailSettings__Password=${EMAIL_PASSWORD}
+
+      # --- Cloudinary ---
+      - CloudinarySettings__CloudName=${CLOUDINARY_NAME}
+      - CloudinarySettings__ApiKey=${CLOUDINARY_API_KEY}
+      - CloudinarySettings__ApiSecret=${CLOUDINARY_API_SECRET}
+
+      # --- PayOS ---
+      - PayOS__ClientId=${PAYOS_CLIENT_ID}
+      - PayOS__ApiKey=${PAYOS_API_KEY}
+      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+
+      # --- BankLookup ---
+      - BankLookup__ApiKey=${BANKLOOKUP_API_KEY}
+      - BankLookup__ApiSecret=${BANKLOOKUP_API_SECRET}
+
+      # --- IP API ---
+      - IpApi__ApiKey=${IPAPI_KEY}
+
+      # --- RabbitMQ ---
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_PORT}
+      - RabbitMQ__Username=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__Exchange=${RABBITMQ_EXCHANGE}
