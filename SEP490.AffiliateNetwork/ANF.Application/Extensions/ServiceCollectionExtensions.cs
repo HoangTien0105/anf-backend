@@ -63,6 +63,8 @@ namespace ANF.Application.Extensions
             services.AddHostedService<RabbitMQConsumer>();
             services.AddHostedService<SampleIdDetectionService>();
 
+            services.AddHostedService<AdvertiserStatsAggregatorService>();
+
             services.AddSingleton<RabbitMQPublisher>();
 
 
