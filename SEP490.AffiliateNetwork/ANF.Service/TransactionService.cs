@@ -110,7 +110,7 @@ namespace ANF.Service
         {
             try
             {
-                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);                
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 var transactionRepository = _unitOfWork.GetRepository<Transaction>();
                 var walletHistoryRepository = _unitOfWork.GetRepository<WalletHistory>();
@@ -176,6 +176,7 @@ namespace ANF.Service
                 var walletRepository = _unitOfWork.GetRepository<Wallet>();
                 var walletHistory = _unitOfWork.GetRepository<WalletHistory>();
                 var batchPaymentRepository = _unitOfWork.GetRepository<BatchPayment>();
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
 
                 var bankAccount = await userBankRepository.GetAll()
                     .AsNoTracking()
@@ -191,6 +192,22 @@ namespace ANF.Service
                 if (request.Amount > wallet.Balance)
                     throw new ArgumentException("Withdrawal amount exceeds current balance in wallet!");
 
+                // Check withdrawal amount and campaign's budget (For advertiser)
+                var advertiser = await _unitOfWork.GetRepository<User>()
+                    .GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.UserCode == currentUserCode && u.Role == UserRoles.Advertiser)
+                        ?? throw new KeyNotFoundException("Advertiser does not exist!");
+                if (advertiser is not null)
+                {
+                    var totalBudget = await campaignRepository.GetAll()
+                        .AsNoTracking()
+                        .Where(c => c.AdvertiserCode == advertiser.UserCode && 
+                            (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started))
+                        .SumAsync(c => c.Balance);
+                    if (request.Amount >= totalBudget)
+                        throw new ArgumentException("Withdrawal amount exceeds current total budget in campaigns!");
+                }
                 var transaction = new Transaction
                 {
                     Id = IdHelper.GenerateTransactionId(),

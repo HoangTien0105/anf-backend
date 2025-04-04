@@ -87,7 +87,7 @@ namespace ANF.Service
                                 te.PublisherCode,
                                 te.OfferId,
                                 o.PricingModel,
-                                tv.Revenue
+                                tv.Amount
                             };
 
                 var data = await query.ToListAsync();
