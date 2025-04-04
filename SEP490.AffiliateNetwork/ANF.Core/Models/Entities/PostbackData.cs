@@ -14,7 +14,7 @@ namespace ANF.Core.Models.Entities
         public long Id { get; set; }
 
         [Column("click_id")]
-        public Guid ClickId { get; set; }
+        public string? ClickId { get; set; }
 
         [Column("offer_id")]
         public long OfferId { get; set; }
