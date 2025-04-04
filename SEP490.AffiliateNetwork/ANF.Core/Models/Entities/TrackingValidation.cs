@@ -25,8 +25,8 @@ namespace ANF.Core.Models.Entities
         [Column("conversion_status")]
         public ConversionStatus? ConversionStatus { get; set; }
 
-        [Column("revenue", TypeName = "decimal(10,2)")]
-        public decimal? Revenue { get; set; }
+        [Column("amount", TypeName = "decimal(10,2)")]
+        public decimal? Amount { get; set; }
 
         public TrackingEvent? TrackingEvent { get; set; }
     }
