@@ -207,6 +207,10 @@ namespace ANF.Service
                         .SumAsync(c => c.Balance);
                     if (request.Amount >= totalBudget)
                         throw new ArgumentException("Withdrawal amount exceeds current total budget in campaigns!");
+                    
+                    //TODO: Cần review lại campaign balance
+                    //if (wallet.Balance - request.Amount <= totalBudget)
+                    //    throw new ArgumentException("Withdrawal amount exceeds current total budget in campaigns!");
                 }
                 var transaction = new Transaction
                 {
