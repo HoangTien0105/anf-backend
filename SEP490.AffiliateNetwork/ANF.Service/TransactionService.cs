@@ -202,7 +202,8 @@ namespace ANF.Service
                 {
                     var totalBudget = await campaignRepository.GetAll()
                         .AsNoTracking()
-                        .Where(c => c.AdvertiserCode == advertiser.UserCode)
+                        .Where(c => c.AdvertiserCode == advertiser.UserCode && 
+                            (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started))
                         .SumAsync(c => c.Balance);
                     if (request.Amount >= totalBudget)
                         throw new ArgumentException("Withdrawal amount exceeds current total budget in campaigns!");
