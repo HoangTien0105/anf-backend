@@ -54,7 +54,7 @@ namespace ANF.Service
 
                 }
 
-                if (request.StartDate <= DateTime.UtcNow.AddDays(1))
+                if (request.StartDate <= DateTime.Now.AddDays(1))
                     throw new ArgumentException("Campaign start date must be after today at least 1 day");
 
                 if (request.EndDate <= request.StartDate)
@@ -382,8 +382,8 @@ namespace ANF.Service
 
                 }
 
-                if (request.StartDate <= DateTime.UtcNow.AddDays(1))
-                    throw new ArgumentException("Campaign start date must be after today atleast 1");
+                if (request.StartDate <= DateTime.Now.AddDays(1))
+                    throw new ArgumentException("Campaign start date must be after today at least 1 day");
 
                 if (request.EndDate <= request.StartDate)
                     throw new ArgumentException("End date must be after start date");

@@ -92,7 +92,7 @@ namespace ANF.Service
                 if (!isExisted) 
                     throw new KeyNotFoundException("This offer is not run by this publisher!");
 
-                if (DateTime.UtcNow < offer.StartDate || DateTime.UtcNow > offer.EndDate)
+                if (DateTime.Now < offer.StartDate || DateTime.Now > offer.EndDate)
                     throw new ArgumentException("Offer is not available.");
 
                 var campaign = await campaignRepository.GetAll()
@@ -116,7 +116,7 @@ namespace ANF.Service
                     SiteId = siteId,
                     Country = ipInfo.Country,
                     Carrier = ipInfo.Carrier,
-                    ClickTime = DateTime.UtcNow,
+                    ClickTime = DateTime.Now,
                     Referer = referer,
                     Proxy = ipInfo.Proxy.ToString(),
                     Status = TrackingEventStatus.Pending
