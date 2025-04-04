@@ -40,6 +40,7 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
+                _logger.LogInformation("Completed one iteration at: {time}", DateTime.Now);
             }
         }
 

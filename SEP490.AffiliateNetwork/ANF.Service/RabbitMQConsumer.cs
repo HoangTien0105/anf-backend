@@ -18,7 +18,6 @@ namespace ANF.Service
         private readonly string _exchange;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<RabbitMQConsumer> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
 
         public RabbitMQConsumer(IOptions<RabbitMQSettings> options,

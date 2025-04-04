@@ -264,26 +264,26 @@ namespace ANF.Service
                     .AsNoTracking()
                     .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.OfferId) 
                     ?? throw new KeyNotFoundException($"Offer with id {trackingConversionEvent.OfferId} not found.");
-                _logger.LogInformation("Retrieved offer {OfferId}", offer.Id);
+                //_logger.LogInformation("Retrieved offer {OfferId}", offer.Id);
 
                 //Check campaign để hết warning
                 var campaign = await campaignRepository.GetAll()
                     .FirstOrDefaultAsync(e => e.Id == offer.CampaignId)
                     ?? throw new KeyNotFoundException($"Campaign with id {offer.CampaignId} not found.");
-                _logger.LogInformation("Retrieved campaign {CampaignId}", campaign.Id);
+                //_logger.LogInformation("Retrieved campaign {CampaignId}", campaign.Id);
 
                 //Check wallet để hết warning
                 var advertiserWallet = await walletRepository
                      .GetAll()
                      .FirstOrDefaultAsync(e => e.UserCode == campaign.AdvertiserCode)
                      ?? throw new KeyNotFoundException($"Advertiser wallet {campaign.AdvertiserCode} not found.");
-                _logger.LogInformation("Retrieved advertiser wallet {WalletId}", advertiserWallet.Id);
+                //_logger.LogInformation("Retrieved advertiser wallet {WalletId}", advertiserWallet.Id);
 
                 //Check wallet để hết warning
                 var publisherWallet = await walletRepository.GetAll()
                             .FirstOrDefaultAsync(e => e.UserCode == trackingConversionEvent.PublisherCode)
                             ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
-                _logger.LogInformation("Retrieved publisher wallet {WalletId}", publisherWallet.Id);
+                //_logger.LogInformation("Retrieved publisher wallet {WalletId}", publisherWallet.Id);
 
                 // Tính tiền
                 var money = trackingConversionEvent.PricingModel == "CPS"
@@ -309,7 +309,7 @@ namespace ANF.Service
                     Status = TransactionStatus.Success
                 };
                 transactionRepository.Add(advTransaction);
-                _logger.LogInformation("Created transaction for advertiser {UserCode}", advertiserWallet.UserCode);
+                //_logger.LogInformation("Created transaction for advertiser {UserCode}", advertiserWallet.UserCode);
 
                 //Lưu lại wallet history trước khi update cho advertiser
                 var advertiserHistory = new WalletHistory
@@ -347,7 +347,7 @@ namespace ANF.Service
                 //Update tracking validation
                 trackingValidation.ConversionStatus = ConversionStatus.Success;
                 trackingValidationRepository.Update(trackingValidation);
-                _logger.LogInformation("Updated tracking event status to Processed");
+                //_logger.LogInformation("Updated tracking event status to Processed");
 
                 await _unitOfWork.SaveAsync();
             }
