@@ -51,7 +51,9 @@ namespace ANF.Infrastructure
         public DbSet<Policy> Policies { get; set; } = null!;
 
         public DbSet<BatchPayment> BatchPayments { get; set; } = null!;
-        
+
+        public DbSet<AdvertiserStats> AdvertiserStats { get; set; } = null!;
+
         /// <summary>
         /// Get connection string from appsettings.json
         /// NOTE: Can be removed the method and not call it in OnConfiguring(),
