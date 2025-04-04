@@ -33,7 +33,7 @@ namespace ANF.Service
 
             _connection = factory.CreateConnectionAsync().Result;
             _channel = _connection.CreateChannelAsync().Result;
-            _exchange = options.Value.ExchangeName;
+            _exchange = options.Value.Exchange;
             _serviceProvider = serviceProvider;
             _logger = logger;
 

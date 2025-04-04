@@ -10,6 +10,6 @@
 
         public string Password { get; init; } = null!;
 
-        public string ExchangeName { get; init; } = null!;
+        public string Exchange { get; init; } = null!;
     }
 }
