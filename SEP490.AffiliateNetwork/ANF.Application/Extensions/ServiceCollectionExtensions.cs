@@ -60,13 +60,13 @@ namespace ANF.Application.Extensions
             services.AddMemoryCache();
             services.AddHttpClient();
 
+            services.AddHostedService<RabbitMQConsumer>();
             services.AddHostedService<SampleIdDetectionService>();
 
             services.AddHostedService<AdvertiserStatsAggregatorService>();
 
             services.AddSingleton<RabbitMQPublisher>();
 
-            services.AddSingleton<RabbitMQConsumer>();
 
             return services;
         }

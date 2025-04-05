@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ANF.Core.Commons;
+using Microsoft.AspNetCore.Http;
 
 namespace ANF.Core.Services
 {
@@ -6,6 +7,6 @@ namespace ANF.Core.Services
     {
         public Task<string> StoreParams(long offerId, string publisherCode, string? siteId, HttpRequest httpRequest);
 
-        Task ProcessTrackingData(string queueName, object sampleObject);
+        Task ProcessTrackingEvent(TrackingConversionEvent trackingConversionEvent);
     }
 }

@@ -22,7 +22,7 @@ namespace ANF.Service
             };
             _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
             _channel = _connection.CreateChannelAsync().Result;
-            _exchange = options.Value.ExchangeName;
+            _exchange = options.Value.Exchange;
 
             _channel.ExchangeDeclareAsync(_exchange, ExchangeType.Direct, true).GetAwaiter().GetResult();
         }

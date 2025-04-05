@@ -1,4 +1,5 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
@@ -39,6 +40,7 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
+                _logger.LogInformation("Completed one iteration at: {time}", DateTime.Now);
             }
         }
 
@@ -80,14 +82,14 @@ namespace ANF.Service
                             where te.Status == TrackingEventStatus.Valid &&
                                 (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
                                 (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
-                            select new
+                            select new TrackingConversionEvent
                             {
-                                tv.Id,
-                                tv.ClickId,
-                                te.PublisherCode,
-                                te.OfferId,
-                                o.PricingModel,
-                                tv.Amount
+                                Id = tv.Id,
+                                ClickId = tv.ClickId,
+                                PublisherCode = te.PublisherCode,
+                                OfferId = te.OfferId,
+                                PricingModel = o.PricingModel,
+                                Amount = tv.Amount
                             };
 
                 var data = await query.ToListAsync();

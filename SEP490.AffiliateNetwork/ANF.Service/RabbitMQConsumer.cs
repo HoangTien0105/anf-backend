@@ -19,7 +19,8 @@ namespace ANF.Service
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<RabbitMQConsumer> _logger;
 
-        public RabbitMQConsumer(IOptions<RabbitMQSettings> options, 
+
+        public RabbitMQConsumer(IOptions<RabbitMQSettings> options,
             IServiceProvider serviceProvider,
             ILogger<RabbitMQConsumer> logger)
         {
@@ -32,7 +33,7 @@ namespace ANF.Service
 
             _connection = factory.CreateConnectionAsync().Result;
             _channel = _connection.CreateChannelAsync().Result;
-            _exchange = options.Value.ExchangeName;
+            _exchange = options.Value.Exchange;
             _serviceProvider = serviceProvider;
             _logger = logger;
 
@@ -40,23 +41,39 @@ namespace ANF.Service
 
             // Declare queue and bind to exchange
             // Các queue sẽ tương ứng cho các pricing model khác nhau
-            // CPC; CPS/CPA
             DeclareQueue("cpc").GetAwaiter().GetResult();
-            DeclareQueue("cps_cpa").GetAwaiter().GetResult();
+            DeclareQueue("cpa").GetAwaiter().GetResult();
+            DeclareQueue("cps").GetAwaiter().GetResult();
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            StartListening("cpc");
-            StartListening("cps_cpa");
+            _logger.LogInformation("RabbitMQConsumer started at: {Time}", DateTime.Now);
 
-            return Task.CompletedTask;
+            stoppingToken.Register(() => _logger.LogInformation("RabbitMQConsumer is stopping."));
+
+            try
+            {
+                StartListening("cpc");
+                StartListening("cpa");
+                StartListening("cps");
+
+                await Task.Delay(Timeout.Infinite, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RabbitMQConsumer execution");
+                throw;
+            }
         }
+
 
         private async Task DeclareQueue(string queueName)
         {
+            _logger.LogInformation("Declaring queue: {QueueName}", queueName);
             await _channel.QueueDeclareAsync(queue: queueName, durable: true, exclusive: false, autoDelete: false);
             await _channel.QueueBindAsync(queueName, _exchange, queueName);
+            _logger.LogInformation("Queue {QueueName} declared and bound to exchange {Exchange}", queueName, _exchange);
         }
 
         private void StartListening(string queueName)
@@ -66,30 +83,45 @@ namespace ANF.Service
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
+                _logger.LogInformation("[Queue: {QueueName}] Received message: {Message}", queueName, message);
 
                 try
                 {
-                    // TODO: Tạo 1 class để hứng data nhận về từ queue
-                    var eventData = JsonConvert.DeserializeObject<object>(message);
-                    //_logger.LogInformation($"[Queue: {queueName}] Received event for click_id: {eventData.ClickId}");
+                    var eventData = JsonConvert.DeserializeObject<TrackingConversionEvent>(message);
+                    _logger.LogInformation("[Queue: {QueueName}] Deserialized event for click_id: {ClickId}", queueName, eventData.ClickId);
 
                     using (var scope = _serviceProvider.CreateScope())
                     {
                         var processingService = scope.ServiceProvider.GetRequiredService<ITrackingService>();
-                        //await processingService.ProcessTrackingEvent(queueName, eventData);
+                        await processingService.ProcessTrackingEvent(eventData);
                     }
 
-                    // Xác nhận đã xử lý thành công
                     await _channel.BasicAckAsync(ea.DeliveryTag, false);
+                    _logger.LogInformation("[Queue: {QueueName}] Successfully processed and acknowledged event for click_id: {ClickId}", queueName, eventData.ClickId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Error processing message: {ex.Message}");
-                    // Có thể implement dead-letter queue nếu cần
+                    _logger.LogError(ex, "[Queue: {QueueName}] Error processing message: {Message}", queueName, message);
+                    await _channel.BasicNackAsync(ea.DeliveryTag, false, false); // Không requeue, gửi đến dead-letter queue nếu có
                 }
             };
 
             _channel.BasicConsumeAsync(queue: queueName, autoAck: false, consumer: consumer);
+            _logger.LogInformation("Started listening on queue {QueueName}", queueName);
+        }
+        public override void Dispose()
+        {
+            try
+            {
+                _channel?.CloseAsync().GetAwaiter().GetResult();
+                _connection?.CloseAsync().GetAwaiter().GetResult();
+                _logger.LogInformation("RabbitMQConsumer disposed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error disposing RabbitMQConsumer");
+            }
+            base.Dispose();
         }
     }
 }

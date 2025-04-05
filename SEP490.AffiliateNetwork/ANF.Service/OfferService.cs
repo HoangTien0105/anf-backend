@@ -58,7 +58,7 @@ namespace ANF.Service
                 {
                     OfferId = offerId,
                     PublisherCode = publisherExist.UserCode,
-                    JoiningDate = DateTime.UtcNow,
+                    JoiningDate = DateTime.Now,
                     Status = PublisherOfferStatus.Pending
                 };
 
@@ -320,7 +320,7 @@ namespace ANF.Service
 
                 pubOfferExist.Status = pubOfferStatus;
 
-                if(pubOfferStatus == PublisherOfferStatus.Approved) pubOfferExist.ApprovedDate = DateTime.UtcNow;    
+                if(pubOfferStatus == PublisherOfferStatus.Approved) pubOfferExist.ApprovedDate = DateTime.Now;    
 
                 if (pubOfferStatus == PublisherOfferStatus.Rejected)
                 {

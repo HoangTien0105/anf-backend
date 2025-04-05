@@ -72,7 +72,7 @@ namespace ANF.Service
                 var ipAddress = remoteIpAddress.MapToIPv4().ToString();
 
                 // Bỏ comment đoạn dưới để test trên localhost
-                //if(ipAddress == "0.0.0.1") ipAddress = "your-ip";
+                if (ipAddress == "0.0.0.1") ipAddress = "your-ip";
 
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
                 if (offerId < 1 || uaInfor.IsRobot())
@@ -89,10 +89,10 @@ namespace ANF.Service
                 var isExisted = await publiserOfferRepository.GetAll()
                     .AsNoTracking()
                     .AnyAsync(e => e.PublisherCode == publisherCode && e.OfferId == offerId);
-                if (!isExisted) 
+                if (!isExisted)
                     throw new KeyNotFoundException("This offer is not run by this publisher!");
 
-                if (DateTime.UtcNow < offer.StartDate || DateTime.UtcNow > offer.EndDate)
+                if (DateTime.Now < offer.StartDate || DateTime.Now > offer.EndDate)
                     throw new ArgumentException("Offer is not available.");
 
                 var campaign = await campaignRepository.GetAll()
@@ -116,7 +116,7 @@ namespace ANF.Service
                     SiteId = siteId,
                     Country = ipInfo.Country,
                     Carrier = ipInfo.Carrier,
-                    ClickTime = DateTime.UtcNow,
+                    ClickTime = DateTime.Now,
                     Referer = referer,
                     Proxy = ipInfo.Proxy.ToString(),
                     Status = TrackingEventStatus.Pending
@@ -145,7 +145,7 @@ namespace ANF.Service
                 throw;
             }
         }
-        
+
         private async Task StoreTrackingData(TrackingEvent trackingEvent)
         {
             using (var scope = _scopeFactory.CreateScope())
@@ -243,10 +243,120 @@ namespace ANF.Service
                 return new IpInfor { Ip = ipAddress };
             }
         }
-
-        public Task ProcessTrackingData(string queueName, object sampleObject)
+        public async Task ProcessTrackingEvent(TrackingConversionEvent trackingConversionEvent)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var walletHistoryRepository = _unitOfWork.GetRepository<WalletHistory>();
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
+
+                var trackingValidation = await trackingValidationRepository.GetAll()
+                    .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.Id)
+                    ?? throw new KeyNotFoundException("Tracking validate's id: " + trackingConversionEvent.Id + "is not exists");
+
+                //Check offer để hết warning
+                var offer = await offerRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.OfferId) 
+                    ?? throw new KeyNotFoundException($"Offer with id {trackingConversionEvent.OfferId} not found.");
+                //_logger.LogInformation("Retrieved offer {OfferId}", offer.Id);
+
+                //Check campaign để hết warning
+                var campaign = await campaignRepository.GetAll()
+                    .FirstOrDefaultAsync(e => e.Id == offer.CampaignId)
+                    ?? throw new KeyNotFoundException($"Campaign with id {offer.CampaignId} not found.");
+                //_logger.LogInformation("Retrieved campaign {CampaignId}", campaign.Id);
+
+                //Check wallet để hết warning
+                var advertiserWallet = await walletRepository
+                     .GetAll()
+                     .FirstOrDefaultAsync(e => e.UserCode == campaign.AdvertiserCode)
+                     ?? throw new KeyNotFoundException($"Advertiser wallet {campaign.AdvertiserCode} not found.");
+                //_logger.LogInformation("Retrieved advertiser wallet {WalletId}", advertiserWallet.Id);
+
+                //Check wallet để hết warning
+                var publisherWallet = await walletRepository.GetAll()
+                            .FirstOrDefaultAsync(e => e.UserCode == trackingConversionEvent.PublisherCode)
+                            ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
+                //_logger.LogInformation("Retrieved publisher wallet {WalletId}", publisherWallet.Id);
+
+                // Tính tiền
+                var money = trackingConversionEvent.PricingModel == "CPS"
+                            ? offer.Bid * (decimal)offer.CommissionRate
+                            : offer.Bid;
+                _logger.LogInformation("Calculated money: {Money}", money);
+
+                //Check wallet của advertiser còn đủ tiền không
+                if (advertiserWallet.Balance < money)
+                {
+                    throw new InvalidOperationException("Insufficient funds in advertiser's wallet.");
+                }
+
+                //Tạo transaction cho advertiser
+                var advTransaction = new Transaction
+                {
+                    Id = IdHelper.GenerateTransactionId(),
+                    UserCode = advertiserWallet.UserCode,
+                    WalletId = advertiserWallet.Id,
+                    Amount = money,
+                    Reason = $"Transfer for campaign {campaign.Name} (Offer: {offer.Id})",
+                    CreatedAt = DateTime.Now,
+                    Status = TransactionStatus.Success
+                };
+                transactionRepository.Add(advTransaction);
+                //_logger.LogInformation("Created transaction for advertiser {UserCode}", advertiserWallet.UserCode);
+
+                //Lưu lại wallet history trước khi update cho advertiser
+                var advertiserHistory = new WalletHistory
+                {
+                    TransactionId = advTransaction.Id,
+                    CurrentBalance = advertiserWallet.Balance,
+                    BalanceType = false
+                };
+                walletHistoryRepository.Add(advertiserHistory);
+                _logger.LogInformation("Updated advertiser wallet and recorded history");
+
+                //Update advertiser wallet
+                advertiserWallet.Balance -= money;
+                walletRepository.Update(advertiserWallet);
+
+                //Update publisher wallet
+                publisherWallet.Balance += money;
+                walletRepository.Update(publisherWallet);
+
+                //Update bugdet của offer 
+                offer.Budget -= money;
+                offerRepository.Update(offer);
+                _logger.LogInformation("Updated offer budget for offer {OfferId}", offer.Id);
+
+                //Update balance của campaign
+                var existingOffersSum = await offerRepository.GetAll()
+                            .AsNoTracking()
+                            .Where(e => e.CampaignId == campaign.Id)
+                            .SumAsync(e => e.Budget);
+
+                campaign.Balance = existingOffersSum;
+                campaignRepository.Update(campaign);
+                _logger.LogInformation("Updated campaign balance for campaign {CampaignId}", campaign.Id);
+
+                //Update tracking validation
+                trackingValidation.ConversionStatus = ConversionStatus.Success;
+                trackingValidationRepository.Update(trackingValidation);
+                //_logger.LogInformation("Updated tracking event status to Processed");
+
+                await _unitOfWork.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error process tracking data for {trackingConversionEvent.Id}: {ex.Message}");
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
 }
