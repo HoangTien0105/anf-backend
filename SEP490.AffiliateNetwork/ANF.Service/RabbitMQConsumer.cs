@@ -48,9 +48,9 @@ namespace ANF.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("RabbitMQConsumer started at: {Time}", DateTime.Now);
+            _logger.LogInformation("=================== RabbitMQConsumer started at: {Time} ===================", DateTime.Now);
 
-            stoppingToken.Register(() => _logger.LogInformation("RabbitMQConsumer is stopping."));
+            stoppingToken.Register(() => _logger.LogInformation("=================== RabbitMQConsumer is stopping. ==================="));
 
             try
             {
