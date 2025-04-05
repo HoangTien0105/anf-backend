@@ -25,7 +25,7 @@ namespace ANF.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Spam IP Detection Service started at: {time}", DateTime.Now);
+            _logger.LogInformation("=================== Spam IP Detection Service started at: {time} ===================", DateTime.Now);
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -40,7 +40,7 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
-                _logger.LogInformation("Completed one iteration at: {time}", DateTime.Now);
+                _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
 
@@ -100,7 +100,7 @@ namespace ANF.Service
                     string queueName = item.PricingModel.ToLower(); // CPC, CPA, CPS
                     await rabbitMQPublisher.PublishAsync(queueName, item);
 
-                    _logger.LogInformation($"Published event for click_id: {item.ClickId} to queue: {queueName}");
+                    _logger.LogInformation($"=================== Published event for click_id: {item.ClickId} to queue: {queueName} ===================");
                 }
             }
             catch (Exception e)
@@ -112,7 +112,7 @@ namespace ANF.Service
 
         private async Task CheckForSpamIps()
         {
-            _logger.LogInformation("Starting spam IP check at: {time}", DateTime.Now);
+            _logger.LogInformation("=================== Starting spam IP check at: {time} ===================", DateTime.Now);
 
             // Create a new scope because of the lifetime of background service 
             // and Unit of Work: Singleton vs. Scoped
@@ -150,7 +150,7 @@ namespace ANF.Service
                     var fraudDetection = new FraudDetection
                     {
                         ClickId = trackingItem.Id,
-                        Reason = $"Detect duplicated IP address: {trackingItem.IpAddress}",
+                        Reason = $"=================== Detect duplicated IP address: {trackingItem.IpAddress} ===================",
                         DetectedTime = DateTime.Now,
                     };
                     fraudDetectionRepository.Add(fraudDetection);
@@ -172,9 +172,9 @@ namespace ANF.Service
 
 
             if (fraudEvents.Any())
-                _logger.LogInformation("Updated {count} tracking events as fraud", fraudEvents.Count);
+                _logger.LogInformation("=================== Updated {count} tracking events as fraud ===================", fraudEvents.Count);
             if (validEvents.Any())
-                _logger.LogInformation("Updated {count} tracking events as valid", validEvents.Count);
+                _logger.LogInformation("=================== Updated {count} tracking events as valid ===================", validEvents.Count);
         }
     }
 }
