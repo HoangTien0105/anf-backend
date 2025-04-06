@@ -4,6 +4,7 @@ using ANF.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250406144252_UpdatePostbackTable")]
+    partial class UpdatePostbackTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -558,40 +561,6 @@ namespace ANF.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("PublisherProfiles");
-                });
-
-            modelBuilder.Entity("ANF.Core.Models.Entities.PurchaseLog", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(10, 2)")
-                        .HasColumnName("amount");
-
-                    b.Property<string>("ClickId")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("click_id");
-
-                    b.Property<string>("ItemName")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("item_name");
-
-                    b.Property<int?>("Quantity")
-                        .HasColumnType("int")
-                        .HasColumnName("quantity");
-
-                    b.Property<string>("TransactionId")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("transaction_id");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PurchaseLogs");
                 });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.Subscription", b =>
