@@ -14,13 +14,13 @@ namespace ANF.Core.Models.Entities
         public long Id { get; set; }
 
         [Column("click_id")]
-        public string? ClickId { get; set; }
+        public string ClickId { get; set; } = null!;
 
         [Column("offer_id")]
         public long OfferId { get; set; }
 
         [Column("publisher_code")]
-        public string PublisherCode { get; set; } = null!;
+        public string? PublisherCode { get; set; }
 
         [Column("amount")]
         public double? Amount { get; set; }

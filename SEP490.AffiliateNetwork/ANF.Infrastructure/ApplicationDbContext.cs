@@ -52,12 +52,14 @@ namespace ANF.Infrastructure
 
         public DbSet<BatchPayment> BatchPayments { get; set; } = null!;
 
-        public DbSet<AdvertiserStats> AdvertiserStats { get; set; } = null!;
+        public DbSet<AdvertiserOfferStats> AdvertiserOfferStats { get; set; } = null!;
+
+        public DbSet<PublisherOfferStats> PublisherOfferStats { get; set; } = null!;
+
+        public DbSet<PurchaseLog> PurchaseLogs { get; set; } = null!;
 
         /// <summary>
         /// Get connection string from appsettings.json
-        /// NOTE: Can be removed the method and not call it in OnConfiguring(),
-        /// because it has already configured in Program.cs
         /// </summary>
         /// <returns>The database connection string</returns>
         private string GetConnectionString()

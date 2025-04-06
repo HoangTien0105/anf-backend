@@ -15,6 +15,9 @@ namespace ANF.Service
         private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
         private readonly ILogger<AdvertiserStatsAggregatorService> _logger = logger;
 
+        // TODO: Background service sẽ chạy vào cuối mỗi ngày, tổng hợp dữ liệu
+        // và insert vô advertiser_stats
+        // Điều chỉnh thời gian và check lại workflow
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
@@ -44,7 +47,7 @@ namespace ANF.Service
 
         private async Task GenerateStatsAsync(IUnitOfWork unitOfWork)
         {
-            try
+            /*try
             {
                 var targetedDate = DateTime.UtcNow.Date.AddDays(-1);
 
@@ -54,7 +57,7 @@ namespace ANF.Service
                 var fraudRepository = unitOfWork.GetRepository<FraudDetection>();
                 var trackingValidationRepository = unitOfWork.GetRepository<TrackingValidation>();
                 var postbackRepository = unitOfWork.GetRepository<PostbackData>();
-                var advertiserStatsRepository = unitOfWork.GetRepository<AdvertiserStats>();
+                var advertiserStatsRepository = unitOfWork.GetRepository<AdvertiserOfferStats>();
 
                 // TODO: Check whether the click time in TrackingEvent is in UTC format?
                 var stats = await (from o in offerRepository.GetAll().AsNoTracking()
@@ -62,7 +65,7 @@ namespace ANF.Service
                                    join te in trackingEventRepository.GetAll().AsNoTracking() on o.Id equals te.OfferId
                                    where te.ClickTime.ToUniversalTime() == targetedDate
                                    group te by new { o.Id, o.CampaignId } into g
-                                   select new AdvertiserStats
+                                   select new AdvertiserOfferStats
                                    {
                                        OfferId = g.Key.Id,
                                        CampaignId = g.Key.CampaignId,
@@ -110,7 +113,8 @@ namespace ANF.Service
             {
                 _logger.LogError(e.Message, e.StackTrace);
                 throw;
-            }
+            }*/
+            throw new NotImplementedException();
         }
     }
 }
