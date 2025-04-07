@@ -35,14 +35,7 @@ namespace ANF.Service
 
                 var postbackData = _mapper.Map<PostbackData>(postbackRequest);
 
-                int date = 7;
-
-                if(trackingEvent.Offer is not null && trackingEvent.Offer.OrderReturnTime is not null)
-                {
-                    var parts = trackingEvent.Offer.OrderReturnTime.Trim().Split(" ");
-                    int.TryParse(parts[0], out date);
-                }
-                postbackData.Date = DateTime.Now.AddDays(date);
+                postbackData.Date = DateTime.Now;
 
                 postbackData.OfferId = trackingEvent.OfferId;
                 postbackData.PublisherCode = trackingEvent.PublisherCode;
