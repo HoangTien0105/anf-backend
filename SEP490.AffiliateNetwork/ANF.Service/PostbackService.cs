@@ -59,6 +59,24 @@ namespace ANF.Service
             }
         }
 
+        public async Task<bool> CreatePurchaseLog(PurchaseLogRequest purchaseLogRequest)
+        {
+            try
+            {
+                var purchaseLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
+
+                var purchaseLog = _mapper.Map<PurchaseLog>(purchaseLogRequest);
+                purchaseLogRepository.Add(purchaseLog);
+                var affectedRows = await _unitOfWork.SaveAsync();
+                return affectedRows > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> UpdatePostBackStatus(long id, string status)
         {
             try

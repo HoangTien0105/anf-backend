@@ -171,6 +171,7 @@ namespace ANF.Service
 
             CreateMap<PostbackRequest, PostbackData>();
 
+            CreateMap<PurchaseLogRequest, PurchaseLog>();
         }
     }
 }

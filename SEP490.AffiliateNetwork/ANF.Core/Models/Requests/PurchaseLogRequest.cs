@@ -2,7 +2,7 @@
 
 namespace ANF.Core.Models.Requests
 {
-    public class PostbackRequest
+    public class PurchaseLogRequest
     {
         [Required(ErrorMessage = "Click id is required.")]
         public string ClickId { get; set; } = null!;
@@ -11,8 +11,10 @@ namespace ANF.Core.Models.Requests
         [Range(0, double.MaxValue, ErrorMessage = "Amount must be a non-negative number.")]
         public double Amount { get; set; }
 
-        [Required(ErrorMessage = "Status is required")]
-        public string Status { get; set; } = null!;
+        public string? ItemName { get; set; }
+
+        public int? Quantity { get; set; }
+
         public string? TransactionId { get; set; }
     }
 }

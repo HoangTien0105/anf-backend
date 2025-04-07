@@ -38,6 +38,31 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Create postback's log
+        /// </summary>
+        /// <param name="request">Postback's log request</param>
+        /// <returns></returns>
+        [HttpPost("postbacks/log")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreatePostbackLog([FromBody] PurchaseLogRequest request)
+        {
+            var validationResult = HandleValidationErrors();
+            if (validationResult is not null)
+            {
+                return validationResult;
+            }
+            var result = await _postbackService.CreatePurchaseLog(request);
+            if (!result) return BadRequest();
+
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Create postback log successfully."
+            });
+        }
+        /// <summary>
         /// Update postback's status
         /// </summary>
         /// <param name="id">Postback's id</param>
