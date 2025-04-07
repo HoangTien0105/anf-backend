@@ -2,8 +2,9 @@
 {
     public enum PostbackStatus
     {
-        Unknown = 0,
         Success = 1,
-        Failed = 2,
+        Canceled = 2,
+        Refunded = 3,
+        Failed = 4,
     }
 }

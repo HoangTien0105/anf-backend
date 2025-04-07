@@ -23,7 +23,7 @@ namespace ANF.Core.Models.Entities
         public DateTime ValidatedTime { get; set; }
         
         [Column("conversion_status")]
-        public ConversionStatus? ConversionStatus { get; set; }
+        public ValidationStatus? ConversionStatus { get; set; }
 
         [Column("amount", TypeName = "decimal(10,2)")]
         public decimal? Amount { get; set; }

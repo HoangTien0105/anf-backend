@@ -43,7 +43,9 @@ namespace ANF.Service
                 _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
-
+        
+        // TODO: Method chỉ dùng để đẩy những tracking với offer là CPC
+        // CPS/CPA sẽ insert vào TrackingValidation, default là Unknown
         /// <summary>
         /// Publish data to RabbitMQ
         /// </summary>
