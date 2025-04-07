@@ -129,6 +129,27 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get bank account name by bank code and account number
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("users/bank-account-name")]
+        [MapToApiVersion(1)]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetBankAccountName(BankLookupRequest request)
+        {
+            var accountName = await _userService.LookupBankAccount(request.BankCode, request.AccountNo);
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = accountName
+            });
+        }
+
+        /// <summary>
         /// Create new account
         /// </summary>
         /// <param name="value">Account data</param>

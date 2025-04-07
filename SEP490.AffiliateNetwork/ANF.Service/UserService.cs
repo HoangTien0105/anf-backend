@@ -208,7 +208,7 @@ namespace ANF.Service
             var response = _mapper.Map<DetailedUserResponse>(user);
             return response;
         }
-        
+
         public async Task<bool> RegisterAccount(AccountCreateRequest request)
         {
             try
@@ -382,22 +382,22 @@ namespace ANF.Service
                     if (isDuplicated)
                         throw new DuplicatedException("This banking number has already existed in the platform!");
                     // Check the bank account number and name
-                    var payload = new
-                    {
-                        bank = request.BankingCode,
-                        account = request.BankingNo
-                    };
-                    var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
-                    {
-                        Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json")
-                    };
-                    httpRequest.Headers.Add("x-api-key", _options.ApiKey);
-                    httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
-                    
-                    var response = await _httpClient.SendAsync(httpRequest);
-                    if (!response.IsSuccessStatusCode)
-                        throw new Exception($"Failed to verify bank account {request.BankingNo}");
-                    
+                    //var payload = new
+                    //{
+                    //    bank = request.BankingCode,
+                    //    account = request.BankingNo
+                    //};
+                    //var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
+                    //{
+                    //    Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json")
+                    //};
+                    //httpRequest.Headers.Add("x-api-key", _options.ApiKey);
+                    //httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
+
+                    //var response = await _httpClient.SendAsync(httpRequest);
+                    //if (!response.IsSuccessStatusCode)
+                    //    throw new Exception($"Failed to verify bank account {request.BankingNo}");
+
                     var userBank = new UserBank
                     {
                         UserCode = currentUserCode,
@@ -430,7 +430,7 @@ namespace ANF.Service
                 var userBankRepository = _unitOfWork.GetRepository<UserBank>();
                 var bankingInformation = await userBankRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(b => b.Id == userBankId) ?? 
+                    .FirstOrDefaultAsync(b => b.Id == userBankId) ??
                         throw new KeyNotFoundException("User's banking information does not exist!");
 
                 var payload = new
@@ -460,6 +460,38 @@ namespace ANF.Service
             {
                 _logger.Log(LogLevel.Error, e.Message, e.StackTrace);
                 await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<string> LookupBankAccount(string bankCode, string accountNo)
+        {
+            try
+            {
+                var payload = new
+                {
+                    bank = bankCode,
+                    account = accountNo
+                };
+                var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json")
+                };
+                httpRequest.Headers.Add("x-api-key", _options.ApiKey);
+                httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
+                
+                var response = await _httpClient.SendAsync(httpRequest);
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"Failed to verify account number: {accountNo}");
+                
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<BankLookupResponse>(content);
+
+                return result?.Data?.OwnerName ?? string.Empty; 
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.StackTrace);
                 throw;
             }
         }
