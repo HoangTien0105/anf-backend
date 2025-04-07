@@ -13,6 +13,6 @@ namespace ANF.Core.Models.Requests
 
         [Required(ErrorMessage = "Status is required")]
         public string Status { get; set; } = null!;
-
+        public string? TransactionId { get; set; }
     }
 }
