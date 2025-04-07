@@ -19,6 +19,18 @@ namespace ANF.Core.Models.Entities
         [Column("offer_id")]
         public long OfferId { get; set; }
 
+        /// <summary>
+        /// Transaction's id from advertiser
+        /// </summary>
+        [Column("transaction_id")]
+        public string? TransactionId { get; set; }
+
+        /// <summary>
+        /// Postback date
+        /// </summary>
+        [Column("date")]
+        public DateTime? Date { get; set; }
+
         [Column("publisher_code")]
         public string? PublisherCode { get; set; }
 
