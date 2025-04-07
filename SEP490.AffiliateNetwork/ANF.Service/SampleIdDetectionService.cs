@@ -163,6 +163,7 @@ namespace ANF.Service
                     {
                         ClickId = trackingItem.Id,
                         ValidatedTime = DateTime.Now,
+                        // Status CPC: Success, CPA CPS: Unknown
                     });
                 }
                 trackingEventRepository.Update(trackingItem);
