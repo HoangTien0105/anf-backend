@@ -169,6 +169,8 @@ namespace ANF.Service
 
             CreateMap<Policy, PolicyResponse>();
 
+            CreateMap<PostbackRequest, PostbackData>();
+
         }
     }
 }
