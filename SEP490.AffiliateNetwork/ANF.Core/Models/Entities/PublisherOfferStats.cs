@@ -6,7 +6,6 @@ namespace ANF.Core.Models.Entities
     /// <summary>
     /// Represents the statistics of a publisher's offer.
     /// </summary>
-    [Table("publisher_offer_stats")]
     public class PublisherOfferStats : IEntity
     {
         [Column("id")]
@@ -38,5 +37,8 @@ namespace ANF.Core.Models.Entities
         /// </summary>
         [Column("conversion_rate", TypeName = "decimal(10, 2)")]
         public decimal ConversionRate { get; set; }
+
+        [Column("revenue", TypeName = "decimal(10, 2)")]
+        public decimal Revenue { get; set; }
     }
 }
