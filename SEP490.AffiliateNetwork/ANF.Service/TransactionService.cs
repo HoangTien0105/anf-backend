@@ -180,7 +180,7 @@ namespace ANF.Service
 
                 var bankAccount = await userBankRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(b => b.BankingNo == long.Parse(request.BankingNo))
+                    .FirstOrDefaultAsync(b => b.BankingNo == request.BankingNo)
                     ?? throw new KeyNotFoundException("Banking number does not exist!");
 
                 var wallet = await walletRepository.GetAll()

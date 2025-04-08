@@ -7,7 +7,7 @@
         /// </summary>
         public int Id { get; init; }
 
-        public long BankingNo { get; init; }
+        public string? BankingNo { get; init; }
 
         public string BankingProvider { get; init; } = null!;
     }
