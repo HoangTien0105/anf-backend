@@ -211,12 +211,6 @@ namespace ANF.Service
 
                 if (user.Role == UserRoles.Advertiser)
                 {
-                    if (user.AdvertiserProfile is null)
-                        throw new NullReferenceException("Advertiser profile does not exist!");
-
-                    if (!user.UserBanks.Any())
-                        throw new NoDataRetrievalException("No banking information found!");
-
                     var response = new DetailedUserResponse()
                     {
                         Id = user.Id,
@@ -247,12 +241,6 @@ namespace ANF.Service
                 }
                 else if (user.Role == UserRoles.Publisher)
                 {
-                    if (user.PublisherProfile is null)
-                        throw new NullReferenceException("Advertiser profile does not exist!");
-
-                    if (!user.UserBanks.Any())
-                        throw new NoDataRetrievalException("No banking information found!");
-
                     var response = new DetailedUserResponse()
                     {
                         Id = user.Id,
@@ -475,31 +463,15 @@ namespace ANF.Service
                 {
                     var isDuplicated = await userBankRepository.GetAll()
                         .AsNoTracking()
-                        .AnyAsync(ub => ub.BankingNo == long.Parse(request.BankingNo));
+                        .AnyAsync(ub => ub.BankingNo == request.BankingNo);
                     if (isDuplicated)
                         throw new DuplicatedException("This banking number has already existed in the platform!");
-                    // Check the bank account number and name
-                    //var payload = new
-                    //{
-                    //    bank = request.BankingCode,
-                    //    account = request.BankingNo
-                    //};
-                    //var httpRequest = new HttpRequestMessage(HttpMethod.Post, _bankLookupUrl)
-                    //{
-                    //    Content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json")
-                    //};
-                    //httpRequest.Headers.Add("x-api-key", _options.ApiKey);
-                    //httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
-
-                    //var response = await _httpClient.SendAsync(httpRequest);
-                    //if (!response.IsSuccessStatusCode)
-                    //    throw new Exception($"Failed to verify bank account {request.BankingNo}");
-
+                    
                     var userBank = new UserBank
                     {
                         UserCode = currentUserCode,
                         UserName = request.AccountName.ToUpper(),
-                        BankingNo = long.Parse(request.BankingNo),
+                        BankingNo = request.BankingNo,
                         BankingProvider = request.BankingName,
                         AddedDate = DateTime.Now,
                     };
@@ -547,7 +519,7 @@ namespace ANF.Service
                     throw new Exception($"Failed to verify bank account {request.BankingNo}");
 
                 bankingInformation.UserName = request.AccountName.ToUpper();
-                bankingInformation.BankingNo = long.Parse(request.BankingNo);
+                bankingInformation.BankingNo = request.BankingNo;
                 bankingInformation.BankingProvider = request.BankingName;
                 userBankRepository.Update(bankingInformation);
 
