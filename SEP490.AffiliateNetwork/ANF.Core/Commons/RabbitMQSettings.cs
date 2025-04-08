@@ -11,5 +11,10 @@
         public string Password { get; init; } = null!;
 
         public string Exchange { get; init; } = null!;
+
+        /// <summary>
+        /// For RabbitMQ deployment
+        /// </summary>
+        public string VirtualHost { get; init; } = null!;
     }
 }

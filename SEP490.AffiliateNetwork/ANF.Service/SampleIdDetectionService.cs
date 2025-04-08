@@ -80,7 +80,8 @@ namespace ANF.Service
                                 .AsNoTracking()
                             on te.OfferId equals o.Id
                             where te.Status == TrackingEventStatus.Valid &&
-                                tv.ValidationStatus == ValidationStatus.Success &&  // Only success status in tracking validation
+                                tv.ValidationStatus == ValidationStatus.Success &&  
+                                tv.ConversionStatus == ConversionStatus.Pending &&
                                 (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
                                 (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
                             select new TrackingConversionEvent
@@ -178,6 +179,7 @@ namespace ANF.Service
                             ClickId = trackingItem.Id,
                             ValidatedTime = DateTime.Now,
                             ValidationStatus = ValidationStatus.Success,
+                            ConversionStatus = ConversionStatus.Pending,
                         });
 
                     }
@@ -190,6 +192,7 @@ namespace ANF.Service
                             ClickId = trackingItem.Id,
                             // Validated time is not set yet after checking with postback data
                             ValidationStatus = ValidationStatus.Unknown,
+                            ConversionStatus = ConversionStatus.Pending,
                         });
                     }
                 }
