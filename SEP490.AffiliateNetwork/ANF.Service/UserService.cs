@@ -211,12 +211,6 @@ namespace ANF.Service
 
                 if (user.Role == UserRoles.Advertiser)
                 {
-                    if (user.AdvertiserProfile is null)
-                        throw new NullReferenceException("Advertiser profile does not exist!");
-
-                    if (!user.UserBanks.Any())
-                        throw new NoDataRetrievalException("No banking information found!");
-
                     var response = new DetailedUserResponse()
                     {
                         Id = user.Id,
@@ -247,12 +241,6 @@ namespace ANF.Service
                 }
                 else if (user.Role == UserRoles.Publisher)
                 {
-                    if (user.PublisherProfile is null)
-                        throw new NullReferenceException("Advertiser profile does not exist!");
-
-                    if (!user.UserBanks.Any())
-                        throw new NoDataRetrievalException("No banking information found!");
-
                     var response = new DetailedUserResponse()
                     {
                         Id = user.Id,
