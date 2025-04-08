@@ -341,6 +341,38 @@ namespace ANF.Service
             return new PaginationResponse<ExportedBatchDataResponse>(response, count, pageNumber, pageSize);
         }
 
+        public async Task<PaginationResponse<UserTransactionResponse>> GetTransactionOfUser(string userCode, 
+            int pageNumber,
+            int pageSize)
+        {
+            try
+            {
+                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                //var walletRepository = _unitOfWork.GetRepository<Wallet>();
+
+                //var wallet = walletRepository.GetAll()
+                //     .AsNoTracking()
+                //     .FirstOrDefault(w => w.UserCode == userCode)
+                //     ?? throw new KeyNotFoundException("Wallet does not exist!");
+                var transactions = await transactionRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(t => t.UserCode == userCode)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .ToListAsync();
+                if (!transactions.Any())
+                    throw new NoDataRetrievalException("No data of transactions!");
+                
+                var count = transactions.Count;
+                var data = _mapper.Map<List<UserTransactionResponse>>(transactions);
+                return new PaginationResponse<UserTransactionResponse>(data, count, pageNumber, pageSize);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message, e.StackTrace);
+                throw;
+            }
+        }
+
         public async Task<PaginationResponse<WithdrawalResponse>> GetWithdrawalRequests(int pageNumber, int pageSize, 
             string fromDate, 
             string toDate)
