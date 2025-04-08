@@ -25,5 +25,9 @@ namespace ANF.Core.Services
         Task<PaginationResponse<ExportedBatchDataResponse>> GetBatchPaymentDataForExporting(int pageNumber, int pageSize, 
             string fromDate, 
             string toDate);
+
+        Task<PaginationResponse<UserTransactionResponse>> GetTransactionOfUser(string userCode, 
+            int pageNumber,
+            int pageSize);
     }
 }

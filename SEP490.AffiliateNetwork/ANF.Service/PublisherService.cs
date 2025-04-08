@@ -175,7 +175,22 @@ namespace ANF.Service
                 .FirstOrDefaultAsync();
             if (publisher is null)
                 throw new KeyNotFoundException("Publisher does not exist!");
-            var response = _mapper.Map<PublisherProfileResponse>(publisher);
+
+            var response = new PublisherProfileResponse
+            {
+                Id = publisher.Id,
+                UserCode = publisher.UserCode,
+                FirstName = publisher.FirstName,
+                LastName = publisher.LastName,
+                Address = publisher.Address,
+                PhoneNumber = publisher.PhoneNumber,
+                CitizenId = publisher.CitizenId,
+                Bio = publisher.PublisherProfile.Bio,
+                Specialization = publisher.PublisherProfile.Specialization,
+                DateOfBirth = publisher.DateOfBirth,
+                Status = publisher.Status.ToString(),
+                ImageUrl = publisher.PublisherProfile.ImageUrl,
+            };
             return response;
         }
 

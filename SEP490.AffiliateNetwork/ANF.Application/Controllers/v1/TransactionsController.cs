@@ -190,5 +190,28 @@ namespace ANF.Application.Controllers.v1
             return await _transactionService.ExportBatchPaymentData(data);
         }
 
+        /// <summary>
+        /// Get transaction of user
+        /// </summary>
+        /// <param name="code">User's code</param>
+        /// <param name="request">Pagination request</param>
+        /// <returns></returns>
+        [HttpGet("users/{code}/transactions")]
+        [Authorize(Roles = "Publisher, Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetTransactionOfUser(string code, [FromQuery] PaginationRequest request)
+        {
+            var response = await _transactionService.GetTransactionOfUser(code, request.pageNumber, request.pageSize);
+            return Ok(new ApiResponse<PaginationResponse<UserTransactionResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = response
+            });
+        }
     }
 }

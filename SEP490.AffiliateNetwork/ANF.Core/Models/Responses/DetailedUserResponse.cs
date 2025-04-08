@@ -26,5 +26,11 @@
         public string Role { get; set; } = null!;
 
         public string? ImageUrl { get; set; }
+
+        public ICollection<UserBankResponse> BankResponses { get; set; } = [];
+
+        public AdvertiserProfileInfoResponse? AdvertiserProfile { get; set; }
+
+        public PublisherProfileInfoResponse? PublisherProfile { get; set; }
     }
 }
