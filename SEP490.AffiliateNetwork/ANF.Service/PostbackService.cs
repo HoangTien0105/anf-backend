@@ -58,6 +58,10 @@ namespace ANF.Service
             {
                 var purchaseLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
 
+                var logExist = await purchaseLogRepository.GetAll().AsNoTracking().AnyAsync(e => e.ClickId == purchaseLogRequest.ClickId);
+
+                if(logExist) throw new DuplicatedException("A postback logs already exists for this tracking event.");
+
                 var purchaseLog = _mapper.Map<PurchaseLog>(purchaseLogRequest);
                 purchaseLogRepository.Add(purchaseLog);
                 var affectedRows = await _unitOfWork.SaveAsync();
