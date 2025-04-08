@@ -16,7 +16,7 @@ namespace ANF.Core.Models.Entities
         public string UserName { get; set; } = null!;
 
         [Column("banking_no")]
-        public long BankingNo { get; set; }
+        public string? BankingNo { get; set; }
 
         [Column("banking_provider")]
         public string BankingProvider { get; set; } = null!;
