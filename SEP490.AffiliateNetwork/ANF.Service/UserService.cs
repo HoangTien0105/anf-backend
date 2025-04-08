@@ -190,23 +190,120 @@ namespace ANF.Service
 
         public async Task<DetailedUserResponse> GetUserInformation()
         {
-            var userRepository = _unitOfWork.GetRepository<User>();
-            var userCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
-            if (string.IsNullOrEmpty(userCode))
+            try
             {
-                throw new UnauthorizedAccessException("Cannot retrieve claims from the token!");
+                var userRepository = _unitOfWork.GetRepository<User>();
+                var userCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                if (string.IsNullOrEmpty(userCode))
+                {
+                    throw new UnauthorizedAccessException("Cannot retrieve claims from the token!");
+                }
+                var user = await userRepository.GetAll()
+                    .AsNoTracking()
+                    .Include(u => u.UserBanks)
+                    .Include(u => u.AdvertiserProfile)
+                    .Include(u => u.PublisherProfile)
+                    .FirstOrDefaultAsync(u => u.UserCode == userCode);
+                if (user is null)
+                {
+                    throw new KeyNotFoundException("User does not exist!");
+                }
+
+                if (user.Role == UserRoles.Advertiser)
+                {
+                    if (user.AdvertiserProfile is null)
+                        throw new NullReferenceException("Advertiser profile does not exist!");
+
+                    if (!user.UserBanks.Any())
+                        throw new NoDataRetrievalException("No banking information found!");
+
+                    var response = new DetailedUserResponse()
+                    {
+                        Id = user.Id,
+                        UserCode = user.UserCode,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        PhoneNumber = user.PhoneNumber,
+                        CitizenId = user.CitizenId,
+                        Address = user.Address,
+                        DateOfBirth = user.DateOfBirth,
+                        Email = user.Email,
+                        Role = user.Role.ToString(),
+                        ImageUrl = user.AdvertiserProfile.ImageUrl,
+                        BankResponses = user.UserBanks.Select(ub => new UserBankResponse
+                        {
+                            Id = (int)ub.Id,
+                            BankingNo = ub.BankingNo,
+                            BankingProvider = ub.BankingProvider,
+                        }).ToList(),
+                        AdvertiserProfile = new AdvertiserProfileInfoResponse()
+                        {
+                            CompanyName = user.AdvertiserProfile.CompanyName,
+                            Industry = user.AdvertiserProfile.Industry,
+                            Bio = user.AdvertiserProfile.Bio,
+                        }
+                    };
+                    return response;
+                }
+                else if (user.Role == UserRoles.Publisher)
+                {
+                    if (user.PublisherProfile is null)
+                        throw new NullReferenceException("Advertiser profile does not exist!");
+
+                    if (!user.UserBanks.Any())
+                        throw new NoDataRetrievalException("No banking information found!");
+
+                    var response = new DetailedUserResponse()
+                    {
+                        Id = user.Id,
+                        UserCode = user.UserCode,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        PhoneNumber = user.PhoneNumber,
+                        CitizenId = user.CitizenId,
+                        Address = user.Address,
+                        DateOfBirth = user.DateOfBirth,
+                        Email = user.Email,
+                        Role = user.Role.ToString(),
+                        ImageUrl = user.PublisherProfile.ImageUrl,
+                        BankResponses = user.UserBanks.Select(ub => new UserBankResponse
+                        {
+                            Id = (int)ub.Id,
+                            BankingNo = ub.BankingNo,
+                            BankingProvider = ub.BankingProvider,
+                        }).ToList(),
+                        PublisherProfile = new PublisherProfileInfoResponse()
+                        {
+                            Specialization = user.PublisherProfile.Specialization,
+                            Bio = user.PublisherProfile.Bio,
+                        }
+                    };
+
+                    return response;
+                }
+                else
+                {
+                    var response = new DetailedUserResponse()
+                    {
+                        Id = user.Id,
+                        UserCode = user.UserCode,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        PhoneNumber = user.PhoneNumber,
+                        CitizenId = user.CitizenId,
+                        Address = user.Address,
+                        DateOfBirth = user.DateOfBirth,
+                        Email = user.Email,
+                        Role = user.Role.ToString(),
+                    };
+                    return response;
+                }
             }
-            var user = await userRepository.GetAll()
-                .AsNoTracking()
-                .Include(u => u.PublisherProfile)
-                .Include(u => u.AdvertiserProfile)
-                .FirstOrDefaultAsync(u => u.UserCode == userCode);
-            if (user is null)
+            catch (Exception e)
             {
-                throw new KeyNotFoundException("User does not exist!");
+                _logger.LogError(e.Message, e.StackTrace);
+                throw;
             }
-            var response = _mapper.Map<DetailedUserResponse>(user);
-            return response;
         }
 
         public async Task<bool> RegisterAccount(AccountCreateRequest request)
@@ -479,15 +576,15 @@ namespace ANF.Service
                 };
                 httpRequest.Headers.Add("x-api-key", _options.ApiKey);
                 httpRequest.Headers.Add("x-api-secret", _options.ApiSecret);
-                
+
                 var response = await _httpClient.SendAsync(httpRequest);
                 if (!response.IsSuccessStatusCode)
                     throw new Exception($"Failed to verify account number: {accountNo}");
-                
+
                 var content = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<BankLookupResponse>(content);
 
-                return result?.Data?.OwnerName ?? string.Empty; 
+                return result?.Data?.OwnerName ?? string.Empty;
             }
             catch (Exception e)
             {

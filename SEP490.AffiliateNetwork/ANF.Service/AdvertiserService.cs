@@ -73,11 +73,27 @@ namespace ANF.Service
             var advertiser = await userRepository.GetAll()
                 .AsNoTracking()
                 .Include(u => u.AdvertiserProfile)
-                .Include(u => u.UserBanks)
-                .FirstOrDefaultAsync(ad => ad.Id == advertiserId && ad.Role == Core.Enums.UserRoles.Advertiser);
+                .FirstOrDefaultAsync(ad => ad.Id == advertiserId && ad.Role == UserRoles.Advertiser);
             if (advertiser is null)
                 throw new KeyNotFoundException("Advertiser does not exist!");
-            var response = _mapper.Map<AdvertiserProfileResponse>(advertiser);
+
+            var response = new AdvertiserProfileResponse
+            {
+                Id = advertiser.Id,
+                UserCode = advertiser.UserCode,
+                FirstName = advertiser.FirstName,
+                LastName = advertiser.LastName,
+                PhoneNumber = advertiser.PhoneNumber,
+                CitizenId = advertiser.CitizenId,
+                Address = advertiser.Address,
+                DateOfBirth = advertiser.DateOfBirth,
+                Status = advertiser.Status.ToString(),
+                RejectReason = advertiser.RejectReason,
+                CompanyName = advertiser.AdvertiserProfile.CompanyName,
+                Industry = advertiser.AdvertiserProfile.Industry,
+                ImageUrl = advertiser.AdvertiserProfile.ImageUrl,
+                Bio = advertiser.AdvertiserProfile.Bio
+            };
             return response;
         }
 
