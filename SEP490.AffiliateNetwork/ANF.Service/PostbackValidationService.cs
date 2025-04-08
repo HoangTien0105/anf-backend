@@ -96,6 +96,7 @@ namespace ANF.Service
                     if (purchaseLog is null)
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Unknown;
+                        trackingValidation.ConversionStatus = ConversionStatus.Failed;
                         unknownValidation++;
                         _logger.LogInformation($"=================== Postback data doesn't exists: {item.Id} ===================");
                     }
@@ -104,11 +105,13 @@ namespace ANF.Service
                         if(purchaseLog.TransactionId == item.TransactionId && purchaseLog.Amount == (decimal?)item.Amount)
                         {
                             trackingValidation.ValidationStatus = ValidationStatus.Success;
+                            trackingValidation.ValidatedTime = DateTime.Now;
                             validValidation++;
                         }
                         else
                         {
                             trackingValidation.ValidationStatus = ValidationStatus.Failed;
+                            trackingValidation.ConversionStatus = ConversionStatus.Failed;
                             failValidation++;
                             _logger.LogInformation($"=================== Postback data does not match the postback logsd: {item.Id} ===================");
                         }
@@ -177,11 +180,13 @@ namespace ANF.Service
                     if(item.Status == PostbackStatus.Failed || item.Status == PostbackStatus.Refunded || item.Status == PostbackStatus.Canceled)
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Failed;
+                        trackingValidation.ConversionStatus = ConversionStatus.Failed;
                         failValidation++;
                     } 
                     else
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Unknown;
+                        trackingValidation.ConversionStatus = ConversionStatus.Failed;
                         unknownValidation++;
                     }
 
