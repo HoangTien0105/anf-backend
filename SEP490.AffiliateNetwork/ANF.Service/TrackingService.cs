@@ -317,7 +317,7 @@ namespace ANF.Service
                 walletRepository.Update(publisherWallet);
 
                 //Update tracking validation
-                trackingValidation.ConversionStatus = ValidationStatus.Success;
+                trackingValidation.ValidationStatus = ValidationStatus.Success;
                 trackingValidationRepository.Update(trackingValidation);
 
                 await _unitOfWork.SaveAsync();
