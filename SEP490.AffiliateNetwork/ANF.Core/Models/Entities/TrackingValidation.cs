@@ -22,8 +22,17 @@ namespace ANF.Core.Models.Entities
         [Column("validated_time")]
         public DateTime ValidatedTime { get; set; }
         
+        /// <summary>
+        /// Specify the validation of the tracking data
+        /// </summary>
+        [Column("validation_status")]
+        public ValidationStatus? ValidationStatus { get; set; }
+
+        /// <summary>
+        /// Specify whether a click's id is converted successfully to the publisher
+        /// </summary>
         [Column("conversion_status")]
-        public ValidationStatus? ConversionStatus { get; set; }
+        public ConversionStatus? ConversionStatus { get; set; }
 
         [Column("amount", TypeName = "decimal(10,2)")]
         public decimal? Amount { get; set; }
