@@ -26,7 +26,7 @@ namespace ANF.Core.Models.Entities
         public string? TransactionId { get; set; }
 
         /// <summary>
-        /// Postback date
+        /// Postback created date
         /// </summary>
         [Column("date")]
         public DateTime? Date { get; set; }

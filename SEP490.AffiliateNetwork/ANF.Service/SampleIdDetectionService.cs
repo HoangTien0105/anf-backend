@@ -43,7 +43,7 @@ namespace ANF.Service
                 _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
-
+        
         /// <summary>
         /// Publish data to RabbitMQ
         /// </summary>
@@ -80,6 +80,7 @@ namespace ANF.Service
                                 .AsNoTracking()
                             on te.OfferId equals o.Id
                             where te.Status == TrackingEventStatus.Valid &&
+                                tv.ConversionStatus == ValidationStatus.Success &&  // Only success status in tracking validation
                                 (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
                                 (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
                             select new TrackingConversionEvent
@@ -93,7 +94,7 @@ namespace ANF.Service
                             };
 
                 var data = await query.ToListAsync();
-                
+
                 foreach (var item in data)
                 {
                     // Use the pricing model to set the queue name
@@ -110,6 +111,16 @@ namespace ANF.Service
             }
         }
 
+        /// <summary>
+        /// Check for spam IPs in the last 10 minutes
+        /// If the IP address is duplicated more than 5 times, it will be marked as fraud
+        /// Otherwise it will be marked as valid, then based on the offer's pricing model
+        /// If the pricing model is CPC, the validation status will be set to success for doing conversion
+        /// If the pricing model is CPA or CPS, the validation status will be set to unknown 
+        /// for checking with postback from advertiser
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NoDataRetrievalException">No data retrieved from the database</exception>
         private async Task CheckForSpamIps()
         {
             _logger.LogInformation("=================== Starting spam IP check at: {time} ===================", DateTime.Now);
@@ -126,7 +137,8 @@ namespace ANF.Service
             var tenMinutesAgo = DateTime.Now.AddMinutes(-10);
             var trackingData = await trackingEventRepository
                 .GetAll()
-                .Where(e => e.ClickTime > tenMinutesAgo && e.ClickTime <= DateTime.Now && e.Status == Core.Enums.TrackingEventStatus.Pending)
+                .Include(t => t.Offer)  // Get the pricing model
+                .Where(e => e.ClickTime > tenMinutesAgo && e.ClickTime <= DateTime.Now && e.Status == TrackingEventStatus.Pending)
                 .ToListAsync();
 
             if (!trackingData.Any())
@@ -157,13 +169,29 @@ namespace ANF.Service
                 }
                 else
                 {
-                    trackingItem.Status = Core.Enums.TrackingEventStatus.Valid;
-                    validEvents.Add(trackingItem);
-                    trackingValidationRepository.Add(new TrackingValidation
+                    if (trackingItem.Offer?.PricingModel == "CPC")
                     {
-                        ClickId = trackingItem.Id,
-                        ValidatedTime = DateTime.Now,
-                    });
+                        trackingItem.Status = TrackingEventStatus.Valid;
+                        validEvents.Add(trackingItem);
+                        trackingValidationRepository.Add(new TrackingValidation
+                        {
+                            ClickId = trackingItem.Id,
+                            ValidatedTime = DateTime.Now,
+                            ConversionStatus = ValidationStatus.Success,
+                        });
+
+                    }
+                    else if (trackingItem.Offer?.PricingModel == "CPA" || trackingItem.Offer?.PricingModel == "CPS")
+                    {
+                        trackingItem.Status = TrackingEventStatus.Valid;
+                        validEvents.Add(trackingItem);
+                        trackingValidationRepository.Add(new TrackingValidation
+                        {
+                            ClickId = trackingItem.Id,
+                            // Validated time is not set yet after checking with postback data
+                            ConversionStatus = ValidationStatus.Unknown,
+                        });
+                    }
                 }
                 trackingEventRepository.Update(trackingItem);
             }

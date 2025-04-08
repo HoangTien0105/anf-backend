@@ -220,6 +220,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddTransient(typeof(HttpClient));
             services.AddScoped<IPolicyService, PolicyService>();
+            services.AddScoped<IPostbackService, PostbackService>();
 
             services.AddSingleton<SampleIdDetectionService>();
 

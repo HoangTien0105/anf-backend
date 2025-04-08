@@ -11,5 +11,6 @@
         public long OfferId { get; set; }
         public string PricingModel { get; set; } = null!;
         public decimal? Amount { get; set; }
+        // Validation status
     }
 }

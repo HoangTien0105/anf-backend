@@ -53,13 +53,7 @@ namespace ANF.Service
             CreateMap<User, AdvertiserResponse>();
 
             CreateMap<User, PublisherResponse>();
-
-            CreateMap<User, PublisherProfileResponse>()
-                .ForMember(dest => dest.PublisherCode, opt => opt.MapFrom(src => src.UserCode))
-                .ForMember(dest => dest.Specialization, opt => opt.MapFrom(src => src.PublisherProfile.Specialization))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.PublisherProfile.ImageUrl))
-                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.PublisherProfile.Bio));
-
+            
             CreateMap<UpdatePasswordRequest, User>()
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.NewPassword))
                 .ForMember(dest => dest.ResetPasswordToken, opt => opt.MapFrom(_ => string.Empty))
@@ -129,14 +123,7 @@ namespace ANF.Service
             CreateMap<CampaignImage, CampaignImageResponse>();
             
             CreateMap<Offer, OfferResponse>();
-
-            CreateMap<User, AdvertiserProfileResponse>()
-                .ForMember(dest => dest.AdvertiserCode, opt => opt.MapFrom(src => src.UserCode))
-                .ForMember(dest => dest.CompanyName, opt => opt.MapFrom(src => src.AdvertiserProfile.CompanyName))
-                .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.AdvertiserProfile.Industry))
-                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.AdvertiserProfile.ImageUrl))
-                .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.AdvertiserProfile.Bio));
-
+            
             CreateMap<AdvertiserProfileUpdatedRequest, User>()
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(dest => dest.CitizenId, opt => opt.MapFrom(src => src.CitizenId))
@@ -148,8 +135,6 @@ namespace ANF.Service
                 .ForMember(dest => dest.Industry, opt => opt.MapFrom(src => src.Industry))
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]))
                 .ForMember(dest => dest.Bio, opt => opt.MapFrom(src => src.Bio));
-
-            CreateMap<UserBank, UserBankResponse>();
 
             CreateMap<UserBankCreateRequest, UserBank>()
                 .ForMember(dest => dest.UserCode, opt => opt.MapFrom((src, dest, destMember, context) => (Guid)context.Items["UserCode"]))
@@ -169,6 +154,11 @@ namespace ANF.Service
 
             CreateMap<Policy, PolicyResponse>();
 
+            CreateMap<PostbackRequest, PostbackData>();
+
+            CreateMap<PurchaseLogRequest, PurchaseLog>();
+
+            CreateMap<Transaction, UserTransactionResponse>();
         }
     }
 }
