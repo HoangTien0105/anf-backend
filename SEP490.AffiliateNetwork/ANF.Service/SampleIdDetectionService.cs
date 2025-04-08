@@ -143,7 +143,7 @@ namespace ANF.Service
                 .ToListAsync();
 
             if (!trackingData.Any())
-                throw new NoDataRetrievalException("No tracking data found for the last 10 minutes");
+                _logger.LogInformation("=================== No tracking data found for the last 10 minutes ===================");
 
             var spamIps = trackingData
                 .GroupBy(e => e.IpAddress)

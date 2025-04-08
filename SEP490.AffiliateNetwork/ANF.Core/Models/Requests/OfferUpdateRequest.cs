@@ -31,7 +31,7 @@ namespace ANF.Core.Models.Requests
 
         [BindProperty(Name = "bid")]
         [Required(ErrorMessage = "Bid is required")]
-        [Range(1000, double.MaxValue, ErrorMessage = "Bid must be at least 1000 VND")]
+        [Range(300, 500000, ErrorMessage = "Bid must be at least 300 VND and maximum at 500.000 VND")]
         public decimal Bid { get; set; }
 
         [BindProperty(Name = "budget")]
