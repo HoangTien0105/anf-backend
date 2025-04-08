@@ -131,10 +131,10 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Get bank account name by bank code and account number
         /// </summary>
-        /// <returns></returns>
-        [HttpGet("users/bank-account-name")]
+        /// <returns>User bank account's name</returns>
+        [HttpPost("users/bank-account-name")]
         [MapToApiVersion(1)]
-        [Authorize]
+        //[Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
