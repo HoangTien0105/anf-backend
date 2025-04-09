@@ -28,6 +28,7 @@ namespace ANF.Service
             var userRepository = _unitOfWork.GetRepository<User>();
             var categoryRepository = _unitOfWork.GetRepository<Category>();
             var imageRepository = _unitOfWork.GetRepository<CampaignImage>();
+            var walletRepository = _unitOfWork.GetRepository<Wallet>();
 
             try
             {
@@ -43,6 +44,9 @@ namespace ANF.Service
                                             .Where(e => e.UserCode.ToString() == request.AdvertiserCode && e.Role == UserRoles.Advertiser)
                                             .FirstOrDefaultAsync();
                 if (advertiser is null) throw new KeyNotFoundException("Advertiser does not exists");
+
+                var advWallet = await walletRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == request.AdvertiserCode);
+                if(advWallet is null) throw new KeyNotFoundException("Advertiser wallet does not exists");
 
                 if (request.CategoryId.HasValue)
                 {
@@ -76,6 +80,21 @@ namespace ANF.Service
                 var campaign = _mapper.Map<Campaign>(request);
 
                 campaign.Balance = request.Offers.Sum(e => e.Budget);
+
+                if (campaign.Balance > advWallet.Balance)
+                    throw new ArgumentException("Advertiser does not have enough for this campaign.");
+
+                var advCampaignMoney = await campaignRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(e => e.AdvertiserCode == request.AdvertiserCode
+                    && (e.Status == CampaignStatus.Started
+                    ||  e.Status == CampaignStatus.Verified
+                    ||  e.Status == CampaignStatus.Pending))
+                    .SumAsync(e => e.Balance);
+
+                if(advCampaignMoney + campaign.Balance > advWallet.Balance)
+                    throw new ArgumentException("Advertiser does not have enough balance to cover all campaigns.");
+
 
                 campaignRepository.Add(campaign);
 
@@ -483,6 +502,7 @@ namespace ANF.Service
                             {
                                 if (campaign.Status != CampaignStatus.Verified)
                                     throw new ArgumentException("Campaign must be verified to start");
+                                if (campaign.StartDate < DateTime.Now) throw new ArgumentException("The start date has not been reached yet.");
                                 offers.ForEach(offer => offer.Status = OfferStatus.Started);
                                 break;
                             }

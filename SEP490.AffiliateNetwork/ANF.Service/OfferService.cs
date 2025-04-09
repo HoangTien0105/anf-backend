@@ -82,6 +82,7 @@ namespace ANF.Service
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var imageRepository = _unitOfWork.GetRepository<CampaignImage>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
 
                 var duplicatedOffer = await offerRepository.GetAll()
                                         .AsNoTracking()
@@ -102,6 +103,9 @@ namespace ANF.Service
 
                 if (campaignExist.Status != CampaignStatus.Pending)
                     throw new ArgumentException("Campaign status must be Pending to create offer");
+
+                var advWallet = await walletRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaignExist.AdvertiserCode);
+                if (advWallet is null) throw new KeyNotFoundException("Advertiser wallet does not exists");
 
                 var validModel = PricingModelConstant.pricingModels.Any(e => e.Name.Trim() == request.PricingModel.Trim());
                 if (!validModel) throw new KeyNotFoundException("Pricing model does not exists");
@@ -149,6 +153,22 @@ namespace ANF.Service
 
                 offerRepository.Add(offer);
                 campaignExist.Balance += offer.Budget;
+
+                if (campaignExist.Balance > advWallet.Balance)
+                    throw new ArgumentException("Advertiser does not have enough for this campaign.");
+
+                var advCampaignMoney = await campaignRepository.GetAll()
+                        .AsNoTracking()
+                        .Where(e => e.AdvertiserCode == campaignExist.AdvertiserCode
+                        && e.Id != campaignExist.Id
+                        && (e.Status == CampaignStatus.Started
+                        || e.Status == CampaignStatus.Verified
+                        || e.Status == CampaignStatus.Pending))
+                        .SumAsync(e => e.Balance);
+
+                if (advCampaignMoney + campaignExist.Balance > advWallet.Balance)
+                    throw new ArgumentException("Advertiser does not have enough balance to cover all campaigns.");
+                
                 campaignRepository.Update(campaignExist);
 
                 var affectedRows = await _unitOfWork.SaveAsync();
@@ -357,6 +377,7 @@ namespace ANF.Service
             {
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
 
                 if (request is null) throw new NullReferenceException("Invalid request data. Please check again!");
                 var offer = await offerRepository.GetAll()
@@ -373,13 +394,16 @@ namespace ANF.Service
                 if (campaignExist.Status != CampaignStatus.Pending)
                     throw new ArgumentException("Campaign status must be Pending to update offer");
 
+                var advWallet = await walletRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaignExist.AdvertiserCode);
+                if (advWallet is null) throw new KeyNotFoundException("Advertiser wallet does not exists");
+
                 var validModel = PricingModelConstant.pricingModels.Any(e => e.Name.Trim() == request.PricingModel.Trim());
                 if (!validModel) throw new KeyNotFoundException("Pricing model does not exists");
 
                 if (request.StartDate < campaignExist.StartDate && request.StartDate > campaignExist.EndDate)
                     throw new ArgumentException("Offer start date must be between start and end date of campaign");
 
-                if (request.EndDate < campaignExist.StartDate && request.EndDate > campaignExist.EndDate)
+                if (request.EndDate < campaignExist.StartDate || request.EndDate > campaignExist.EndDate)
                     throw new ArgumentException("Offer end date must be between start and end date of campaign");
 
                 if (request.EndDate <= request.StartDate)
@@ -425,6 +449,21 @@ namespace ANF.Service
                                             .SumAsync(e => e.Budget);
 
                 campaignExist.Balance = existingOffersSum + offer.Budget;
+
+                if (campaignExist.Balance > advWallet.Balance)
+                    throw new ArgumentException("Advertiser does not have enough for this campaign.");
+
+                var advCampaignMoney = await campaignRepository.GetAll()
+                        .AsNoTracking()
+                        .Where(e => e.AdvertiserCode == campaignExist.AdvertiserCode
+                        && e.Id != campaignExist.Id
+                        && (e.Status == CampaignStatus.Started
+                        || e.Status == CampaignStatus.Verified
+                        || e.Status == CampaignStatus.Pending))
+                        .SumAsync(e => e.Balance);
+
+                if (advCampaignMoney + campaignExist.Balance > advWallet.Balance)
+                    throw new ArgumentException("Advertiser does not have enough balance to cover all campaigns.");
 
                 campaignRepository.Update(campaignExist);
 
