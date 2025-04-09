@@ -223,19 +223,19 @@ namespace ANF.Service
                         DateOfBirth = user.DateOfBirth,
                         Email = user.Email,
                         Role = user.Role.ToString(),
-                        ImageUrl = user.AdvertiserProfile.ImageUrl,
-                        BankResponses = user.UserBanks.Select(ub => new UserBankResponse
+                        ImageUrl = user.AdvertiserProfile?.ImageUrl,
+                        BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
                         {
                             Id = (int)ub.Id,
                             BankingNo = ub.BankingNo,
                             BankingProvider = ub.BankingProvider,
-                        }).ToList(),
-                        AdvertiserProfile = new AdvertiserProfileInfoResponse()
+                        }).ToList() ?? new List<UserBankResponse>(),
+                        AdvertiserProfile = user.AdvertiserProfile is not null ? new AdvertiserProfileInfoResponse()
                         {
                             CompanyName = user.AdvertiserProfile.CompanyName,
                             Industry = user.AdvertiserProfile.Industry,
                             Bio = user.AdvertiserProfile.Bio,
-                        }
+                        } : null
                     };
                     return response;
                 }
@@ -253,18 +253,18 @@ namespace ANF.Service
                         DateOfBirth = user.DateOfBirth,
                         Email = user.Email,
                         Role = user.Role.ToString(),
-                        ImageUrl = user.PublisherProfile.ImageUrl,
+                        ImageUrl = user.PublisherProfile?.ImageUrl,
                         BankResponses = user.UserBanks.Select(ub => new UserBankResponse
                         {
                             Id = (int)ub.Id,
                             BankingNo = ub.BankingNo,
                             BankingProvider = ub.BankingProvider,
-                        }).ToList(),
-                        PublisherProfile = new PublisherProfileInfoResponse()
+                        }).ToList() ?? new List<UserBankResponse>(),
+                        PublisherProfile = user.PublisherProfile is not null ? new PublisherProfileInfoResponse()
                         {
                             Specialization = user.PublisherProfile.Specialization,
                             Bio = user.PublisherProfile.Bio,
-                        }
+                        } : null
                     };
 
                     return response;

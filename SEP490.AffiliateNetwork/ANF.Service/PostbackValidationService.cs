@@ -52,18 +52,34 @@ namespace ANF.Service
             
 
                 // Batch time window (getting data in a time range)
-                var fromDate = DateTime.Now.AddDays(-8);
-                var toDate = DateTime.Now;
+
 
                 var postbackRepository = unitOfWork.GetRepository<PostbackData>();
                 var purchaseLogRepository = unitOfWork.GetRepository<PurchaseLog>();
                 var trackingValidationRepository = unitOfWork.GetRepository<TrackingValidation>();
 
-                var postbacks = await postbackRepository.GetAll()
-                    .AsNoTracking()
-                    .Include(e => e.Offer)
-                    .Where(e => e.Date > fromDate && e.Date <= toDate && e.Status == Core.Enums.PostbackStatus.Success)
-                    .ToListAsync();
+                var query = from tv in trackingValidationRepository
+                                .GetAll()
+                                .AsNoTracking()
+                            join pb in postbackRepository
+                                .GetAll()
+                                .AsNoTracking()
+                            on tv.ClickId equals pb.ClickId
+                            where tv.ConversionStatus == ConversionStatus.Pending
+                            && pb.Status == PostbackStatus.Success
+                            select new PostbackData
+                            {
+                                Id = pb.Id,
+                                ClickId = pb.ClickId,
+                                OfferId = pb.OfferId,
+                                TransactionId = pb.TransactionId,
+                                Date = pb.Date,
+                                PublisherCode = pb.PublisherCode,
+                                Amount = pb.Amount,
+                                Status = pb.Status,
+                            };
+                                    
+                var postbacks = await query.ToListAsync();
 
                 int date = 0;
                 int validValidation = 0;
@@ -106,6 +122,7 @@ namespace ANF.Service
                         {
                             trackingValidation.ValidationStatus = ValidationStatus.Success;
                             trackingValidation.ValidatedTime = DateTime.Now;
+                            trackingValidation.Amount = (decimal?)item.Amount;
                             validValidation++;
                         }
                         else
@@ -137,21 +154,34 @@ namespace ANF.Service
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-
-
                 // Batch time window (getting data in a time range)
-                var fromDate = DateTime.Now.AddDays(-8);
-                var toDate = DateTime.Now;
 
                 var postbackRepository = unitOfWork.GetRepository<PostbackData>();
                 var purchaseLogRepository = unitOfWork.GetRepository<PurchaseLog>();
                 var trackingValidationRepository = unitOfWork.GetRepository<TrackingValidation>();
 
-                var postbacks = await postbackRepository.GetAll()
-                    .AsNoTracking()
-                    .Include(e => e.Offer)
-                    .Where(e => e.Date > fromDate && e.Date <= toDate && e.Status != Core.Enums.PostbackStatus.Success)
-                    .ToListAsync();
+                var query = from tv in trackingValidationRepository
+                                                .GetAll()
+                                                .AsNoTracking()
+                            join pb in postbackRepository
+                                .GetAll()
+                                .AsNoTracking()
+                            on tv.ClickId equals pb.ClickId
+                            where tv.ConversionStatus == ConversionStatus.Pending
+                            && pb.Status != PostbackStatus.Success
+                            select new PostbackData
+                            {
+                                Id = pb.Id,
+                                ClickId = pb.ClickId,
+                                OfferId = pb.OfferId,
+                                TransactionId = pb.TransactionId,
+                                Date = pb.Date,
+                                PublisherCode = pb.PublisherCode,
+                                Amount = pb.Amount,
+                                Status = pb.Status,
+                            };
+
+                var postbacks = await query.ToListAsync();
 
                 int date = 0;
 

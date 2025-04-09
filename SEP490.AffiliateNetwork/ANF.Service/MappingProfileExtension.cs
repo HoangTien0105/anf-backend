@@ -79,6 +79,7 @@ namespace ANF.Service
             CreateMap<OfferUpdateRequest, Offer>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CampaignId, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderReturnTime, opt => opt.Ignore())
                 .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
 
             CreateMap<CampaignCreateRequest, Campaign>()
@@ -88,7 +89,7 @@ namespace ANF.Service
                 .ForMember(dest => dest.Offers, opt => opt.Ignore());
 
             CreateMap<CampaignImgCreateRequest, CampaignImage>()
-                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                .ForMember(dest => dest.AddedAt, opt => opt.MapFrom(_ => DateTime.Now))
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<CampaignUpdateRequest, Campaign>()
@@ -108,7 +109,10 @@ namespace ANF.Service
             CreateMap<OfferForCampaignCreateRequest, OfferCreateRequest>();
 
             CreateMap<OfferCreateRequest, Offer>()
-                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore());
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => OfferStatus.Pending))
+                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore())
+                .ForMember(dest => dest.OrderReturnTime, opt => opt.Ignore());
+                
 
             CreateMap<TrafficSource, AffiliateSourceResponse>();
 
