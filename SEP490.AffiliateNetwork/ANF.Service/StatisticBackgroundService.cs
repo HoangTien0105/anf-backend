@@ -1,5 +1,6 @@
 ﻿using ANF.Core;
 using ANF.Core.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -185,10 +186,13 @@ namespace ANF.Service
                                              .ToList();
 
                 var validatedClickList = validationRepo.GetAll()
-                                                       .Where(v => v.ClickId != null &&
-                                                              clickIds.Contains(v.ClickId) &&
-                                                              !fraudClickIds.Contains(v.ClickId))
+                                                       .AsNoTracking()
+                                                       .Where(v => v.ClickId != null
+                                                                    && clickIds.Contains(v.ClickId)
+                                                                    && !fraudClickIds.Contains(v.ClickId)
+                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success)
                                                        .ToList();
+
                 int validatedClicksCount = validatedClickList.Count();
 
                 decimal revenue = (offer.PricingModel == "CPS")
@@ -238,10 +242,13 @@ namespace ANF.Service
                                              .ToList();
 
                 var validatedClickList = validationRepo.GetAll()
-                                                       .Where(v => v.ClickId != null &&
-                                                              clickIds.Contains(v.ClickId) &&
-                                                              !fraudClickIds.Contains(v.ClickId))
+                                                       .AsNoTracking()
+                                                       .Where(v => v.ClickId != null
+                                                                    && clickIds.Contains(v.ClickId)
+                                                                    && !fraudClickIds.Contains(v.ClickId)
+                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success)
                                                        .ToList();
+
                 int validatedClicksCount = validatedClickList.Count();
 
                 var publisherOfferList = publisherOfferRepo.GetAll()

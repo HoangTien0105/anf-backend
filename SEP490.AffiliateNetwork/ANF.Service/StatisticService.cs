@@ -352,10 +352,12 @@ namespace ANF.Service
 
                 var validatedClickList = validationRepo.GetAll()
                                                        .AsNoTracking()
-                                                       .Where(v => v.ClickId != null &&
-                                                              clickIds.Contains(v.ClickId) &&
-                                                              !fraudClickIds.Contains(v.ClickId))
+                                                       .Where(v => v.ClickId != null
+                                                                    && clickIds.Contains(v.ClickId)
+                                                                    && !fraudClickIds.Contains(v.ClickId)
+                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success)
                                                        .ToList();
+
                 int validatedClicksCount = validatedClickList.Count();
 
                 decimal revenue = (offer.PricingModel == "CPS")
@@ -409,10 +411,10 @@ namespace ANF.Service
 
                 var validatedClickList = validationRepo.GetAll()
                                                        .AsNoTracking()
-                                                       .ToList()
-                                                       .Where(v => v.ClickId != null &&
-                                                              clickIds.Contains(v.ClickId) &&
-                                                              !fraudClickIds.Contains(v.ClickId))
+                                                       .Where(v => v.ClickId != null 
+                                                                    && clickIds.Contains(v.ClickId) 
+                                                                    && !fraudClickIds.Contains(v.ClickId)
+                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success)
                                                        .ToList();
                 int validatedClicksCount = validatedClickList.Count();
 
