@@ -42,6 +42,13 @@ namespace ANF.Core.Models.Requests
         [Required(ErrorMessage = "Budget is required")]
         [Range(1000, double.MaxValue, ErrorMessage = "Budget must be at least 1000 VND and greater than the Bid")]
         public decimal Budget { get; set; }
+        
+        [BindProperty(Name = "commissionRate")]
+        public double? CommissionRate { get; set; }
+
+        [BindProperty(Name = "orderReturnTime")]
+        [Range(0, 15, ErrorMessage = "Order return date must be lower than 16 days")]
+        public int? OrderReturnTime { get; set; }
 
         [BindProperty(Name = "offerImages")]
         [AllowedImageExtensions]
