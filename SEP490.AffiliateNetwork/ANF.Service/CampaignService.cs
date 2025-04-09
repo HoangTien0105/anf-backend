@@ -105,7 +105,21 @@ namespace ANF.Service
                     if (offer.Bid >= offer.Budget)
                         throw new ArgumentException("Offer bid can't be higher than offer budget");
 
+                    if (offer.CommissionRate is not null)
+                    {
+                        if (offer.CommissionRate <= 0) throw new ArgumentException("Commission rate must be greater than 0");
+                    }
+
+                    if (offer.PricingModel == "CPS" && offer.CommissionRate is null) throw new ArgumentException("Pricing model CPS must have Commission rate");
+
                     var offerData = _mapper.Map<Offer>(offer);
+
+                    offerData.CommissionRate = offer.CommissionRate;
+
+                    if(offer.OrderReturnTime is not null)
+                    {
+                        offerData.OrderReturnTime = offer.OrderReturnTime + " days";    
+                    }
 
                     offerRepository.Add(offerData);
                 }

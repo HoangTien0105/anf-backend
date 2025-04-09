@@ -120,7 +120,19 @@ namespace ANF.Service
                     throw new ArgumentException("Bid can't higher than budget");
                 }
 
+                if(request.CommissionRate is not null)
+                {
+                    if(request.CommissionRate <= 0) throw new ArgumentException("Commission rate must be greater than 0");
+                }
+
+                if (request.PricingModel == "CPS" && request.CommissionRate is null) throw new ArgumentException("Pricing model CPS must have Commission rate");
+
                 var offer = _mapper.Map<Offer>(request);
+
+                if(request.OrderReturnTime is not null)
+                {
+                    offer.OrderReturnTime = request.OrderReturnTime + " days";
+                }
 
                 if (request.OfferImages is not null)
                 {
@@ -134,6 +146,7 @@ namespace ANF.Service
                         throw new ArgumentException("Something went wrong with image");
                     }
                 }
+
                 offerRepository.Add(offer);
                 campaignExist.Balance += offer.Budget;
                 campaignRepository.Update(campaignExist);
@@ -377,6 +390,13 @@ namespace ANF.Service
                     throw new ArgumentException("Bid can't higher than budget");
                 }
 
+                if(request.CommissionRate is not null)
+                {
+                    if (request.CommissionRate <= 0) throw new ArgumentException("Commission rate must be greater than 0");
+                }
+
+                if (request.PricingModel == "CPS" && request.CommissionRate is null) throw new ArgumentException("Pricing model CPS must have Commission rate");
+
                 _ = _mapper.Map(request, offer);
 
                 if (request.OfferImages is not null)
@@ -390,6 +410,11 @@ namespace ANF.Service
                     {
                         throw new ArgumentException("Something went wrong with image");
                     }
+                }
+
+                if (request.OrderReturnTime is not null)
+                {
+                    offer.OrderReturnTime = request.OrderReturnTime + " days";
                 }
 
                 offerRepository.Update(offer);
