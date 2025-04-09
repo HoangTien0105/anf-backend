@@ -84,7 +84,7 @@ namespace ANF.Application.Extensions
             {
                 opt.AddPolicy("ANF", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000", "production-port")
+                    builder.WithOrigins("http://localhost:3000", "https://dev.l3on.id.vn")
                         .AllowAnyMethod()
                         .AllowAnyHeader();
                 });
