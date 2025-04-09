@@ -106,7 +106,7 @@ namespace ANF.Service
                     s.ConversionRate = s.ClickCount == 0 ? 0 : (decimal)s.ConversionCount / s.ClickCount;
                 }
 
-                advertiserStatsRepository.AddRange(stats);
+                advertiserStatsRepository.AddRange(stats);                          
                 await unitOfWork.SaveAsync();
             }
             catch (Exception e)

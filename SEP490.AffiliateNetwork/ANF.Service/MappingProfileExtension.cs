@@ -159,6 +159,10 @@ namespace ANF.Service
             CreateMap<PurchaseLogRequest, PurchaseLog>();
 
             CreateMap<Transaction, UserTransactionResponse>();
+
+            CreateMap<AdvertiserOfferStats, AdvertiserOfferStatsResponse>();
+
+            CreateMap<PublisherOfferStats, PublisherOfferStatsResponse>();
         }
     }
 }
