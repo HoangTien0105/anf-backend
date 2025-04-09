@@ -43,7 +43,7 @@ namespace ANF.Core.Models.Requests
         public double? CommissionRate { get; set; }
 
         [BindProperty(Name = "orderReturnTime")]
-        [Range(0, 15, ErrorMessage = "Order return date must be lower than 16 days")]
+        [Range(0, 15, ErrorMessage = "Order return date must not exceed 15 days")]
         public int? OrderReturnTime { get; set; }
 
         [BindProperty(Name = "offerImages")]
