@@ -28,7 +28,8 @@ namespace ANF.Service
             {
                 HostName = options.Value.Host,
                 UserName = options.Value.Username,
-                Password = options.Value.Password
+                Password = options.Value.Password,
+                VirtualHost = options.Value.VirtualHost,
             };
 
             _connection = factory.CreateConnectionAsync().Result;
