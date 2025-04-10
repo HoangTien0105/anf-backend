@@ -163,6 +163,8 @@ namespace ANF.Service
             CreateMap<PurchaseLogRequest, PurchaseLog>();
 
             CreateMap<Transaction, UserTransactionResponse>();
+
+            CreateMap<PostbackLogUpdateRequest, PurchaseLog>();
         }
     }
 }

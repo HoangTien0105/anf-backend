@@ -74,6 +74,54 @@ namespace ANF.Service
             }
         }
 
+        public async Task<List<PurchaseLog>> GetAllPostbackLogByClickId(string id)
+        {
+            var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
+
+            var postbackLog = await postbackLogRepository.GetAll().AsNoTracking().Where(e => e.ClickId == id).ToListAsync();
+            if(!postbackLog.Any()) throw new KeyNotFoundException("No data for postback logs!");
+            return postbackLog;
+        }
+
+        public async Task<PurchaseLog> GetPostbackLogById(long id)
+        {
+            var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
+
+            var postbackLog = await postbackLogRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+            if (postbackLog is null) throw new KeyNotFoundException("No data for postback logs!");
+            return postbackLog;
+        }
+
+        public async Task<bool> UpdatePostBackLog(long id, PostbackLogUpdateRequest request)
+        {
+            try
+            {
+                var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
+                var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
+
+                var postbackLog = await postbackLogRepository.GetAll().FirstOrDefaultAsync(e => e.Id == id);
+                if(postbackLog is null) throw new KeyNotFoundException("Postback log not found!");
+
+                var trackingValidation = await trackingValidationRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.ClickId == postbackLog.ClickId);
+                if (trackingValidation is null) throw new KeyNotFoundException("This postback is not valid");
+
+                if (trackingValidation.ConversionStatus != ConversionStatus.Pending)
+                    throw new ArgumentException("This postback's tracking has already been resolved.");
+
+                _ = _mapper.Map(request, postbackLog);
+
+                postbackLogRepository.Update(postbackLog);
+                return await _unitOfWork.SaveAsync() > 0;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
         public async Task<bool> UpdatePostBackStatus(long id, string status)
         {
             try
