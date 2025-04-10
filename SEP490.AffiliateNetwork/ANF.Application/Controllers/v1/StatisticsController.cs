@@ -69,7 +69,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GenerateAdvertiserOfferStatsByOfferId(long id)
         {
-            var result = await _statisticService.generateAdvertiserOfferStatsByOfferId(id);
+            var result = await _statisticService.GenerateAdvertiserOfferStatsByOfferId(id);
             if (result)
             {
                 return Ok(new ApiResponse<string>
@@ -79,11 +79,7 @@ namespace ANF.Application.Controllers.v1
                 });
             } else
             {
-                return BadRequest(new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = "Fail.",
-                });
+                return BadRequest();
             }
         }
         /// <summary>
@@ -99,7 +95,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GenerateAdvertiserOfferStatsByAdvertiserCode(string code)
         {
-            var result = await _statisticService.generateAdvertiserOfferStatsByAdvertiserCode(code);
+            var result = await _statisticService.GenerateAdvertiserOfferStatsByAdvertiserCode(code);
             if (result)
             {
                 return Ok(new ApiResponse<string>
@@ -110,11 +106,7 @@ namespace ANF.Application.Controllers.v1
             }
             else
             {
-                return BadRequest(new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = "Fail.",
-                });
+                return BadRequest();
             }
         }
 
@@ -173,7 +165,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GeneratePublisherOfferStatsByOfferId(string code, long id)
         {
-            var result = await _statisticService.generatePublisherOfferStatsByOfferId(id, code);
+            var result = await _statisticService.GeneratePublisherOfferStatsByOfferId(id, code);
             if (result)
             {
                 return Ok(new ApiResponse<string>
@@ -184,11 +176,7 @@ namespace ANF.Application.Controllers.v1
             }
             else
             {
-                return BadRequest(new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = "Fail.",
-                });
+                return BadRequest();
             }
         }
         /// <summary>
@@ -204,7 +192,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GeneratePublisherOfferStatsByPublisherCode(string code)
         {
-            var result = await _statisticService.generatePublisherOfferStatsByPublisherCode(code);
+            var result = await _statisticService.GeneratePublisherOfferStatsByPublisherCode(code);
             if (result)
             {
                 return Ok(new ApiResponse<string>
@@ -215,11 +203,7 @@ namespace ANF.Application.Controllers.v1
             }
             else
             {
-                return BadRequest(new ApiResponse<string>
-                {
-                    IsSuccess = true,
-                    Message = "Fail.",
-                });
+                return BadRequest();
             }
         }
     }

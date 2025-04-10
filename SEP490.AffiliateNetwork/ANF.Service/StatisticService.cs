@@ -18,7 +18,7 @@ namespace ANF.Service
             _mapper = mapper;
         }
 
-        public async Task<bool> generatePublisherOfferStatsByOfferId(long offerId, string publisherCode)
+        public async Task<bool> GeneratePublisherOfferStatsByOfferId(long offerId, string publisherCode)
         {
             try
             {
@@ -61,14 +61,14 @@ namespace ANF.Service
 
                 if (publisherOfferStats != null)
                 {
-                    var newPublisherOfferStats = analyzePublisherOfferStats(offer, publisherCode)
+                    var newPublisherOfferStats = AnalyzePublisherOfferStats(offer, publisherCode)
                                                  ?? throw new ArgumentException("Error in analyze process");
                     newPublisherOfferStats.Id = publisherOfferStats.Id;
                     publisherOfferStatsRepo.Update(newPublisherOfferStats);
                 }
                 else
                 {
-                    var newPublisherOfferStats = analyzePublisherOfferStats(offer, publisherCode)
+                    var newPublisherOfferStats = AnalyzePublisherOfferStats(offer, publisherCode)
                                                  ?? throw new ArgumentException("Error in analyze process");
                     publisherOfferStatsRepo.Add(newPublisherOfferStats);
                 }
@@ -82,7 +82,7 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> generatePublisherOfferStatsByPublisherCode(string publisherCode)
+        public async Task<bool> GeneratePublisherOfferStatsByPublisherCode(string publisherCode)
         {
             try
             {
@@ -122,14 +122,14 @@ namespace ANF.Service
                                                                            .FirstOrDefaultAsync(po => po.OfferId == offer.Id);
                     if (publisherOfferStats != null)
                     {
-                        var newPublisherOfferStats = analyzePublisherOfferStats(offer, publisherCode)
+                        var newPublisherOfferStats = AnalyzePublisherOfferStats(offer, publisherCode)
                                                      ?? throw new ArgumentException("Error in analyze process");
                         newPublisherOfferStats.Id = publisherOfferStats.Id;
                         publisherOfferStatsRepo.Update(newPublisherOfferStats);
                     }
                     else
                     {
-                        var newPublisherOfferStats = analyzePublisherOfferStats(offer, publisherCode)
+                        var newPublisherOfferStats = AnalyzePublisherOfferStats(offer, publisherCode)
                                                      ?? throw new ArgumentException("Error in analyze process");
                         publisherOfferStatsRepo.Add(newPublisherOfferStats);
                     }
@@ -171,7 +171,7 @@ namespace ANF.Service
 
         }
         
-        public async Task<bool> generateAdvertiserOfferStatsByAdvertiserCode(string advertiserCode)
+        public async Task<bool> GenerateAdvertiserOfferStatsByAdvertiserCode(string advertiserCode)
         {
             try
             {
@@ -217,13 +217,13 @@ namespace ANF.Service
 
                     if (advertiserOfferStats != null)
                     {
-                        var newAdvertiserOfferStats = analyzeAdvertiserOfferStats(o) ?? throw new ArgumentException("Error in analyze process");
+                        var newAdvertiserOfferStats = AnalyzeAdvertiserOfferStats(o) ?? throw new ArgumentException("Error in analyze process");
                         newAdvertiserOfferStats.Id = advertiserOfferStats.Id;
                         advertiserOfferStatsRepo.Update(newAdvertiserOfferStats);
                     }
                     else
                     {
-                        var newAdvertiserOfferStats = analyzeAdvertiserOfferStats(o) ?? throw new ArgumentException("Error in analyze process");
+                        var newAdvertiserOfferStats = AnalyzeAdvertiserOfferStats(o) ?? throw new ArgumentException("Error in analyze process");
                         advertiserOfferStatsRepo.Add(newAdvertiserOfferStats);
                     }
                 }
@@ -236,7 +236,7 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> generateAdvertiserOfferStatsByOfferId(long offerId)
+        public async Task<bool> GenerateAdvertiserOfferStatsByOfferId(long offerId)
         {
             try
             {
@@ -256,13 +256,13 @@ namespace ANF.Service
                 .FirstOrDefaultAsync(s => s.OfferId == offerId);
                 if (advertiserOfferStats != null)
                 {
-                    var newAdvertiserOfferStats = analyzeAdvertiserOfferStats(offer) ?? throw new ArgumentException("Error in analyze process");
+                    var newAdvertiserOfferStats = AnalyzeAdvertiserOfferStats(offer) ?? throw new ArgumentException("Error in analyze process");
                     newAdvertiserOfferStats.Id = advertiserOfferStats.Id;
                     advertiserOfferStatsRepo.Update(newAdvertiserOfferStats);
                 }
                 else
                 {
-                    var newAdvertiserOfferStats = analyzeAdvertiserOfferStats(offer) ?? throw new ArgumentException("Error in analyze process");
+                    var newAdvertiserOfferStats = AnalyzeAdvertiserOfferStats(offer) ?? throw new ArgumentException("Error in analyze process");
                     advertiserOfferStatsRepo.Add(newAdvertiserOfferStats);
                 }
 
@@ -327,7 +327,7 @@ namespace ANF.Service
         }
 
 
-        private PublisherOfferStats? analyzePublisherOfferStats(Offer offer, string publisherCode)
+        private PublisherOfferStats? AnalyzePublisherOfferStats(Offer offer, string publisherCode)
         {
             try
             {
@@ -384,7 +384,7 @@ namespace ANF.Service
                 return null;
             }
         }
-        private AdvertiserOfferStats? analyzeAdvertiserOfferStats(Offer offer)
+        private AdvertiserOfferStats? AnalyzeAdvertiserOfferStats(Offer offer)
         {
             try
             {
