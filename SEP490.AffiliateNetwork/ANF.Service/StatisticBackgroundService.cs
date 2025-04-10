@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System;
 
 namespace ANF.Service
 {
@@ -15,54 +13,31 @@ namespace ANF.Service
         private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
         private readonly ILogger<StatisticBackgroundService> _logger = logger;
 
-        //protected async override Task ExecuteAsync(CancellationToken stoppingToken)
-        //{
-        //    while (!stoppingToken.IsCancellationRequested)
-        //    {
-        //        var now = DateTime.UtcNow;
-        //        var runTime = new DateTime(now.Year, now.Month, now.Day, 23, 59, 0);
-        //        if (now > runTime)
-        //            runTime = runTime.AddDays(1);
-
-        //        var delay = runTime - now;
-        //        _logger.LogInformation($"Next stats generation scheduled at {runTime} UTC");
-
-        //        await Task.Delay(delay, stoppingToken);
-
-        //        try
-        //        {
-        //            using var scope = _scopeFactory.CreateScope();
-        //            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        //            await generatePublisherOfferStats(unitOfWork);
-        //            await genrateAdvertiserOfferStats(unitOfWork);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            _logger.LogError(ex, "Error generating advertiser stats.");
-        //        }
-        //    }
-        //}
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation($"Stats generation started at {DateTime.Now}");
+                var now = DateTime.UtcNow;
+                var runTime = new DateTime(now.Year, now.Month, now.Day, 23, 59, 0);
+                if (now > runTime)
+                    runTime = runTime.AddDays(1);
+
+                var delay = runTime - now;
+                _logger.LogInformation($"Next stats generation scheduled at {runTime} UTC");
+
+                await Task.Delay(delay, stoppingToken);
 
                 try
                 {
                     using var scope = _scopeFactory.CreateScope();
                     var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                    var result = await generateAdvertiserOfferStats(unitOfWork);
-                    _logger.LogInformation(result.ToString());
-
+                    await generatePublisherOfferStats(unitOfWork);
+                    await generateAdvertiserOfferStats(unitOfWork);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error generating advertiser stats.");
                 }
-
-                // Wait for 30 seconds before the next execution
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
         private async Task<bool> generateAdvertiserOfferStats(IUnitOfWork unitOfWork)
