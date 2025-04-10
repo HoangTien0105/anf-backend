@@ -2,6 +2,7 @@
 {
     public enum PostbackStatus
     {
+        Pending = 0,
         Success = 1,
         Canceled = 2,
         Refunded = 3,
