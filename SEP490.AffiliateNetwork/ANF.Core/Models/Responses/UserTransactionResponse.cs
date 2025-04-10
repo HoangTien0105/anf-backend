@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace ANF.Core.Models.Responses
+﻿namespace ANF.Core.Models.Responses
 {
     public class UserTransactionResponse
     {
@@ -11,6 +9,10 @@ namespace ANF.Core.Models.Responses
         public long? CampaignId { get; set; }
 
         public long? SubscriptionId { get; set; }
+
+        public bool IsWithdrawal { get; set; } = false;
+
+        public string Status { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; }
     }
