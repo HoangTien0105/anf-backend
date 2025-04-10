@@ -83,6 +83,15 @@ namespace ANF.Service
             return postbackLog;
         }
 
+        public async Task<List<PurchaseLog>> GetAllPostbackLogByTransactionId(string id)
+        {
+            var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
+
+            var postbackLog = await postbackLogRepository.GetAll().AsNoTracking().Where(e => e.TransactionId == id).ToListAsync();
+            if (!postbackLog.Any()) throw new KeyNotFoundException("No data for postback logs!");
+            return postbackLog;
+        }
+
         public async Task<PurchaseLog> GetPostbackLogById(long id)
         {
             var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
