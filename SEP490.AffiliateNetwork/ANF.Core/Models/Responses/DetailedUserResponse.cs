@@ -32,5 +32,7 @@
         public AdvertiserProfileInfoResponse? AdvertiserProfile { get; set; }
 
         public PublisherProfileInfoResponse? PublisherProfile { get; set; }
+
+        public string? AccessToken { get; set; }
     }
 }

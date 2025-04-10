@@ -29,5 +29,7 @@ namespace ANF.Core.Services
         Task<PaginationResponse<UserTransactionResponse>> GetTransactionOfUser(string userCode, 
             int pageNumber,
             int pageSize);
+
+        Task<decimal> GetCurrentBalanceInWallet(string userCode);
     }
 }

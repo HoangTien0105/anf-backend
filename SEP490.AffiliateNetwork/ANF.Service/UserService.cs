@@ -397,13 +397,14 @@ namespace ANF.Service
             }
         }
 
-        public async Task<LoginResponse> Login(string email, string password)
+        public async Task<DetailedUserResponse> Login(string email, string password)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
             var user = await userRepository.GetAll()
                 .AsNoTracking()
                 .Include(u => u.PublisherProfile)
                 .Include(u => u.AdvertiserProfile)
+                .Include(u => u.UserBanks)
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
             if (user is null) throw new KeyNotFoundException("User does not exist.");
             if (user.Status == UserStatus.Deactive)
@@ -411,8 +412,88 @@ namespace ANF.Service
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
             }
             var token = _tokenService.GenerateToken(user);
-            var response = _mapper.Map<LoginResponse>(user, o => o.Items["Token"] = token);
-            return response;
+
+            if (user.Role == UserRoles.Advertiser)
+            {
+                var response = new DetailedUserResponse()
+                {
+                    Id = user.Id,
+                    UserCode = user.UserCode,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    PhoneNumber = user.PhoneNumber,
+                    CitizenId = user.CitizenId,
+                    Address = user.Address,
+                    DateOfBirth = user.DateOfBirth,
+                    Email = user.Email,
+                    Role = user.Role.ToString(),
+                    ImageUrl = user.AdvertiserProfile?.ImageUrl,
+                    AccessToken = token,
+                    BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
+                    {
+                        Id = (int)ub.Id,
+                        BankingNo = ub.BankingNo,
+                        BankingProvider = ub.BankingProvider,
+                    }).ToList() ?? new List<UserBankResponse>(),
+                    AdvertiserProfile = user.AdvertiserProfile is not null ? new AdvertiserProfileInfoResponse()
+                    {
+                        CompanyName = user.AdvertiserProfile.CompanyName,
+                        Industry = user.AdvertiserProfile.Industry,
+                        Bio = user.AdvertiserProfile.Bio,
+                    } : null
+                };
+                return response;
+            }
+            else if (user.Role == UserRoles.Publisher)
+            {
+                var response = new DetailedUserResponse()
+                {
+                    Id = user.Id,
+                    UserCode = user.UserCode,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    PhoneNumber = user.PhoneNumber,
+                    CitizenId = user.CitizenId,
+                    Address = user.Address,
+                    DateOfBirth = user.DateOfBirth,
+                    Email = user.Email,
+                    Role = user.Role.ToString(),
+                    ImageUrl = user.PublisherProfile?.ImageUrl,
+                    AccessToken = token,
+                    BankResponses = user.UserBanks.Select(ub => new UserBankResponse
+                    {
+                        Id = (int)ub.Id,
+                        BankingNo = ub.BankingNo,
+                        BankingProvider = ub.BankingProvider,
+                    }).ToList() ?? new List<UserBankResponse>(),
+                    PublisherProfile = user.PublisherProfile is not null ? new PublisherProfileInfoResponse()
+                    {
+                        Specialization = user.PublisherProfile.Specialization,
+                        Bio = user.PublisherProfile.Bio,
+                    } : null
+                };
+
+                return response;
+            }
+            else
+            {
+                // For admin
+                var response = new DetailedUserResponse()
+                {
+                    Id = user.Id,
+                    UserCode = user.UserCode,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    PhoneNumber = user.PhoneNumber,
+                    CitizenId = user.CitizenId,
+                    Address = user.Address,
+                    DateOfBirth = user.DateOfBirth,
+                    Email = user.Email,
+                    Role = user.Role.ToString(),
+                    AccessToken = token,
+                };
+                return response;
+            }
         }
 
         public async Task<PaginationResponse<AdvertiserResponse>> GetAdvertisers(PaginationRequest request)

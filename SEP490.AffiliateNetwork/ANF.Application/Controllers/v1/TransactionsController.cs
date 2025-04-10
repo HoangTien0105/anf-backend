@@ -213,5 +213,23 @@ namespace ANF.Application.Controllers.v1
                 Value = response
             });
         }
+
+        [HttpGet("users/{code}/current-balance")]
+        [Authorize(Roles = "Publisher, Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ViewCurrentBalanceInWallet(string code)
+        {
+            var response = await _transactionService.GetCurrentBalanceInWallet(code);
+            return Ok(new ApiResponse<decimal>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = response
+            });
+        }
     }
 }

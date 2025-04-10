@@ -341,6 +341,17 @@ namespace ANF.Service
             return new PaginationResponse<ExportedBatchDataResponse>(response, count, pageNumber, pageSize);
         }
 
+        public Task<decimal> GetCurrentBalanceInWallet(string userCode)
+        {
+            var walletRepository = _unitOfWork.GetRepository<Wallet>();
+            var wallet = walletRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefault(w => w.UserCode == userCode)
+                ?? throw new KeyNotFoundException("Wallet does not exist!");
+
+            return Task.FromResult(wallet.Balance);
+        }
+
         public async Task<PaginationResponse<UserTransactionResponse>> GetTransactionOfUser(string userCode, 
             int pageNumber,
             int pageSize)
