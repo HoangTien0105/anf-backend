@@ -32,7 +32,7 @@ namespace ANF.Service
                                       .AsNoTracking()
                                       .FirstOrDefaultAsync(o => o.Id == offerId);
                 if (offer == null) throw new KeyNotFoundException("Not found offer with id = " + offerId);
-                if ((offer.Status != Core.Enums.OfferStatus.Approved) || (offer.Status != Core.Enums.OfferStatus.Started))
+                if ((offer.Status != Core.Enums.OfferStatus.Approved) && (offer.Status != Core.Enums.OfferStatus.Started))
                     throw new ArgumentException("offer with id = " + offerId + " is neither approved nor started");
 
                 //get publisher
@@ -41,7 +41,7 @@ namespace ANF.Service
                                               .FirstOrDefaultAsync(p => (p.UserCode.Equals(publisherCode)
                                                                        && (p.Role == Core.Enums.UserRoles.Publisher)));
                 if (publisher == null) throw new KeyNotFoundException("Not found publisher with code = " + publisherCode);
-                if (publisher.Status == Core.Enums.UserStatus.Active)
+                if (publisher.Status != Core.Enums.UserStatus.Active)
                     throw new ArgumentException("Publisher with code = " + publisherCode + " is not active");
 
                 //check if publisher is approved or not
@@ -97,7 +97,7 @@ namespace ANF.Service
                                               .FirstOrDefaultAsync(p => (p.UserCode.Equals(publisherCode)
                                                                        && (p.Role == Core.Enums.UserRoles.Publisher)));
                 if (publisher == null) throw new KeyNotFoundException("Not found publisher with code = " + publisherCode);
-                if (publisher.Status == Core.Enums.UserStatus.Active)
+                if (publisher.Status != Core.Enums.UserStatus.Active)
                     throw new ArgumentException("Publisher with code = " + publisherCode + " is not active");
 
                 //get publisherOffers list
@@ -183,8 +183,9 @@ namespace ANF.Service
                 //check valid advertiser
                 var advertiser = await userRepo.GetAll()
                                          .AsNoTracking()
-                                         .FirstOrDefaultAsync(u => u.UserCode.Equals(advertiserCode));
+                                         .FirstOrDefaultAsync(u => u.UserCode.Equals(advertiserCode) && u.Role== Core.Enums.UserRoles.Advertiser);
                 if (advertiser == null) throw new KeyNotFoundException("not found Advertiser with code = " + advertiserCode);
+                if (advertiser.Status != Core.Enums.UserStatus.Active) throw new KeyNotFoundException("Advertiser is not active");
 
                 //get campaigns list
                 var campaigns = campaignRepo.GetAll()
@@ -247,7 +248,7 @@ namespace ANF.Service
                                      .AsNoTracking()
                                      .FirstOrDefaultAsync(o => o.Id == offerId);
                 if (offer == null) throw new KeyNotFoundException("not found offer with id = " + offerId);
-                if ((offer.Status != Core.Enums.OfferStatus.Approved) || (offer.Status != Core.Enums.OfferStatus.Started))
+                if ((offer.Status != Core.Enums.OfferStatus.Approved) && (offer.Status != Core.Enums.OfferStatus.Started))
                     throw new ArgumentException("offer with id = " + offerId + " is neither approved nor started");
 
                 var advertiserOfferStats = await advertiserOfferStatsRepo.GetAll()
@@ -366,7 +367,7 @@ namespace ANF.Service
 
                 PublisherOfferStats newPublisherOfferStats = new PublisherOfferStats()
                 {
-                    Date = DateTime.UtcNow,
+                    Date = DateTime.Now,
                     OfferId = offer.Id,
                     PublisherCode = publisherCode,
                     ClickCount = clicksCount,
@@ -430,7 +431,7 @@ namespace ANF.Service
 
                 AdvertiserOfferStats newAdvertiserOfferStats = new AdvertiserOfferStats()
                 {
-                    Date = DateTime.UtcNow,
+                    Date = DateTime.Now,
                     OfferId = offer.Id,
                     ClickCount = clicksCount,
                     ConversionCount = validatedClicksCount,

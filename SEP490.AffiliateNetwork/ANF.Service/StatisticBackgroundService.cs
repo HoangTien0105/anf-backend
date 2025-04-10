@@ -4,43 +4,68 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System;
 
 namespace ANF.Service
 {
     public class StatisticBackgroundService(IServiceScopeFactory scopeFactory,
-        ILogger<AdvertiserStatsAggregatorService> logger) : BackgroundService
+        ILogger<StatisticBackgroundService> logger) : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory = scopeFactory;
-        private readonly ILogger<AdvertiserStatsAggregatorService> _logger = logger;
+        private readonly ILogger<StatisticBackgroundService> _logger = logger;
 
+        //protected async override Task ExecuteAsync(CancellationToken stoppingToken)
+        //{
+        //    while (!stoppingToken.IsCancellationRequested)
+        //    {
+        //        var now = DateTime.UtcNow;
+        //        var runTime = new DateTime(now.Year, now.Month, now.Day, 23, 59, 0);
+        //        if (now > runTime)
+        //            runTime = runTime.AddDays(1);
+
+        //        var delay = runTime - now;
+        //        _logger.LogInformation($"Next stats generation scheduled at {runTime} UTC");
+
+        //        await Task.Delay(delay, stoppingToken);
+
+        //        try
+        //        {
+        //            using var scope = _scopeFactory.CreateScope();
+        //            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        //            await generatePublisherOfferStats(unitOfWork);
+        //            await genrateAdvertiserOfferStats(unitOfWork);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            _logger.LogError(ex, "Error generating advertiser stats.");
+        //        }
+        //    }
+        //}
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                var now = DateTime.UtcNow;
-                var runTime = new DateTime(now.Year, now.Month, now.Day, 23, 59, 0);
-                if (now > runTime)
-                    runTime = runTime.AddDays(1);
-
-                var delay = runTime - now;
-                _logger.LogInformation($"Next stats generation scheduled at {runTime} UTC");
-
-                await Task.Delay(delay, stoppingToken);
+                _logger.LogInformation($"Stats generation started at {DateTime.Now}");
 
                 try
                 {
                     using var scope = _scopeFactory.CreateScope();
                     var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                    await generatePublisherOfferStats(unitOfWork);
-                    await genrateAdvertiserOfferStats(unitOfWork);
+                    var result = await generateAdvertiserOfferStats(unitOfWork);
+                    _logger.LogInformation(result.ToString());
+
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error generating advertiser stats.");
                 }
+
+                // Wait for 30 seconds before the next execution
+                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
-        private async Task<bool> genrateAdvertiserOfferStats(IUnitOfWork unitOfWork)
+        private async Task<bool> generateAdvertiserOfferStats(IUnitOfWork unitOfWork)
         {
             try
             {
@@ -50,40 +75,47 @@ namespace ANF.Service
                 var OfferRepo = unitOfWork.GetRepository<Offer>();
 
                 //get advertisers List
-                var advertisers = userRepo.GetAll()
+                var advertisers = await userRepo.GetAll()
                                           .Where(u => (u.Role == Core.Enums.UserRoles.Advertiser)
-                                                       && (u.Status == Core.Enums.UserStatus.Active));
-                if (advertisers == null) throw new KeyNotFoundException("Not found any active advertiser");
+                                                       && (u.Status == Core.Enums.UserStatus.Active))
+                                          .ToListAsync();
+                if (advertisers == null || advertisers.Count == 0) throw new KeyNotFoundException("Not found any active advertiser");
 
                 //get campaigns list
                 var advertiserCodes = advertisers.Select(a => a.UserCode).ToList();
-                var campaigns = campaignRepo.GetAll()
+                var campaigns = await campaignRepo.GetAll()
                                             .Where(c => (advertiserCodes.Contains(c.AdvertiserCode)
                                                          && (c.Status == Core.Enums.CampaignStatus.Started
                                                             || c.Status == Core.Enums.CampaignStatus.Verified)))
-                                            .ToList();
+                                            .ToListAsync();
                 if (campaigns == null) throw new KeyNotFoundException("Don't have either Started or Verified campaign");
 
                 //get offers list
                 var campaignIds = campaigns.Select(c => c.Id).ToList();
-                var offers = OfferRepo.GetAll()
+                var offers = await OfferRepo.GetAll()
                                       .Where(o => (campaignIds.Contains(o.CampaignId)
                                                    && (o.Status == Core.Enums.OfferStatus.Approved
                                                        || o.Status == Core.Enums.OfferStatus.Started)))
-                                      .ToList();
+                                      .ToListAsync();
                 if (offers == null) throw new KeyNotFoundException("Don't have either Approved or Started offer");
 
                 //analyse
                 foreach (var o in offers)
                 {
-                    var advertiserOfferStats = advertiserOfferStatsRepo.GetAll()
-                                                                             .FirstOrDefault(s => s.OfferId == o.Id);
+                    var advertiserOfferStats = await advertiserOfferStatsRepo.GetAll()
+                                                                             .FirstOrDefaultAsync(s => s.OfferId == o.Id);
 
                     if (advertiserOfferStats != null)
                     {
                         var newAdvertiserOfferStats = analyzeAdvertiserOfferStats(o, unitOfWork) ?? throw new ArgumentException("Error in analyze process");
-                        newAdvertiserOfferStats.Id = advertiserOfferStats.Id;
-                        advertiserOfferStatsRepo.Update(newAdvertiserOfferStats);
+                        advertiserOfferStats.Date = newAdvertiserOfferStats.Date;
+                        advertiserOfferStats.OfferId = newAdvertiserOfferStats.OfferId;
+                        advertiserOfferStats.PublisherCount = newAdvertiserOfferStats.PublisherCount;
+                        advertiserOfferStats.ClickCount = newAdvertiserOfferStats.ClickCount;
+                        advertiserOfferStats.ConversionCount = newAdvertiserOfferStats.ConversionCount;
+                        advertiserOfferStats.ConversionRate = newAdvertiserOfferStats.ConversionRate;
+                        advertiserOfferStats.Revenue = newAdvertiserOfferStats.Revenue;
+                        advertiserOfferStatsRepo.Update(advertiserOfferStats);
                     }
                     else
                     {
@@ -111,38 +143,46 @@ namespace ANF.Service
                 var OfferRepo = unitOfWork.GetRepository<Offer>();
 
                 //get publishers List
-                var publishers = userRepo.GetAll()
+                var publishers = await userRepo.GetAll()
                                           .Where(u => (u.Role == Core.Enums.UserRoles.Publisher)
-                                                       && (u.Status == Core.Enums.UserStatus.Active));
-                if (publishers == null) throw new KeyNotFoundException("Not found any active publisher");
+                                                       && (u.Status == Core.Enums.UserStatus.Active))
+                                          .ToListAsync();
+                if (publishers == null || publishers.Count == 0) throw new KeyNotFoundException("Not found any active publisher");
 
                 foreach (var publisher in publishers)
                 {
                     var publisherCode = publisher.UserCode;
-                    var publisherOffers = publisherOfferRepo.GetAll()
+                    var publisherOffers = await publisherOfferRepo.GetAll()
                                                             .Where(po => ((po.PublisherCode == publisherCode)
                                                                           && (po.Status == Core.Enums.PublisherOfferStatus.Approved)))
-                                                            .ToList();
+                                                            .ToListAsync();
                     var offerIds = publisherOffers.Select(po => po.OfferId).ToList();
-                    var offers = OfferRepo.GetAll()
-                                          .Where(o => (offerIds.Contains(o.CampaignId)
+                    var offers = await OfferRepo.GetAll()
+                                          .Where(o => (offerIds.Contains(o.Id)
                                                        && (o.Status == Core.Enums.OfferStatus.Approved
                                                            || o.Status == Core.Enums.OfferStatus.Started)))
-                                          .ToList();
+                                          .ToListAsync();
                     if (offers == null) throw new KeyNotFoundException("Don't have either Approved or Started offer");
 
                     //analyse
                     foreach (var o in offers)
                     {
-                        var publisherOfferStats = publisherOfferStatsRepo.GetAll()
-                                                                                 .FirstOrDefault(s => s.OfferId == o.Id);
+                        var publisherOfferStats = await publisherOfferStatsRepo.GetAll()
+                                                                                 .FirstOrDefaultAsync(s => s.OfferId == o.Id);
 
                         if (publisherOfferStats != null)
                         {
                             var newPublisherOfferStats = analyzePublisherOfferStats(o, publisherCode, unitOfWork)
                                                           ?? throw new ArgumentException("Error in analyze process");
-                            newPublisherOfferStats.Id = publisherOfferStats.Id;
-                            publisherOfferStatsRepo.Update(newPublisherOfferStats);
+                            publisherOfferStats.Date = newPublisherOfferStats.Date;
+                            publisherOfferStats.OfferId = newPublisherOfferStats.OfferId;
+                            publisherOfferStats.PublisherCode = newPublisherOfferStats.PublisherCode;
+                            publisherOfferStats.ClickCount = newPublisherOfferStats.ClickCount;
+                            publisherOfferStats.ConversionCount = newPublisherOfferStats.ConversionCount;
+                            publisherOfferStats.ConversionRate = newPublisherOfferStats.ConversionRate;
+                            publisherOfferStats.Revenue = newPublisherOfferStats.Revenue;
+                            
+                            publisherOfferStatsRepo.Update(publisherOfferStats);
                         }
                         else
                         {
@@ -201,7 +241,7 @@ namespace ANF.Service
 
                 PublisherOfferStats newPublisherOfferStats = new PublisherOfferStats()
                 {
-                    Date = DateTime.UtcNow,
+                    Date = DateTime.Now,
                     OfferId = offer.Id,
                     PublisherCode = publisherCode,
                     ClickCount = clicksCount,
@@ -209,6 +249,8 @@ namespace ANF.Service
                     ConversionRate = clicksCount == 0
                                          ? 0
                                          : Math.Round((decimal)validatedClicksCount / clicksCount, 2),
+                    Revenue = revenue,
+
                 };
 
                 return newPublisherOfferStats;
@@ -262,7 +304,7 @@ namespace ANF.Service
 
                 AdvertiserOfferStats newAdvertiserOfferStats = new AdvertiserOfferStats()
                 {
-                    Date = DateTime.UtcNow,
+                    Date = DateTime.Now,
                     OfferId = offer.Id,
                     ClickCount = clicksCount,
                     ConversionCount = validatedClicksCount,
