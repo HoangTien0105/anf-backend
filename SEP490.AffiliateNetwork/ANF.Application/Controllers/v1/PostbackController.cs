@@ -129,6 +129,26 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get postback logs by transaction's id
+        /// </summary>
+        /// <param name="id">Transaction's Id</param>
+        /// <returns></returns>
+        [HttpGet("postbacks/log/{id}/transaction")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPostbacksLogByTransactionId(string id)
+        {
+            var postbackLogs = await _postbackService.GetAllPostbackLogByTransactionId(id);
+            return Ok(new ApiResponse<List<PurchaseLog>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = postbackLogs
+            });
+        }
+
+        /// <summary>
         /// Get postback logs by id
         /// </summary>
         /// <param name="id">Postback logs's Id</param>
@@ -147,5 +167,7 @@ namespace ANF.Application.Controllers.v1
                 Value = postbackLog
             });
         }
+
+
     }
 }

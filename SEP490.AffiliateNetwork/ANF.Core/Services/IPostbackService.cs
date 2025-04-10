@@ -10,6 +10,7 @@ namespace ANF.Core.Services
         public Task<bool> UpdatePostBackStatus(long id, string status);
         public Task<bool> UpdatePostBackLog(long id, PostbackLogUpdateRequest request);
         public Task<List<PurchaseLog>> GetAllPostbackLogByClickId(string id);
+        public Task<List<PurchaseLog>> GetAllPostbackLogByTransactionId(string id);
         public Task<PurchaseLog> GetPostbackLogById(long id);
     }
 }
