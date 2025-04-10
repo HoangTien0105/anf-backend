@@ -97,7 +97,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdatePostbackLog(long id, PostbackLogUpdateRequest request)
+        public async Task<IActionResult> UpdatePostbackLog(string id, PostbackLogUpdateRequest request)
         {
             var result = await _postbackService.UpdatePostBackLog(id, request);
             if (!result) return BadRequest();

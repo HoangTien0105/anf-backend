@@ -101,15 +101,15 @@ namespace ANF.Service
             return postbackLog;
         }
 
-        public async Task<bool> UpdatePostBackLog(long id, PostbackLogUpdateRequest request)
+        public async Task<bool> UpdatePostBackLog(string id, PostbackLogUpdateRequest request)
         {
             try
             {
                 var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
                 var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
 
-                var postbackLog = await postbackLogRepository.GetAll().FirstOrDefaultAsync(e => e.Id == id);
-                if(postbackLog is null) throw new KeyNotFoundException("Postback log not found!");
+                var postbackLog = await postbackLogRepository.GetAll().FirstOrDefaultAsync(e => e.ClickId == id);
+                if (postbackLog is null) throw new KeyNotFoundException("Postback log not found!");
 
                 var trackingValidation = await trackingValidationRepository.GetAll()
                     .AsNoTracking()
