@@ -14,7 +14,7 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<PostbackValidationService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromDays(1);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
 
         public PostbackValidationService(IServiceScopeFactory serviceScopeFactory,
             ILogger<PostbackValidationService> logger)
@@ -42,7 +42,8 @@ namespace ANF.Service
                 _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
-
+        
+        //Nếu postback success là + tiền
         private async Task UpdateSuccessPostback()
         {
             try
@@ -58,6 +59,7 @@ namespace ANF.Service
                 var purchaseLogRepository = unitOfWork.GetRepository<PurchaseLog>();
                 var trackingValidationRepository = unitOfWork.GetRepository<TrackingValidation>();
 
+                // Lấy postback status success có tracking validtion conversion ở status pending
                 var query = from tv in trackingValidationRepository
                                 .GetAll()
                                 .AsNoTracking()
@@ -80,66 +82,29 @@ namespace ANF.Service
                             };
                                     
                 var postbacks = await query.ToListAsync();
-
-                int date = 0;
                 int validValidation = 0;
-                int unknownValidation = 0;
-                int failValidation = 0;
 
+                // Check từng postback
                 foreach (var item in postbacks)
                 {
                     var trackingValidation = await trackingValidationRepository.GetAll()
                                             .FirstOrDefaultAsync(e => e.ClickId == item.ClickId);
-
+                    // LỖi nếu không có tracking validtion cho postback
                     if (trackingValidation is null)
                     {
                         _logger.LogWarning($"=================== Tracking validation does not exist for ClickId: {item.ClickId} ===================");
                         continue;
                     }
-
-                    if (item.Offer is not null && item.Offer.OrderReturnTime is not null)
-                    {
-                        var parts = item.Offer.OrderReturnTime.Trim().Split(" ");
-                        int.TryParse(parts[0], out date);
-                    }
-
-                    if (item.Date > DateTime.Now.AddDays(-date)) continue;
-
-                    var purchaseLog = await purchaseLogRepository.GetAll()
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(e => e.TransactionId == item.TransactionId);
-
-                    if (purchaseLog is null)
-                    {
-                        trackingValidation.ValidationStatus = ValidationStatus.Unknown;
-                        trackingValidation.ConversionStatus = ConversionStatus.Failed;
-                        unknownValidation++;
-                        _logger.LogInformation($"=================== Postback data doesn't exists: {item.Id} ===================");
-                    }
                     else
                     {
-                        if(purchaseLog.TransactionId == item.TransactionId && purchaseLog.Amount == (decimal?)item.Amount)
-                        {
-                            trackingValidation.ValidationStatus = ValidationStatus.Success;
-                            trackingValidation.ValidatedTime = DateTime.Now;
-                            trackingValidation.Amount = (decimal?)item.Amount;
-                            validValidation++;
-                        }
-                        else
-                        {
-                            trackingValidation.ValidationStatus = ValidationStatus.Failed;
-                            trackingValidation.ConversionStatus = ConversionStatus.Failed;
-                            failValidation++;
-                            _logger.LogInformation($"=================== Postback data does not match the postback logsd: {item.Id} ===================");
-                        }
+                        trackingValidation.ValidationStatus = ValidationStatus.Success;
+                        trackingValidation.Amount = (decimal?) item.Amount;
+                        trackingValidation.ValidatedTime = DateTime.Now;
+                        trackingValidationRepository.Update(trackingValidation);
                     }
-
-                    trackingValidationRepository.Update(trackingValidation);
                 }
-
                 await unitOfWork.SaveAsync();
-                _logger.LogInformation("=================== Updated tracking validations: {ValidCount} valid, {FailCount} failed, {UnknownCount} unknown ===================",
-                                        validValidation, failValidation, unknownValidation);
+                _logger.LogInformation("=================== Updated tracking validations: {ValidCount} valid ===================", validValidation);
             }
             catch (Exception e)
             {
@@ -211,12 +176,14 @@ namespace ANF.Service
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Failed;
                         trackingValidation.ConversionStatus = ConversionStatus.Failed;
+                        trackingValidation.ValidatedTime = DateTime.Now;
                         failValidation++;
                     } 
                     else
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Unknown;
                         trackingValidation.ConversionStatus = ConversionStatus.Failed;
+                        trackingValidation.ValidatedTime = DateTime.Now;
                         unknownValidation++;
                     }
 

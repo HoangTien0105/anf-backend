@@ -36,7 +36,6 @@ namespace ANF.Service
                 var postbackData = _mapper.Map<PostbackData>(postbackRequest);
 
                 postbackData.Date = DateTime.Now;
-
                 postbackData.OfferId = trackingEvent.OfferId;
                 postbackData.PublisherCode = trackingEvent.PublisherCode;
 
