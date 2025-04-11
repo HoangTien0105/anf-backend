@@ -295,7 +295,8 @@ namespace ANF.Service
                     Amount = money,
                     Reason = $"Transfer for campaign {campaign.Name} (Offer: {offer.Id})",
                     CreatedAt = DateTime.Now,
-                    Status = TransactionStatus.Success
+                    Status = TransactionStatus.Success,
+                    IsWithdrawal = true,
                 };
                 transactionRepository.Add(advTransaction);
 
@@ -307,6 +308,28 @@ namespace ANF.Service
                 };
                 walletHistoryRepository.Add(advertiserHistory);
                 _logger.LogInformation("=================== Updated advertiser wallet and recorded history ===================");
+
+                var pubTransaction = new Transaction
+                {
+                    Id = IdHelper.GenerateTransactionId(),
+                    UserCode = publisherWallet.UserCode,
+                    WalletId = publisherWallet.Id,
+                    Amount = money,
+                    Reason = $"Transfer for campaign {campaign.Name} (Offer: {offer.Id})",
+                    CreatedAt = DateTime.Now,
+                    Status = TransactionStatus.Success,
+                    IsWithdrawal = false,
+                };
+                transactionRepository.Add(pubTransaction);
+
+                var pubHistory = new WalletHistory
+                {
+                    TransactionId = pubTransaction.Id,
+                    CurrentBalance = publisherWallet.Balance,
+                    BalanceType = false
+                };
+                walletHistoryRepository.Add(pubHistory);
+                _logger.LogInformation("=================== Updated publisher wallet and recorded history ===================");
 
                 //Update advertiser wallet
                 advertiserWallet.Balance -= money;
