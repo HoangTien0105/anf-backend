@@ -26,8 +26,8 @@ namespace ANF.Service
         private readonly ILogger<TransactionService> _logger = logger;
         private readonly IMapper _mapper = mapper;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
-        private readonly string _cancelUrl = "https://vnexpress.net";  // Cancel url is the default page of platform
-        private readonly string _returnUrl = "https://payos.vn";    // Payment successful page
+        private readonly string _cancelUrl = "http://localhost:3000/advertiser/profile";  // Redirect to default page
+        private readonly string _returnUrl = "http://localhost:3000/advertiser/profile";    // Payment successful page
 
         public async Task<string> CancelTransaction(long transactionId)
         {
