@@ -120,7 +120,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="transactionId">Transaction's id</param>
         /// <returns></returns>
-        [HttpDelete("users/revoke-payment")]
+        [HttpGet("users/revoke-payment")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -135,7 +135,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="transactionId">Transaction's id</param>
         /// <returns></returns>
-        [HttpPatch("users/confirm-payment")]
+        [HttpGet("users/confirm-payment")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

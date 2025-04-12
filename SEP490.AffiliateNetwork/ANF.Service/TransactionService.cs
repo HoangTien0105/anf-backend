@@ -89,7 +89,7 @@ namespace ANF.Service
                 walletHistory.BalanceType = walletHistory.CurrentBalance == wallet.Balance
                             ? null
                             : walletHistory.CurrentBalance < wallet.Balance;
-                transaction.Status = Core.Enums.TransactionStatus.Success;
+                transaction.Status = TransactionStatus.Success;
 
                 walletHistoryRepository.Update(walletHistory);
                 walletRepository.Update(wallet);
