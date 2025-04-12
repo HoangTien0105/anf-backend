@@ -110,7 +110,26 @@ namespace ANF.Application.Controllers.v1
                 Message = "Success"
             });
         }
-        
 
+        /// <summary>
+        /// View the list of publishers waiting to be approved for an offer
+        /// </summary>
+        /// <param name="offerId">Offer's id</param>
+        /// <returns>Publishers with detailed information</returns>
+        [HttpGet("offers/{offerId}/pending/publishers")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ViewPublisherProfile(string offerId)
+        {
+            var result = await _advertiserService.GetPendingPublisherInOffer(offerId);
+            return Ok(new ApiResponse<List<PublisherInformationForAdvertiser>>
+            {
+                IsSuccess = true,
+                Message = "Success",
+                Value = result
+            });
+        }
     }
 }

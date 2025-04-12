@@ -12,5 +12,7 @@ namespace ANF.Core.Services
         Task<bool> UpdateProfile(long advertiserId, AdvertiserProfileUpdatedRequest request);
 
         Task<List<AffiliateSourceResponse>> GetTrafficSourceOfPublisher(long publisherId);
+
+        Task<List<PublisherInformationForAdvertiser>> GetPendingPublisherInOffer(string offerId);
     }
 }
