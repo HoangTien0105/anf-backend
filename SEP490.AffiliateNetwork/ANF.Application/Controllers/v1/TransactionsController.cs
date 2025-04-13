@@ -70,6 +70,28 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Purchase subscription
+        /// </summary>
+        /// <param name="request">Subscription's information</param>
+        /// <returns></returns>
+        [HttpPost("users/purchase-subscription")]
+        [Authorize(Roles = "Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> PurchaseSubscription(SubscriptionPurchaseRequest request)
+        {
+            var url = await _transactionService.CreatePaymentLinkForSubscription(request);
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = url
+            });
+        }
+
+        /// <summary>
         /// Create withdrawal request
         /// </summary>
         /// <param name="request"></param>
@@ -120,7 +142,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="transactionId">Transaction's id</param>
         /// <returns></returns>
-        [HttpDelete("users/revoke-payment")]
+        [HttpGet("users/revoke-payment")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -131,11 +153,27 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
-        /// Confirm payment from users
+        /// Confirm the subscription purchase from users
         /// </summary>
         /// <param name="transactionId">Transaction's id</param>
         /// <returns></returns>
-        [HttpPatch("users/confirm-payment")]
+        [HttpGet("users/confirm-subscription-purchase")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ConfirmSubscriptionPurchase(long transactionId)
+        {
+            var url = await _transactionService.ConfirmSubscriptionPurchase(transactionId);
+            return Redirect(url);
+        }
+
+        /// <summary>
+        /// Confirm the deposit from users
+        /// </summary>
+        /// <param name="transactionId">Transaction's id</param>
+        /// <returns></returns>
+        [HttpGet("users/confirm-payment")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -207,6 +245,29 @@ namespace ANF.Application.Controllers.v1
         {
             var response = await _transactionService.GetTransactionOfUser(code, request.pageNumber, request.pageSize);
             return Ok(new ApiResponse<PaginationResponse<UserTransactionResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = response
+            });
+        }
+
+        /// <summary>
+        /// Get current balance in wallet
+        /// </summary>
+        /// <param name="code">User's code</param>
+        /// <returns></returns>
+        [HttpGet("users/{code}/current-balance")]
+        [Authorize(Roles = "Publisher, Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ViewCurrentBalanceInWallet(string code)
+        {
+            var response = await _transactionService.GetCurrentBalanceInWallet(code);
+            return Ok(new ApiResponse<decimal>
             {
                 IsSuccess = true,
                 Message = "Success.",

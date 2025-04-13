@@ -25,6 +25,7 @@
 
         public string Role { get; set; } = null!;
 
+        public decimal? Balance { get; set; }
         public string? ImageUrl { get; set; }
 
         public ICollection<UserBankResponse> BankResponses { get; set; } = [];
@@ -32,5 +33,7 @@
         public AdvertiserProfileInfoResponse? AdvertiserProfile { get; set; }
 
         public PublisherProfileInfoResponse? PublisherProfile { get; set; }
+
+        public string? AccessToken { get; set; }
     }
 }

@@ -31,7 +31,7 @@ namespace ANF.Application.Controllers.v1
                 return validationResult;
             }
             var token = await _userService.Login(value.Email, value.Password);
-            return Ok(new ApiResponse<LoginResponse>
+            return Ok(new ApiResponse<DetailedUserResponse>
             {
                 IsSuccess = true,
                 Message = "Login successfully.",

@@ -1,6 +1,9 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
+using ANF.Core.Models.Responses;
 using ANF.Core.Services;
+using ANF.Service;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
@@ -82,5 +85,89 @@ namespace ANF.Application.Controllers.v1
                 Message = "Update success."
             });
         }
+
+        /// <summary>
+        /// Update postback's log information
+        /// </summary>
+        /// <param name="id">Click's id</param>
+        /// <param name="request">Postback's log data</param>
+        /// <returns></returns>
+        [HttpPut("postbacks/log/{id}")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdatePostbackLog(string id, PostbackLogUpdateRequest request)
+        {
+            var result = await _postbackService.UpdatePostBackLog(id, request);
+            if (!result) return BadRequest();
+            return Ok(new ApiResponse<string>
+            {
+                IsSuccess = true,
+                Message = "Update success."
+            });
+        }
+
+        /// <summary>
+        /// Get postback logs by click's id
+        /// </summary>
+        /// <param name="id">Click's Id</param>
+        /// <returns></returns>
+        [HttpGet("postbacks/log/{id}/click")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPostbacksLogByClickId(string id)
+        {
+            var postbackLogs = await _postbackService.GetAllPostbackLogByClickId(id);
+            return Ok(new ApiResponse<List<PurchaseLog>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = postbackLogs
+            });
+        }
+
+        /// <summary>
+        /// Get postback logs by transaction's id
+        /// </summary>
+        /// <param name="id">Transaction's Id</param>
+        /// <returns></returns>
+        [HttpGet("postbacks/log/{id}/transaction")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPostbacksLogByTransactionId(string id)
+        {
+            var postbackLogs = await _postbackService.GetAllPostbackLogByTransactionId(id);
+            return Ok(new ApiResponse<List<PurchaseLog>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = postbackLogs
+            });
+        }
+
+        /// <summary>
+        /// Get postback logs by id
+        /// </summary>
+        /// <param name="id">Postback logs's Id</param>
+        /// <returns></returns>
+        [HttpGet("postbacks/log/{id}")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPostbacksLogId(long id)
+        {
+            var postbackLog = await _postbackService.GetPostbackLogById(id);
+            return Ok(new ApiResponse<PurchaseLog>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = postbackLog
+            });
+        }
+
+
     }
 }

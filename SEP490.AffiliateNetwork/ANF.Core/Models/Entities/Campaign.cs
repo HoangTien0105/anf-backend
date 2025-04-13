@@ -31,7 +31,7 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Balance = Sum of offers' budget
         /// </summary>
-        [Column("balance", TypeName = "decimal(10, 2)")]
+        [Column("balance", TypeName = "decimal(12)")]
         public decimal? Balance { get; set; }
 
         [Column("product_url")]

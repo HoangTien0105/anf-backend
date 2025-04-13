@@ -97,6 +97,42 @@ namespace ANF.Service
             return response;
         }
 
+        public async Task<List<PublisherInformationForAdvertiser>> GetPendingPublisherInOffer(string offerId)
+        {
+            var publisherOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
+
+            var query = await publisherOfferRepository.GetAll()
+                .AsNoTracking()
+                .Include(x => x.Publisher)
+                .Include(x => x.Publisher.AffiliateSources)
+                .Include(x => x.Publisher.PublisherProfile)
+                .Where(x => x.OfferId == long.Parse(offerId) && x.Status == PublisherOfferStatus.Pending)
+                .Select(x => new PublisherInformationForAdvertiser
+                {
+                    PublisherCode = x.Publisher.UserCode,
+                    FirstName = x.Publisher.FirstName,
+                    LastName = x.Publisher.LastName,
+                    PhoneNumber = x.Publisher.PhoneNumber,
+                    CitizenId = x.Publisher.CitizenId,
+                    Address = x.Publisher.Address,
+                    Email = x.Publisher.Email,
+                    Specialization = x.Publisher.PublisherProfile.Specialization,
+                    NoOfExperience = x.Publisher.PublisherProfile.NoOfExperience,
+                    ImageUrl = x.Publisher.PublisherProfile.ImageUrl,
+                    Bio = x.Publisher.PublisherProfile.Bio,
+                    TrafficSources = x.Publisher.AffiliateSources.Select(y => new PublisherTrafficSource
+                    {
+                        Provider = y.Provider,
+                        SourceUrl = y.SourceUrl,
+                        Type = y.Type
+                    }).ToList()
+                }).ToListAsync();
+            if (!query.Any())
+                throw new NoDataRetrievalException("No data of publisher!");
+
+            return query;
+        }
+
         public async Task<List<AffiliateSourceResponse>> GetTrafficSourceOfPublisher(long publisherId)
         {
             var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);

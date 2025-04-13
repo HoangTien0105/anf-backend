@@ -23,7 +23,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Pagination model</param>
         /// <returns></returns>
         [HttpGet("categories")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -44,7 +44,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Category's id</param>
         /// <returns></returns>
         [HttpGet("categories/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -66,7 +66,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="category">Data to update existed category</param>
         /// <returns></returns>
         [HttpPut("category/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -92,7 +92,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="request">Model to create category</param>
         /// <returns></returns>
         [HttpPost("category")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -118,7 +118,7 @@ namespace ANF.Application.Controllers.v1
         /// <param name="id">Category's id</param>
         /// <returns></returns>
         [HttpDelete("category/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

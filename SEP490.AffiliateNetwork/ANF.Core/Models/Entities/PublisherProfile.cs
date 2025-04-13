@@ -12,6 +12,9 @@ namespace ANF.Core.Models.Entities
         [Column("specialization")]
         public string? Specialization { get; set; }
 
+        [Column("no_of_experience")]
+        public string? NoOfExperience { get; set; }
+
         [Column("image_url")]
         public string? ImageUrl { get; set; }
 

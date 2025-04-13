@@ -7,7 +7,7 @@ namespace ANF.Application.Controllers.v1
 {
     public class CommonsController(HttpClient httpClient, ILogger<CommonsController> logger) : BaseApiController
     {
-        private static List<DomesticBeneficiaryBank> banks =
+        private static List<DomesticBeneficiaryBank> _banks =
         [
             new DomesticBeneficiaryBank
             {
@@ -129,6 +129,14 @@ namespace ANF.Application.Controllers.v1
                 BranchName = "SAI GON - HA NOI (SHB)-01348002"
             },
         ];
+        private static List<string> _noOfExperienceForPublisher = [
+            "1 years",
+            "2 years",
+            "3 years",
+            "4 years",
+            "5 years",
+            "6+ years",
+        ];
         private readonly HttpClient _httpClient = httpClient;
         private readonly ILogger<CommonsController> _logger = logger;
 
@@ -180,7 +188,7 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(200)]
         public IActionResult Get()
         {
-            return Ok(banks);
+            return Ok(_banks);
         }
 
         /// <summary>
@@ -195,7 +203,6 @@ namespace ANF.Application.Controllers.v1
         {
             try
             {
-                //TODO: REVIEW WITH FE TO ADD PAGINATION, FILTER DATA (e.g, select top xx), etc.
                 var response = await _httpClient.GetAsync("https://api.banklookup.net/api/bank/list");
 
                 if (!response.IsSuccessStatusCode)
@@ -212,6 +219,18 @@ namespace ANF.Application.Controllers.v1
                 _logger.LogError($"Exception occurred while fetching bank list: {ex.Message}");
                 return StatusCode(500, "Internal Server Error");
             }
+        }
+
+        /// <summary>
+        /// Get experience value to filter publisher
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("publisers/no-of-experience")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetExperienceForPublisher()
+        {
+            return Ok(_noOfExperienceForPublisher);
         }
     }
 }
