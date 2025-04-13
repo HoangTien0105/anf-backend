@@ -20,7 +20,10 @@ jobs:
 
     - name: 📦 Publish .NET app
       run: |
-        dotnet build SEP490.AffiliateNetwork/SEP490.AffiliateNetwork.sln
+           dotnet publish SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj -c Release -o publish
+    
+    - name: 🧾 Check published contents
+      run: ls -la publish
 
     - name: 📤 Upload published files to server
       uses: appleboy/scp-action@v0.1.4
