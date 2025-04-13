@@ -49,7 +49,7 @@ namespace ANF.Application.Extensions
 
             services.AddHttpContextAccessor();
             services.ConfigureSwagger();
-            services.ConfigureCors();
+            services.ConfigureCors(configuration);
             services.ConfigureAuthentication(jwtConfig);
             services.ConfigureDatabase(connectionString);
 
@@ -77,14 +77,17 @@ namespace ANF.Application.Extensions
         /// </summary>
         /// <param name="services">The IServiceCollection to add the CORS policy to.</param>
         /// <returns>The IServiceCollection with the CORS policy added.</returns>
-        private static IServiceCollection ConfigureCors(this IServiceCollection services)
+        private static IServiceCollection ConfigureCors(this IServiceCollection services, IConfiguration configuration)
         {
-            // TODO: Add ports for local and production
+            var allowedOrigins = configuration
+                .GetSection("CorsSettings:AllowedOrigins")
+                .Get<string[]>() ?? [];
+
             services.AddCors(opt =>
             {
                 opt.AddPolicy("ANF", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000", "https://dev.l3on.id.vn")
+                    builder.WithOrigins(allowedOrigins)
                         .AllowAnyMethod()
                         .AllowAnyHeader();
                 });
