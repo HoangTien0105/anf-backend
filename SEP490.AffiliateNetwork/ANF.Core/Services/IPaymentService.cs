@@ -7,6 +7,8 @@
     {
         Task<string> CreatePaymentLink(long transactionId);
 
+        Task<string> CreatePaymentLinkForSubscription(long transactionId);
+
         Task<string> GetPaymentLinkInformation();
 
         Task<bool> CancelPaymentLink(); 

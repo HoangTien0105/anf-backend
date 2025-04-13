@@ -26,8 +26,6 @@ namespace ANF.Service
         private readonly ILogger<TransactionService> _logger = logger;
         private readonly IMapper _mapper = mapper;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
-        private readonly string _cancelUrl = "http://localhost:3000/advertiser/profile";  // Redirect to default page
-        private readonly string _returnUrl = "http://localhost:3000/advertiser/profile";    // Payment successful page
 
         public async Task<string> CancelTransaction(long transactionId)
         {
@@ -52,7 +50,7 @@ namespace ANF.Service
                 transactionRepository.Delete(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return _cancelUrl;
+                return PaymentRedirectedPage.PaymentCanceledPage;
             }
             catch (Exception)
             {
@@ -96,7 +94,51 @@ namespace ANF.Service
                 transactionRepository.Update(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return _returnUrl;
+                return PaymentRedirectedPage.PaymentSuccessfulPage;
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, ex.Message);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<string> ConfirmSubscriptionPurchase(long transactionId)
+        {
+            try
+            {
+                var walletHistoryRepository = _unitOfWork.GetRepository<WalletHistory>();
+                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
+
+                var transaction = await transactionRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.Id == transactionId) ??
+                            throw new KeyNotFoundException("Transaction does not exist!");
+
+                var wallet = await walletRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(w => w.UserCode == transaction.UserCode) ??
+                            throw new KeyNotFoundException("Wallet does not exist!");
+
+                var walletHistory = await walletHistoryRepository.GetAll()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(wh => wh.TransactionId == transactionId) ??
+                            throw new KeyNotFoundException("No record of wallet history with this transaction!");
+                
+                wallet.Balance -= transaction.Amount;
+                walletHistory.BalanceType = walletHistory.CurrentBalance == wallet.Balance
+                            ? null
+                            : walletHistory.CurrentBalance < wallet.Balance;
+                transaction.Status = TransactionStatus.Success;
+
+                walletHistoryRepository.Update(walletHistory);
+                walletRepository.Update(wallet);
+                transactionRepository.Update(transaction);
+                await _unitOfWork.SaveAsync();
+
+                return PaymentRedirectedPage.PaymentSuccessfulPage;
             }
             catch (Exception ex)
             {
@@ -153,6 +195,66 @@ namespace ANF.Service
                     throw new Exception("An error occured when storing the data in database!");
 
                 var paymentLink = await _paymentService.CreatePaymentLink(transaction.Id);
+                return paymentLink;
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogLevel.Error, ex.Message, ex.InnerException);
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<string> CreatePaymentLinkForSubscription(SubscriptionPurchaseRequest request)
+        {
+            try
+            {
+                var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+                
+                var walletRepository = _unitOfWork.GetRepository<Wallet>();
+                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+                var walletHistoryRepository = _unitOfWork.GetRepository<WalletHistory>();
+                var subscriptionRepository = _unitOfWork.GetRepository<Subscription>();
+
+                if (string.IsNullOrEmpty(currentUserCode))
+                    throw new UnauthorizedAccessException("Cannot perform the action because user's code is empty!");
+
+                var wallet = await walletRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(w => w.UserCode == currentUserCode)
+                    .FirstOrDefaultAsync() ?? throw new KeyNotFoundException("User's wallet does not exist!");
+
+                if (!wallet.IsActive)
+                    throw new InactiveWalletException("Cannot proceed the transaction! The wallet is inactive");
+                
+                var isExisted = await subscriptionRepository.GetAll()
+                    .AsNoTracking()
+                    .AnyAsync(s => s.Id == request.Id);
+                if (!isExisted)
+                    throw new KeyNotFoundException("Subscription does not exist!");
+
+                var transaction = new Transaction
+                {
+                    Id = IdHelper.GenerateTransactionId(),
+                    UserCode = currentUserCode,
+                    WalletId = wallet.Id,
+                    Reason = $"Đăng ký subscription {request.Id}",
+                    Amount = request.Price,
+                    CreatedAt = DateTime.Now,
+                    Status = TransactionStatus.Pending,
+                };
+                transactionRepository.Add(transaction);
+
+                var walletHistory = new WalletHistory
+                {
+                    TransactionId = transaction.Id,
+                    CurrentBalance = wallet.Balance
+                };
+                walletHistoryRepository.Add(walletHistory);
+                if (await _unitOfWork.SaveAsync() <= 0)
+                    throw new Exception("An error occured when storing the data in database!");
+
+                var paymentLink = await _paymentService.CreatePaymentLinkForSubscription(transaction.Id);
                 return paymentLink;
             }
             catch (Exception ex)

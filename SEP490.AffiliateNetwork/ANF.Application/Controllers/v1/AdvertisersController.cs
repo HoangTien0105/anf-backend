@@ -116,7 +116,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="offerId">Offer's id</param>
         /// <returns>Publishers with detailed information</returns>
-        [HttpGet("offers/{offerId}/pending/publishers")]
+        [HttpGet("offers/{offerId}/pending-publishers")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]

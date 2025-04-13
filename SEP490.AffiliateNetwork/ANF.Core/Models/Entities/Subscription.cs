@@ -20,7 +20,7 @@ namespace ANF.Core.Models.Entities
         [Column("description")]
         public string? Description { get; set; }
 
-        [Column("sub_price", TypeName = "decimal(10, 2)")]
+        [Column("sub_price", TypeName = "decimal(12)")]
         public decimal Price { get; set; }
 
         [Column("duration")]
