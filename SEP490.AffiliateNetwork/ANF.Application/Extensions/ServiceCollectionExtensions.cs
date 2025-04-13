@@ -37,7 +37,7 @@ namespace ANF.Application.Extensions
             services.Configure<BankLookupSettings>(configuration.GetSection("BankLookup"));
             services.Configure<IpApiSettings>(configuration.GetSection("IpApi"));
             services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
-            
+
             // Override the default configuration of 400 HttpStatusCode for all controllers
             services.Configure<ApiBehaviorOptions>(opt =>
             {
@@ -49,7 +49,7 @@ namespace ANF.Application.Extensions
 
             services.AddHttpContextAccessor();
             services.ConfigureSwagger();
-            services.ConfigureCors();
+            services.ConfigureCors(configuration);
             services.ConfigureAuthentication(jwtConfig);
             services.ConfigureDatabase(connectionString);
 
@@ -76,22 +76,26 @@ namespace ANF.Application.Extensions
         /// Configures Cross-Origin Resource Sharing (CORS) for the application.
         /// </summary>
         /// <param name="services">The IServiceCollection to add the CORS policy to.</param>
+        /// <param name="configuration">The IConfiguration to read CORS settings from.</param>
         /// <returns>The IServiceCollection with the CORS policy added.</returns>
-        private static IServiceCollection ConfigureCors(this IServiceCollection services)
+        private static IServiceCollection ConfigureCors(this IServiceCollection services, IConfiguration configuration)
         {
-            // TODO: Add ports for local and production
+            var corsSettings = configuration.GetSection("CorsSettings").Get<CorsSettings>()
+                ?? throw new InvalidOperationException("CORS settings are not configured");
+
             services.AddCors(opt =>
             {
                 opt.AddPolicy("ANF", builder =>
                 {
-                    builder.WithOrigins("http://localhost:3000", "https://dev.l3on.id.vn")
+                    builder.WithOrigins(corsSettings.AllowedOrigins)
                         .AllowAnyMethod()
-                        .AllowAnyHeader();
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
             return services;
         }
-                
+
         /// <summary>
         /// Configures Swagger for the application.
         /// </summary>
@@ -231,7 +235,7 @@ namespace ANF.Application.Extensions
             return services;
         }
 
-        private static IServiceCollection ConfigureAuthentication(this IServiceCollection services, 
+        private static IServiceCollection ConfigureAuthentication(this IServiceCollection services,
             IConfigurationSection jwtSection)
         {
             services.AddAuthentication(opt =>
