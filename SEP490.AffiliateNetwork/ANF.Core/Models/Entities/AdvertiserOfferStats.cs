@@ -30,7 +30,7 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Conversion rate = ConversionCount / ClickCount
         /// </summary>
-        [Column("conversion_rate", TypeName = "decimal(10, 2)")]
+        [Column("conversion_rate", TypeName = "decimal(12)")]
         public decimal ConversionRate { get; set; }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace ANF.Core.Models.Entities
         [Column("publisher_count")]
         public int PublisherCount { get; set; }
 
-        [Column("revenue", TypeName = "decimal(10, 2)")]
+        [Column("revenue", TypeName = "decimal(12)")]
         public decimal Revenue { get; set; }
     }
 }

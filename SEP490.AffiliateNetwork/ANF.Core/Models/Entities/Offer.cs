@@ -34,13 +34,13 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Money gained by publisher for a click, order, etc. Based on the pricing model and advertiser rule
         /// </summary>
-        [Column("bid", TypeName = "decimal(10, 2)")]
+        [Column("bid", TypeName = "decimal(12)")]
         public decimal Bid { get; set; }
 
         /// <summary>
         /// The amount of money to run an offer
         /// </summary>
-        [Column("budget", TypeName = "decimal(10, 2)")]
+        [Column("budget", TypeName = "decimal(12)")]
         public decimal Budget { get; set; }
 
         [Column("commission_rate")]
@@ -52,11 +52,9 @@ namespace ANF.Core.Models.Entities
         [Column("img_url")]
         public string? ImageUrl { get; set; }
 
-        //TODO: REVIEW THE PROPERTY BASED ON PLATFORM BUSINESS
         [Column("status")]
         public OfferStatus? Status { get; set; }
 
-        //TODO: REVIEW THE PROPERTY BASED ON PLATFORM BUSINESS
         [Column("rejected_reason")]
         public string? RejectedReason { get; set; }
 

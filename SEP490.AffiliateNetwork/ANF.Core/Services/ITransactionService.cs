@@ -12,7 +12,11 @@ namespace ANF.Core.Services
 
         Task<string> CreateDeposit(DepositRequest request);
 
+        Task<string> CreatePaymentLinkForSubscription(SubscriptionPurchaseRequest request);
+
         Task<string> ConfirmPayment(long transactionId);
+
+        Task<string> ConfirmSubscriptionPurchase(long transactionId);
 
         Task<string> CancelTransaction(long transactionId);
 

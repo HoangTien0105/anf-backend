@@ -8,7 +8,7 @@ namespace ANF.Core.Models.Entities
         [Column("id")]
         public long Id { get; set; }
 
-        [Column("balance", TypeName = "decimal(10,2)")]
+        [Column("balance", TypeName = "decimal(12)")]
         public decimal Balance { get; set; } = 0;
 
         [Column("is_active")]

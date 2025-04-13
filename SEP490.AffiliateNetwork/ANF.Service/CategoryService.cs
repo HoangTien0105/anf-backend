@@ -36,7 +36,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -59,7 +59,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }
@@ -109,7 +109,7 @@ namespace ANF.Service
             }
             catch
             {
-                //await _unitOfWork.RollbackAsync();
+                await _unitOfWork.RollbackAsync();
                 throw;
             }
         }

@@ -15,7 +15,7 @@ namespace ANF.Core.Models.Entities
         [Column("from_account")]
         public string FromAccount { get; set; } = null!;
 
-        [Column("amount", TypeName = "decimal(10,0)")]
+        [Column("amount", TypeName = "decimal(12)")]
         public decimal Amount { get; set; }
 
         [Column("beneficiary_name")]

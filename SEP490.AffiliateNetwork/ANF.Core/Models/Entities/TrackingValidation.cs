@@ -34,7 +34,7 @@ namespace ANF.Core.Models.Entities
         [Column("conversion_status")]
         public ConversionStatus? ConversionStatus { get; set; }
 
-        [Column("amount", TypeName = "decimal(10,2)")]
+        [Column("amount", TypeName = "decimal(12)")]
         public decimal? Amount { get; set; }
 
         public TrackingEvent? TrackingEvent { get; set; }
