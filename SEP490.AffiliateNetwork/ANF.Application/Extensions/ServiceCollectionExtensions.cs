@@ -80,14 +80,15 @@ namespace ANF.Application.Extensions
         /// <returns>The IServiceCollection with the CORS policy added.</returns>
         private static IServiceCollection ConfigureCors(this IServiceCollection services, IConfiguration configuration)
         {
-            var corsSettings = configuration.GetSection("CorsSettings").Get<CorsSettings>()
-                ?? throw new InvalidOperationException("CORS settings are not configured");
+            var allowedOrigins = configuration
+                .GetSection("CorsSettings:AllowedOrigins")
+                .Get<string[]>() ?? [];
 
             services.AddCors(opt =>
             {
                 opt.AddPolicy("ANF", builder =>
                 {
-                    builder.WithOrigins(corsSettings.AllowedOrigins)
+                    builder.WithOrigins(allowedOrigins)
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
