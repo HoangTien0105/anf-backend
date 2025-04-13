@@ -18,8 +18,10 @@ jobs:
       with:
         dotnet-version: '8.x'
 
-    - name: 📦 Publish App
-      run: dotnet publish ANF.Application/ANF.Application.csproj -c Release -o publish
+    - name: 📦 Publish .NET app
+      run: |
+        cd SEP490.AffiliateNetwork
+        dotnet publish -c Release -o ../publish
 
     - name: 📤 Upload published files to server
       uses: appleboy/scp-action@v0.1.4
