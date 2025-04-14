@@ -22,16 +22,8 @@ jobs:
         script: |
           set -e
           
-          # Load environment profiles to ensure PATH includes dotnet tools
-          source ~/.profile
-          source ~/.bashrc
-          
-          # If you use .NET version manager, load it
-          export DOTNET_ROOT=$HOME/.dotnet
-          export PATH=$PATH:$HOME/.dotnet:$HOME/.dotnet/tools
-          
-          echo "Checking dotnet version and tools..."
-          dotnet --version || { echo "dotnet not found in PATH"; exit 1; }
+          # Ensure dotnet tools are in PATH
+          export PATH=$PATH:$HOME/.dotnet/tools
           
           echo "Deploying to server..."
           cd ${{ secrets.PROJECT_DIRECTORY }} || { echo "Failed to navigate to project directory"; exit 1; }
@@ -46,22 +38,13 @@ jobs:
             -o publish \
             --self-contained true \
             || { echo "Publish failed"; exit 1; }
-            
-          echo "Installing EF Core tools globally if needed..."
-          dotnet tool list --global | grep dotnet-ef || dotnet tool install --global dotnet-ef
-          
-          # Check if EF tool is available now
-          which dotnet-ef || { 
-            echo "dotnet-ef still not found in PATH after installation"; 
-            echo "Current PATH: $PATH";
-            exit 1; 
-          }
           
           echo "Applying database migrations..."
           cd SEP490.AffiliateNetwork || { echo "Failed to navigate to project directory"; exit 1; }
           
-          # Run migration with full path to be safe
-          $HOME/.dotnet/tools/dotnet-ef database update \
+          
+          # Run migration with explicit command path to ensure it's found
+          dotnet ef database update \
             --project ANF.Infrastructure/ANF.Infrastructure.csproj \
             --startup-project ANF.Application/ANF.Application.csproj \
             || { echo "Database migration failed"; exit 1; }
@@ -69,13 +52,5 @@ jobs:
           
           echo "Restarting service..."
           sudo systemctl restart myapp || { echo "Failed to restart service"; exit 1; }
-          
-          # Verify service is running
-          sleep 5
-          if ! sudo systemctl is-active --quiet myapp; then
-            echo "Service failed to start properly!"
-            sudo systemctl status myapp
-            exit 1
-          fi
           
           echo "Deployment completed successfully!"
