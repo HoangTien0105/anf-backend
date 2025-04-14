@@ -18,6 +18,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd ${{ secrets.PROJECT_DIRECTORY }}
+          git checkout main
           git pull origin main
           dotnet publish ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj -c Release -o ${{ secrets.PROJECT_DIRECTORY }}/publish --self-contained true
           
