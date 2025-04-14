@@ -2,7 +2,7 @@ name: Deploy to Self-hosted Server
 
 on:
   push:
-    branches: [feat/cicd]
+    branches: [main]
 
 jobs:
   deploy:
@@ -18,6 +18,6 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd ${{ secrets.PROJECT_DIRECTORY }}
-          git pull origin feat/cicd
+          git pull origin main
           dotnet publish ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj -c Release -o ${{ secrets.PROJECT_DIRECTORY }}/publish --self-contained true
           sudo systemctl restart myapp
