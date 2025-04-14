@@ -47,9 +47,7 @@ jobs:
           echo "Applying database migrations..."
           cd SEP490.AffiliateNetwork || { echo "Failed to navigate to project directory"; exit 1; }
           dotnet tool restore || { echo "Failed to restore EF Core tools"; exit 1; }
-          dotnet ef database update \
-            --project ANF.Infrastructure/ANF.Infrastructure.csproj \
-            --startup-project ANF.Application/ANF.Application.csproj \
+          dotnet ef database update --project ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Infrastructure/ANF.Infrastructure.csproj --startup-project ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj
             || { echo "Database migration failed"; exit 1; }
           cd ..
           
