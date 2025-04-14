@@ -203,6 +203,7 @@ namespace ANF.Service
                     .Include(u => u.UserBanks)
                     .Include(u => u.AdvertiserProfile)
                     .Include(u => u.PublisherProfile)
+                    .Include(u => u.Wallet)
                     .FirstOrDefaultAsync(u => u.UserCode == userCode);
                 if (user is null)
                 {
@@ -223,6 +224,7 @@ namespace ANF.Service
                         DateOfBirth = user.DateOfBirth,
                         Email = user.Email,
                         Role = user.Role.ToString(),
+                        Balance = user.Wallet.Balance,
                         ImageUrl = user.AdvertiserProfile?.ImageUrl,
                         BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
                         {
@@ -253,6 +255,7 @@ namespace ANF.Service
                         DateOfBirth = user.DateOfBirth,
                         Email = user.Email,
                         Role = user.Role.ToString(),
+                        Balance = user.Wallet.Balance,
                         ImageUrl = user.PublisherProfile?.ImageUrl,
                         BankResponses = user.UserBanks.Select(ub => new UserBankResponse
                         {
@@ -405,6 +408,7 @@ namespace ANF.Service
                 .Include(u => u.PublisherProfile)
                 .Include(u => u.AdvertiserProfile)
                 .Include(u => u.UserBanks)
+                .Include(u => u.Wallet)
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
             if (user is null) throw new KeyNotFoundException("User does not exist.");
             if (user.Status == UserStatus.Deactive)
@@ -427,6 +431,7 @@ namespace ANF.Service
                     DateOfBirth = user.DateOfBirth,
                     Email = user.Email,
                     Role = user.Role.ToString(),
+                    Balance = user.Wallet.Balance,
                     ImageUrl = user.AdvertiserProfile?.ImageUrl,
                     AccessToken = token,
                     BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
@@ -458,6 +463,7 @@ namespace ANF.Service
                     DateOfBirth = user.DateOfBirth,
                     Email = user.Email,
                     Role = user.Role.ToString(),
+                    Balance = user.Wallet.Balance,
                     ImageUrl = user.PublisherProfile?.ImageUrl,
                     AccessToken = token,
                     BankResponses = user.UserBanks.Select(ub => new UserBankResponse

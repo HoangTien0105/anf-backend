@@ -4,6 +4,7 @@ using ANF.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250412094205_AddExperienceForPublisher")]
+    partial class AddExperienceForPublisher
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,7 +43,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("conversion_count");
 
                     b.Property<decimal>("ConversionRate")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("conversion_rate");
 
                     b.Property<DateTime>("Date")
@@ -56,7 +59,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("publisher_count");
 
                     b.Property<decimal>("Revenue")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("revenue");
 
                     b.HasKey("Id");
@@ -111,7 +114,7 @@ namespace ANF.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10,0)")
                         .HasColumnName("amount");
 
                     b.Property<string>("BeneficiaryAccount")
@@ -169,12 +172,8 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("advertiser_code");
 
                     b.Property<decimal?>("Balance")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("balance");
-
-                    b.Property<decimal?>("Budget")
-                        .HasColumnType("decimal(12)")
-                        .HasColumnName("budget");
 
                     b.Property<long?>("CategoryId")
                         .HasColumnType("bigint")
@@ -319,11 +318,11 @@ namespace ANF.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Bid")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("bid");
 
                     b.Property<decimal>("Budget")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("budget");
 
                     b.Property<long>("CampaignId")
@@ -519,7 +518,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("conversion_count");
 
                     b.Property<decimal>("ConversionRate")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("conversion_rate");
 
                     b.Property<DateTime>("Date")
@@ -535,7 +534,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("publisher_code");
 
                     b.Property<decimal>("Revenue")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("revenue");
 
                     b.HasKey("Id");
@@ -590,7 +589,7 @@ namespace ANF.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("amount");
 
                     b.Property<string>("ClickId")
@@ -634,7 +633,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("sub_name");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10, 2)")
                         .HasColumnName("sub_price");
 
                     b.HasKey("Id");
@@ -831,7 +830,7 @@ namespace ANF.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal?>("Amount")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10,2)")
                         .HasColumnName("amount");
 
                     b.Property<string>("ClickId")
@@ -1099,7 +1098,7 @@ namespace ANF.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10,2)")
                         .HasColumnName("balance");
 
                     b.Property<bool>("IsActive")
@@ -1133,7 +1132,7 @@ namespace ANF.Infrastructure.Migrations
                         .HasColumnName("balance_type");
 
                     b.Property<decimal?>("CurrentBalance")
-                        .HasColumnType("decimal(12)")
+                        .HasColumnType("decimal(10,2)")
                         .HasColumnName("current_balance");
 
                     b.Property<long?>("TransactionId")

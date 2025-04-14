@@ -34,7 +34,7 @@ namespace ANF.Core.Models.Entities
         [Column("quantity")]
         public int? Quantity { get; set; }
 
-        [Column("amount", TypeName = "decimal(10, 2)")]
+        [Column("amount", TypeName = "decimal(12)")]
         public decimal Amount { get; set; }
     }
 }

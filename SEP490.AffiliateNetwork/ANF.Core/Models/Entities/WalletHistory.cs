@@ -18,7 +18,7 @@ namespace ANF.Core.Models.Entities
         /// <summary>
         /// Current wallet balance at the time when transaction occurs
         /// </summary>
-        [Column("current_balance", TypeName = "decimal(10,2)")]
+        [Column("current_balance", TypeName = "decimal(12)")]
         public decimal? CurrentBalance { get; set; }
 
         /// <summary>

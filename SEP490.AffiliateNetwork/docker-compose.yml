@@ -7,47 +7,51 @@ services:
       context: .
       dockerfile: ANF.Application/Dockerfile
     ports:
-      - "80:8080"  # Azure chỉ expose cổng 80 và 443
+      - "8080:8080"  
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
 
-      # --- ConnectionStrings ---
-      # - ConnectionStrings__Default=${CONNECTIONSTRINGS_DEFAULT}
-      - ConnectionStrings__Azure=${CONNECTIONSTRINGS_AZURE}
+      # Cấu hình CorsSettings
+      - CorsSettings__AllowedOrigins__0=${CorsSettings__AllowedOrigins__0}
+      - CorsSettings__AllowedOrigins__1=${CorsSettings__AllowedOrigins__1}
 
-      # --- JWT ---
-      - Jwt__Issuer=${JWT_ISSUER}
-      - Jwt__Audience=${JWT_AUDIENCE}
-      - Jwt__Key=${JWT_KEY}
+      # ConnectionStrings
+      - ConnectionStrings__Default=${ConnectionStrings__Default}
 
-      # --- Email ---
-      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER}
-      - EmailSettings__Port=${EMAIL_PORT}
-      - EmailSettings__SenderEmail=${EMAIL_SENDER_EMAIL}
-      - EmailSettings__SenderName=${EMAIL_SENDER_NAME}
-      - EmailSettings__Password=${EMAIL_PASSWORD}
+      # Jwt
+      - Jwt__Issuer=${Jwt__Issuer}
+      - Jwt__Audience=${Jwt__Audience}
+      - Jwt__Key=${Jwt__Key}
 
-      # --- Cloudinary ---
-      - CloudinarySettings__CloudName=${CLOUDINARY_NAME}
-      - CloudinarySettings__ApiKey=${CLOUDINARY_API_KEY}
-      - CloudinarySettings__ApiSecret=${CLOUDINARY_API_SECRET}
+      # EmailSettings
+      - EmailSettings__SmtpServer=${EmailSettings__SmtpServer}
+      - EmailSettings__Port=${EmailSettings__Port}
+      - EmailSettings__SenderEmail=${EmailSettings__SenderEmail}
+      - EmailSettings__SenderName=${EmailSettings__SenderName}
+      - EmailSettings__Password=${EmailSettings__Password}
 
-      # --- PayOS ---
-      - PayOS__ClientId=${PAYOS_CLIENT_ID}
-      - PayOS__ApiKey=${PAYOS_API_KEY}
-      - PayOS__ChecksumKey=${PAYOS_CHECKSUM_KEY}
+      # CloudinarySettings
+      - CloudinarySettings__CloudName=${CloudinarySettings__CloudName}
+      - CloudinarySettings__ApiKey=${CloudinarySettings__ApiKey}
+      - CloudinarySettings__ApiSecret=${CloudinarySettings__ApiSecret}
 
-      # --- BankLookup ---
-      - BankLookup__ApiKey=${BANKLOOKUP_API_KEY}
-      - BankLookup__ApiSecret=${BANKLOOKUP_API_SECRET}
+      # PayOS
+      - PayOS__ClientId=${PayOS__ClientId}
+      - PayOS__ApiKey=${PayOS__ApiKey}
+      - PayOS__ChecksumKey=${PayOS__ChecksumKey}
 
-      # --- IP API ---
-      - IpApi__ApiKey=${IPAPI_KEY}
+      # BankLookup
+      - BankLookup__ApiKey=${BankLookup__ApiKey}
+      - BankLookup__ApiSecret=${BankLookup__ApiSecret}
 
-      # --- RabbitMQ ---
-      - RabbitMQ__Host=${RABBITMQ_HOST}
-      - RabbitMQ__Port=${RABBITMQ_PORT}
-      - RabbitMQ__Username=${RABBITMQ_USERNAME}
-      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
-      - RabbitMQ__Exchange=${RABBITMQ_EXCHANGE}
+      # IpApi
+      - IpApi__ApiKey=${IpApi__ApiKey}
+
+      # RabbitMQ
+      - RabbitMQ__Host=${RabbitMQ__Host}
+      - RabbitMQ__Port=${RabbitMQ__Port}
+      - RabbitMQ__Username=${RabbitMQ__Username}
+      - RabbitMQ__Password=${RabbitMQ__Password}
+      - RabbitMQ__Exchange=${RabbitMQ__Exchange}
+      - RabbitMQ__VirtualHost=${RabbitMQ__VirtualHost}
