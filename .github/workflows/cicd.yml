@@ -1,5 +1,4 @@
 name: Deploy to Self-hosted Server
-
 on:
   push:
     branches: [main]
@@ -7,8 +6,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Prevent workflow from running too long
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'  # Specify your .NET version
+        
     - name: Deploy to Server via SSH
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -16,14 +24,44 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script_stop: true  # Stop script execution when any command fails
+        timeout: 60s  # SSH connection timeout
+        command_timeout: 10m  # Individual command timeout
         script: |
-          cd ${{ secrets.PROJECT_DIRECTORY }}
-          git checkout main
-          git pull origin main
-          dotnet publish ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj -c Release -o ${{ secrets.PROJECT_DIRECTORY }}/publish --self-contained true
+          set -e  # Exit immediately if a command exits with a non-zero status
           
-          # Apply EF Core migrations
-          dotnet ef database update --project ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Infrastructure/ANF.Infrastructure.csproj --startup-project ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj
+          echo "Deploying to server..."
+          cd ${{ secrets.PROJECT_DIRECTORY }} || { echo "Failed to navigate to project directory"; exit 1; }
           
-          # Restart your systemd service
-          sudo systemctl restart myapp
+          echo "Updating source code..."
+          git fetch origin main || { echo "Failed to fetch from remote"; exit 1; }
+          git reset --hard origin/main || { echo "Failed to reset to origin/main"; exit 1; }
+          
+          echo "Publishing application..."
+          dotnet publish SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj \
+            -c Release \
+            -o publish \
+            --self-contained true \
+            || { echo "Publish failed"; exit 1; }
+          
+          echo "Applying database migrations..."
+          cd SEP490.AffiliateNetwork || { echo "Failed to navigate to project directory"; exit 1; }
+          dotnet tool restore || { echo "Failed to restore EF Core tools"; exit 1; }
+          dotnet ef database update \
+            --project ANF.Infrastructure/ANF.Infrastructure.csproj \
+            --startup-project ANF.Application/ANF.Application.csproj \
+            || { echo "Database migration failed"; exit 1; }
+          cd ..
+          
+          echo "Restarting service..."
+          sudo systemctl restart myapp || { echo "Failed to restart service"; exit 1; }
+          
+          # Verify service is running
+          sleep 5
+          if ! sudo systemctl is-active --quiet myapp; then
+            echo "Service failed to start properly!"
+            sudo systemctl status myapp
+            exit 1
+          fi
+          
+          echo "Deployment completed successfully!"
