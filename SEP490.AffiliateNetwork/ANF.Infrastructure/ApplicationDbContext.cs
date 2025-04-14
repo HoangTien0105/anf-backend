@@ -13,21 +13,21 @@ namespace ANF.Infrastructure
         }
 
         public DbSet<User> Users { get; set; } = null!;
-        
+
         public DbSet<PublisherProfile> PublisherProfiles { get; set; } = null!;
-        
+
         public DbSet<AdvertiserProfile> AdvertiserProfiles { get; set; } = null!;
-        
+
         public DbSet<TrafficSource> TrafficSources { get; set; } = null!;
-        
+
         public DbSet<Subscription> Subscriptions { get; set; } = null!;
-                
+
         public DbSet<Category> Categories { get; set; } = null!;
-        
+
         public DbSet<Campaign> Campaigns { get; set; } = null!;
-        
+
         public DbSet<Offer> Offers { get; set; } = null!;
-        
+
         public DbSet<CampaignImage> CampaignImages { get; set; } = null!;
 
         public DbSet<PublisherOffer> PublisherOffers { get; set; } = null!;
@@ -37,15 +37,15 @@ namespace ANF.Infrastructure
         public DbSet<Transaction> PaymentTransactions { get; set; } = null!;
 
         public DbSet<Wallet> Wallets { get; set; } = null!;
-        
+
         public DbSet<WalletHistory> WalletHistories { get; set; } = null!;
 
         public DbSet<TrackingParam> TrackingParams { get; set; } = null!;
 
         public DbSet<TrackingEvent> TrackingEvents { get; set; } = null!;
-        
+
         public DbSet<TrackingValidation> TrackingValidations { get; set; } = null!;
-        
+
         public DbSet<FraudDetection> FraudDetections { get; set; } = null!;
 
         public DbSet<Policy> Policies { get; set; } = null!;
@@ -64,11 +64,12 @@ namespace ANF.Infrastructure
         /// <returns>The database connection string</returns>
         private string GetConnectionString()
         {
-            //var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
             IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", true, true)
-                //.AddJsonFile($"appsettings.{env}.json", true, true)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
                 .Build();
 
             return configuration.GetConnectionString("Default") ?? string.Empty;
@@ -95,7 +96,7 @@ namespace ANF.Infrastructure
             new WalletTypeConfig().Configure(builder.Entity<Wallet>());
             new PublisherOfferTypeConfig().Configure(builder.Entity<PublisherOffer>());
             new PostbackDataTypeConfig().Configure(builder.Entity<PostbackData>());
-            
+
             new UserTypeConfig().Configure(builder.Entity<User>());
             new UserBankTypeConfig().Configure(builder.Entity<UserBank>());
             new CampaignTypeConfig().Configure(builder.Entity<Campaign>());
