@@ -100,6 +100,7 @@ namespace ANF.Service
 
                 var offersRequest = _mapper.Map<List<OfferCreateRequest>>(request.Offers);
 
+                //Offer kh trùng
                 var isDuplicateOffer = offersRequest.GroupBy(o =>
                                         new { o.PricingModel, o.Description, o.StepInfo, o.StartDate, o.EndDate }).Any(g => g.Count() > 1);
                 if (isDuplicateOffer)

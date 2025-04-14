@@ -110,14 +110,6 @@ namespace ANF.Service
                 var postbackLog = await postbackLogRepository.GetAll().FirstOrDefaultAsync(e => e.ClickId == id);
                 if (postbackLog is null) throw new KeyNotFoundException("Postback log not found!");
 
-                var trackingValidation = await trackingValidationRepository.GetAll()
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(e => e.ClickId == postbackLog.ClickId);
-                if (trackingValidation is null) throw new KeyNotFoundException("This postback is not valid");
-
-                if (trackingValidation.ConversionStatus != ConversionStatus.Pending)
-                    throw new ArgumentException("This postback's tracking has already been resolved.");
-
                 _ = _mapper.Map(request, postbackLog);
 
                 postbackLogRepository.Update(postbackLog);
