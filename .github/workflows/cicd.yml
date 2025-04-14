@@ -6,17 +6,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Prevent workflow from running too long
+    timeout-minutes: 15
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'  # Specify your .NET version
-        
     - name: Deploy to Server via SSH
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -24,11 +16,22 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script_stop: true  # Stop script execution when any command fails
-        timeout: 60s  # SSH connection timeout
-        command_timeout: 10m  # Individual command timeout
+        script_stop: true
+        timeout: 60s
+        command_timeout: 10m
         script: |
-          set -e  # Exit immediately if a command exits with a non-zero status
+          set -e
+          
+          # Load environment profiles to ensure PATH includes dotnet tools
+          source ~/.profile
+          source ~/.bashrc
+          
+          # If you use .NET version manager, load it
+          export DOTNET_ROOT=$HOME/.dotnet
+          export PATH=$PATH:$HOME/.dotnet:$HOME/.dotnet/tools
+          
+          echo "Checking dotnet version and tools..."
+          dotnet --version || { echo "dotnet not found in PATH"; exit 1; }
           
           echo "Deploying to server..."
           cd ${{ secrets.PROJECT_DIRECTORY }} || { echo "Failed to navigate to project directory"; exit 1; }
@@ -43,11 +46,24 @@ jobs:
             -o publish \
             --self-contained true \
             || { echo "Publish failed"; exit 1; }
+            
+          echo "Installing EF Core tools globally if needed..."
+          dotnet tool list --global | grep dotnet-ef || dotnet tool install --global dotnet-ef
+          
+          # Check if EF tool is available now
+          which dotnet-ef || { 
+            echo "dotnet-ef still not found in PATH after installation"; 
+            echo "Current PATH: $PATH";
+            exit 1; 
+          }
           
           echo "Applying database migrations..."
           cd SEP490.AffiliateNetwork || { echo "Failed to navigate to project directory"; exit 1; }
-          dotnet tool restore || { echo "Failed to restore EF Core tools"; exit 1; }
-          dotnet ef database update --project ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Infrastructure/ANF.Infrastructure.csproj --startup-project ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj
+          
+          # Run migration with full path to be safe
+          $HOME/.dotnet/tools/dotnet-ef database update \
+            --project ANF.Infrastructure/ANF.Infrastructure.csproj \
+            --startup-project ANF.Application/ANF.Application.csproj \
             || { echo "Database migration failed"; exit 1; }
           cd ..
           
