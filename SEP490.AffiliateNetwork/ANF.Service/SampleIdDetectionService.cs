@@ -14,7 +14,8 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SampleIdDetectionService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
+        //private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(20);
 
         public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory,
             ILogger<SampleIdDetectionService> logger)
@@ -43,7 +44,7 @@ namespace ANF.Service
                 _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
-        
+
         /// <summary>
         /// Publish data to RabbitMQ
         /// </summary>
@@ -80,7 +81,7 @@ namespace ANF.Service
                                 .AsNoTracking()
                             on te.OfferId equals o.Id
                             where te.Status == TrackingEventStatus.Valid &&
-                                tv.ValidationStatus == ValidationStatus.Success &&  
+                                tv.ValidationStatus == ValidationStatus.Success &&
                                 tv.ConversionStatus == ConversionStatus.Pending &&
                                 (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
                                 (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
@@ -170,6 +171,7 @@ namespace ANF.Service
                 }
                 else
                 {
+                    var isValidOffer = trackingItem.Offer?.EndDate > DateTime.Now;
                     if (trackingItem.Offer?.PricingModel == "CPC")
                     {
                         trackingItem.Status = TrackingEventStatus.Valid;
@@ -178,8 +180,8 @@ namespace ANF.Service
                         {
                             ClickId = trackingItem.Id,
                             ValidatedTime = DateTime.Now,
-                            ValidationStatus = ValidationStatus.Success,
-                            ConversionStatus = ConversionStatus.Pending,
+                            ValidationStatus = isValidOffer ? ValidationStatus.Success : ValidationStatus.Failed,
+                            ConversionStatus = isValidOffer ? ConversionStatus.Pending : ConversionStatus.Failed,
                         });
 
                     }
@@ -191,8 +193,8 @@ namespace ANF.Service
                         {
                             ClickId = trackingItem.Id,
                             // Validated time is not set yet after checking with postback data
-                            ValidationStatus = ValidationStatus.Unknown,
-                            ConversionStatus = ConversionStatus.Pending,
+                            ValidationStatus = isValidOffer ? ValidationStatus.Unknown : ValidationStatus.Failed,
+                            ConversionStatus = isValidOffer ? ConversionStatus.Pending : ConversionStatus.Failed,
                         });
                     }
                 }

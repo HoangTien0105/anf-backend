@@ -92,7 +92,8 @@ namespace ANF.Service
                 if (!isExisted)
                     throw new KeyNotFoundException("This offer is not run by this publisher!");
 
-                if (DateTime.Now < offer.StartDate || DateTime.Now > offer.EndDate)
+                //Offer kết thúc nhưng vẫn lưu tracking được
+                if (DateTime.Now < offer.StartDate)
                     throw new ArgumentException("Offer is not available.");
 
                 var campaign = await campaignRepository.GetAll()
@@ -245,23 +246,30 @@ namespace ANF.Service
         }
         public async Task ProcessTrackingEvent(TrackingConversionEvent trackingConversionEvent)
         {
+            var offerRepository = _unitOfWork.GetRepository<Offer>();
+            var walletRepository = _unitOfWork.GetRepository<Wallet>();
+            var walletHistoryRepository = _unitOfWork.GetRepository<WalletHistory>();
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
+
+            var trackingValidation = await trackingValidationRepository.GetAll()
+                .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.Id);
+
+            decimal money = 0;
+
+            if (trackingValidation is null)
+            {
+                _logger.LogError($"=================== Tracking validate's id: {trackingConversionEvent.Id} does not exist ===================");
+                return;
+            }
+
             try
             {
-                var offerRepository = _unitOfWork.GetRepository<Offer>();
-                var walletRepository = _unitOfWork.GetRepository<Wallet>();
-                var walletHistoryRepository = _unitOfWork.GetRepository<WalletHistory>();
-                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
-                var transactionRepository = _unitOfWork.GetRepository<Transaction>();
-                var userRepository = _unitOfWork.GetRepository<User>();
-                var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
-
-                var trackingValidation = await trackingValidationRepository.GetAll()
-                    .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.Id)
-                    ?? throw new KeyNotFoundException("Tracking validate's id: " + trackingConversionEvent.Id + "is not exists");
-
                 var offer = await offerRepository.GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.OfferId) 
+                    .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.OfferId)
                     ?? throw new KeyNotFoundException($"Offer with id {trackingConversionEvent.OfferId} not found.");
 
                 var campaign = await campaignRepository.GetAll()
@@ -277,7 +285,7 @@ namespace ANF.Service
                             .FirstOrDefaultAsync(e => e.UserCode == trackingConversionEvent.PublisherCode)
                             ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
 
-                var money = trackingConversionEvent.PricingModel == "CPS"
+                money = trackingConversionEvent.PricingModel == "CPS"
                             ? offer.Bid * (decimal)offer.CommissionRate
                             : offer.Bid;
                 _logger.LogInformation("=================== Calculated money: {Money} ===================", money);
@@ -285,6 +293,11 @@ namespace ANF.Service
                 if (advertiserWallet.Balance < money)
                 {
                     throw new InvalidOperationException("Insufficient funds in advertiser's wallet.");
+                }
+
+                if (campaign.Balance < money)
+                {
+                    throw new InvalidOperationException("Campaign is out of money.");
                 }
 
                 var advTransaction = new Transaction
@@ -339,6 +352,10 @@ namespace ANF.Service
                 publisherWallet.Balance += money;
                 walletRepository.Update(publisherWallet);
 
+                //Update campaign budget
+                campaign.Balance -= money;
+                campaignRepository.Update(campaign);
+
                 //Update tracking validation
                 trackingValidation.ConversionStatus = ConversionStatus.Success;
                 trackingValidationRepository.Update(trackingValidation);
@@ -349,6 +366,12 @@ namespace ANF.Service
             {
                 _logger.LogError($"=================== Error process tracking data for {trackingConversionEvent.Id}: {ex.Message} ===================");
                 await _unitOfWork.RollbackAsync();
+                //Update 2 cột status của tracking validation nếu có bug được throw ra
+                trackingValidation.ConversionStatus = ConversionStatus.Failed;
+                trackingValidation.ValidationStatus = ValidationStatus.Failed;
+                trackingValidation.Amount = money;
+                trackingValidationRepository.Update(trackingValidation);
+                await _unitOfWork.SaveAsync();
                 throw;
             }
         }
