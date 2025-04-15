@@ -295,6 +295,7 @@ namespace ANF.Service
                     throw new InvalidOperationException("Insufficient funds in advertiser's wallet.");
                 }
 
+                //Validate campaign còn đủ tiền hay không
                 if (campaign.Balance < money)
                 {
                     throw new InvalidOperationException("Campaign is out of money.");

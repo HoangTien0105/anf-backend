@@ -14,8 +14,7 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SampleIdDetectionService> _logger;
-        //private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
-        private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(20);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
 
         public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory,
             ILogger<SampleIdDetectionService> logger)
