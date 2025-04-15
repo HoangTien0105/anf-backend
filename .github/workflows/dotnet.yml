@@ -1,4 +1,4 @@
-name: .NET
+name: .NET CI/CD
 
 on:
   push:
@@ -12,21 +12,72 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-          
-    - name: Restore dependencies
-      run: dotnet restore SEP490.AffiliateNetwork.sln
-      working-directory: SEP490.AffiliateNetwork
-    
-    - name: Build
-      run: dotnet build SEP490.AffiliateNetwork.sln --no-restore
-      working-directory: SEP490.AffiliateNetwork
-    
-    - name: Test
-      run: dotnet test SEP490.AffiliateNetwork.sln --no-build --verbosity normal
-      working-directory: SEP490.AffiliateNetwork
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore SEP490.AffiliateNetwork.sln
+        working-directory: SEP490.AffiliateNetwork
+
+      - name: Build
+        run: dotnet build SEP490.AffiliateNetwork.sln --no-restore
+        working-directory: SEP490.AffiliateNetwork
+
+      - name: Test
+        run: dotnet test SEP490.AffiliateNetwork.sln --no-build --verbosity normal
+        working-directory: SEP490.AffiliateNetwork
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          timeout: 60s
+          command_timeout: 10m
+          script: |
+            set -e
+
+            # Ensure dotnet tools are in PATH
+            export PATH=$PATH:$HOME/.dotnet/tools
+
+            echo "Deploying to server..."
+            cd ${{ secrets.PROJECT_DIRECTORY }} || { echo "Failed to navigate to project directory"; exit 1; }
+
+            echo "Updating source code..."
+            git fetch origin main || { echo "Failed to fetch from remote"; exit 1; }
+            git reset --hard origin/main || { echo "Failed to reset to origin/main"; exit 1; }
+
+            echo "Publishing application..."
+            dotnet publish SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj \
+              -c Release \
+              -o publish \
+              --self-contained true \
+              || { echo "Publish failed"; exit 1; }
+
+            echo "Applying database migrations..."
+            cd SEP490.AffiliateNetwork || { echo "Failed to navigate to project directory"; exit 1; }
+
+            dotnet ef database update \
+              --project ANF.Infrastructure/ANF.Infrastructure.csproj \
+              --startup-project ANF.Application/ANF.Application.csproj \
+              || { echo "Database migration failed"; exit 1; }
+            cd ..
+
+            echo "Restarting service..."
+            sudo systemctl restart myapp || { echo "Failed to restart service"; exit 1; }
+
+            echo "Deployment completed successfully!"
