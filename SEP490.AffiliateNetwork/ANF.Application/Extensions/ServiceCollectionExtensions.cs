@@ -63,6 +63,7 @@ namespace ANF.Application.Extensions
             services.AddHostedService<RabbitMQConsumer>();
             services.AddHostedService<SampleIdDetectionService>();
             services.AddHostedService<PostbackValidationService>();
+            services.AddHostedService<CampaignBackgroundService>();
 
             services.AddHostedService<StatisticBackgroundService>();
 
@@ -232,6 +233,7 @@ namespace ANF.Application.Extensions
             services.AddSingleton<SampleIdDetectionService>();
             services.AddSingleton<PostbackValidationService>();
             services.AddSingleton<StatisticBackgroundService>();
+            services.AddSingleton<CampaignBackgroundService>();
 
             return services;
         }
