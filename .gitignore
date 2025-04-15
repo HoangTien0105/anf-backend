@@ -5,8 +5,17 @@
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
-# Ignore enviroment configuration file
+# Configuration files
+appsettings.Production.json
+appsettings.Development.json
+appsettings.Staging.json
 .env
+*.Development.json
+*.Production.json
+*.Staging.json
+
+# Exclude specific settings but keep template
+!appsettings.template.json
 
 # User-specific stuff
 .idea/**/workspace.xml

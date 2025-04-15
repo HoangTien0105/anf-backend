@@ -1,5 +1,4 @@
 name: Deploy to Self-hosted Server
-
 on:
   push:
     branches: [main]
@@ -7,6 +6,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
     - name: Deploy to Server via SSH
@@ -16,8 +16,41 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script_stop: true
+        timeout: 60s
+        command_timeout: 10m
         script: |
-          cd ${{ secrets.PROJECT_DIRECTORY }}
-          git pull origin main
-          dotnet publish ${{ secrets.PROJECT_DIRECTORY }}/SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj -c Release -o ${{ secrets.PROJECT_DIRECTORY }}/publish --self-contained true
-          sudo systemctl restart myapp
+          set -e
+          
+          # Ensure dotnet tools are in PATH
+          export PATH=$PATH:$HOME/.dotnet/tools
+          
+          echo "Deploying to server..."
+          cd ${{ secrets.PROJECT_DIRECTORY }} || { echo "Failed to navigate to project directory"; exit 1; }
+          
+          echo "Updating source code..."
+          git fetch origin main || { echo "Failed to fetch from remote"; exit 1; }
+          git reset --hard origin/main || { echo "Failed to reset to origin/main"; exit 1; }
+          
+          echo "Publishing application..."
+          dotnet publish SEP490.AffiliateNetwork/ANF.Application/ANF.Application.csproj \
+            -c Release \
+            -o publish \
+            --self-contained true \
+            || { echo "Publish failed"; exit 1; }
+          
+          echo "Applying database migrations..."
+          cd SEP490.AffiliateNetwork || { echo "Failed to navigate to project directory"; exit 1; }
+          
+          
+          # Run migration with explicit command path to ensure it's found
+          dotnet ef database update \
+            --project ANF.Infrastructure/ANF.Infrastructure.csproj \
+            --startup-project ANF.Application/ANF.Application.csproj \
+            || { echo "Database migration failed"; exit 1; }
+          cd ..
+          
+          echo "Restarting service..."
+          sudo systemctl restart myapp || { echo "Failed to restart service"; exit 1; }
+          
+          echo "Deployment completed successfully!"
