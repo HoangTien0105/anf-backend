@@ -95,6 +95,7 @@ namespace ANF.Service
                 if(advCampaignMoney + campaign.Balance > advWallet.Balance)
                     throw new ArgumentException("Advertiser does not have enough balance to cover all campaigns.");
 
+                campaign.Budget = campaign.Balance;
 
                 campaignRepository.Add(campaign);
 

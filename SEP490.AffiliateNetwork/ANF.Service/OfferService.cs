@@ -153,8 +153,10 @@ namespace ANF.Service
 
                 offerRepository.Add(offer);
                 campaignExist.Balance += offer.Budget;
+                // Cộng thêm budget của offer vào budget của campaign và đem đi so sánh
+                campaignExist.Budget += offer.Budget;
 
-                if (campaignExist.Balance > advWallet.Balance)
+                if (campaignExist.Budget > advWallet.Balance)
                     throw new ArgumentException("Advertiser does not have enough for this campaign.");
 
                 var advCampaignMoney = await campaignRepository.GetAll()
@@ -164,11 +166,11 @@ namespace ANF.Service
                         && (e.Status == CampaignStatus.Started
                         || e.Status == CampaignStatus.Verified
                         || e.Status == CampaignStatus.Pending))
-                        .SumAsync(e => e.Balance);
+                        .SumAsync(e => e.Budget);
 
-                if (advCampaignMoney + campaignExist.Balance > advWallet.Balance)
+                if (advCampaignMoney + campaignExist.Budget > advWallet.Balance)
                     throw new ArgumentException("Advertiser does not have enough balance to cover all campaigns.");
-                
+
                 campaignRepository.Update(campaignExist);
 
                 var affectedRows = await _unitOfWork.SaveAsync();
@@ -421,6 +423,9 @@ namespace ANF.Service
 
                 if (request.PricingModel == "CPS" && request.CommissionRate is null) throw new ArgumentException("Pricing model CPS must have Commission rate");
 
+                //Trừ budget cũ của offer trước
+                campaignExist.Budget -= offer.Budget;
+
                 _ = _mapper.Map(request, offer);
 
                 if (request.OfferImages is not null)
@@ -449,8 +454,9 @@ namespace ANF.Service
                                             .SumAsync(e => e.Budget);
 
                 campaignExist.Balance = existingOffersSum + offer.Budget;
+                campaignExist.Budget += offer.Budget;
 
-                if (campaignExist.Balance > advWallet.Balance)
+                if (campaignExist.Budget > advWallet.Balance)
                     throw new ArgumentException("Advertiser does not have enough for this campaign.");
 
                 var advCampaignMoney = await campaignRepository.GetAll()
@@ -460,11 +466,11 @@ namespace ANF.Service
                         && (e.Status == CampaignStatus.Started
                         || e.Status == CampaignStatus.Verified
                         || e.Status == CampaignStatus.Pending))
-                        .SumAsync(e => e.Balance);
+                        .SumAsync(e => e.Budget);
 
-                if (advCampaignMoney + campaignExist.Balance > advWallet.Balance)
+                if (advCampaignMoney + campaignExist.Budget > advWallet.Balance)
                     throw new ArgumentException("Advertiser does not have enough balance to cover all campaigns.");
-
+                
                 campaignRepository.Update(campaignExist);
 
                 return await _unitOfWork.SaveAsync() > 0;

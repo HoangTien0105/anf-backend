@@ -5,5 +5,6 @@
         Pending = 1,
         Valid = 2,
         Fraud = 3,
+        Invalid = 4,
     }
 }

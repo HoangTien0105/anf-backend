@@ -14,7 +14,7 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SampleIdDetectionService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
 
         public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory,
             ILogger<SampleIdDetectionService> logger)
@@ -43,7 +43,7 @@ namespace ANF.Service
                 _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
-        
+
         /// <summary>
         /// Publish data to RabbitMQ
         /// </summary>
@@ -80,7 +80,7 @@ namespace ANF.Service
                                 .AsNoTracking()
                             on te.OfferId equals o.Id
                             where te.Status == TrackingEventStatus.Valid &&
-                                tv.ValidationStatus == ValidationStatus.Success &&  
+                                tv.ValidationStatus == ValidationStatus.Success &&
                                 tv.ConversionStatus == ConversionStatus.Pending &&
                                 (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
                                 (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
@@ -170,34 +170,42 @@ namespace ANF.Service
                 }
                 else
                 {
-                    if (trackingItem.Offer?.PricingModel == "CPC")
+                    var isValidOffer = trackingItem.Offer?.EndDate > DateTime.Now;
+                    if (isValidOffer)
                     {
-                        trackingItem.Status = TrackingEventStatus.Valid;
-                        validEvents.Add(trackingItem);
-                        trackingValidationRepository.Add(new TrackingValidation
+                        if (trackingItem.Offer?.PricingModel == "CPC")
                         {
-                            ClickId = trackingItem.Id,
-                            ValidatedTime = DateTime.Now,
-                            ValidationStatus = ValidationStatus.Success,
-                            ConversionStatus = ConversionStatus.Pending,
-                        });
+                            trackingItem.Status = TrackingEventStatus.Valid;
+                            validEvents.Add(trackingItem);
+                            trackingValidationRepository.Add(new TrackingValidation
+                            {
+                                ClickId = trackingItem.Id,
+                                ValidatedTime = DateTime.Now,
+                                ValidationStatus = ValidationStatus.Success,
+                                ConversionStatus = ConversionStatus.Pending,
+                            });
 
-                    }
-                    else if (trackingItem.Offer?.PricingModel == "CPA" || trackingItem.Offer?.PricingModel == "CPS")
-                    {
-                        trackingItem.Status = TrackingEventStatus.Valid;
-                        validEvents.Add(trackingItem);
-                        trackingValidationRepository.Add(new TrackingValidation
+                        }
+                        else if (trackingItem.Offer?.PricingModel == "CPA" || trackingItem.Offer?.PricingModel == "CPS")
                         {
-                            ClickId = trackingItem.Id,
-                            // Validated time is not set yet after checking with postback data
-                            ValidationStatus = ValidationStatus.Unknown,
-                            ConversionStatus = ConversionStatus.Pending,
-                        });
+                            trackingItem.Status = TrackingEventStatus.Valid;
+                            validEvents.Add(trackingItem);
+                            trackingValidationRepository.Add(new TrackingValidation
+                            {
+                                ClickId = trackingItem.Id,
+                                // Validated time is not set yet after checking with postback data
+                                ValidationStatus = ValidationStatus.Unknown,
+                                ConversionStatus = ConversionStatus.Pending
+                            });
+                        }
+                    }
+                    else
+                    {
+                        trackingItem.Status = TrackingEventStatus.Invalid;
                     }
                 }
-                trackingEventRepository.Update(trackingItem);
             }
+            trackingEventRepository.UpdateRange(trackingData);
 
             await unitOfWork.SaveAsync();
 
