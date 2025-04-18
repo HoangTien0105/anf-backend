@@ -1,5 +1,6 @@
 using ANF.Application.Extensions;
 using ANF.Application.Middlewares;
+using Microsoft.AspNetCore.HttpOverrides;
 
 // The CreateBuilder method already sets up configuration with environment support, 
 // but you can customize it if needed
@@ -30,6 +31,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "SEP490.AffiliateNetwork V1");
 });
 
+app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
