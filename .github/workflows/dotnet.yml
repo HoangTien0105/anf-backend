@@ -52,6 +52,7 @@ jobs:
             set -e
 
             # Ensure dotnet tools are in PATH
+            export DOTNET_ROOT=/usr/share/dotnet
             export PATH=$PATH:$HOME/.dotnet/tools
 
             echo "Deploying to server..."
