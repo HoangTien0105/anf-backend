@@ -31,11 +31,15 @@ namespace ANF.Service
         private readonly HttpClient _httpClient = httpClient;
         private readonly BankLookupSettings _options = options.Value;
 
-        //TODO: Change the application host when deploying successfully!
-        private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
+        private readonly string _appBaseUrlDev = "http://localhost:5272/api/affiliate-network";
+
+        private readonly string _appBaseUrlProd = " https://be.l3on.id.vn/api/affiliate-network";
 
         // URL for account number lookup
         private readonly string _bankLookupUrl = "https://api.banklookup.net/api/bank/id-lookup-prod";
+
+        private readonly string _currentEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? string.Empty;
 
         public async Task<bool> ActivateWallet(string userCode)
         {
@@ -93,6 +97,7 @@ namespace ANF.Service
         {
             try
             {
+
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var user = await userRepository.GetAll()
                     .AsNoTracking()
@@ -107,16 +112,32 @@ namespace ANF.Service
                 user.ExpiryDate = DateTime.UtcNow.AddHours(1);
                 userRepository.Update(user);
 
-                var url = $"{_appBaseUrl}/users/{user.Id}/reset-token/{token}";
-                var message = new EmailMessage
+                if (_currentEnv == "Development")
                 {
-                    To = user.Email,
-                    Subject = "Reset password"
-                };
-                var result = await _emailService.SendTokenForResetPassword(message, url);
-                if (result)
-                    return await _unitOfWork.SaveAsync() > 0;
-                else throw new Exception("Failed to send email for reset password!");
+                    var url = $"{_appBaseUrlDev}/users/{user.Id}/reset-token/{token}";
+                    var message = new EmailMessage
+                    {
+                        To = user.Email,
+                        Subject = "Reset password"
+                    };
+                    var result = await _emailService.SendTokenForResetPassword(message, url);
+                    if (result)
+                        return await _unitOfWork.SaveAsync() > 0;
+                    else throw new Exception("Failed to send email for reset password!");
+                }
+                else
+                {
+                    var url = $"{_appBaseUrlProd}/users/{user.Id}/reset-token/{token}";
+                    var message = new EmailMessage
+                    {
+                        To = user.Email,
+                        Subject = "Reset password"
+                    };
+                    var result = await _emailService.SendTokenForResetPassword(message, url);
+                    if (result)
+                        return await _unitOfWork.SaveAsync() > 0;
+                    else throw new Exception("Failed to send email for reset password!");
+                }
             }
             catch
             {
@@ -231,7 +252,7 @@ namespace ANF.Service
                             Id = (int)ub.Id,
                             BankingNo = ub.BankingNo,
                             BankingProvider = ub.BankingProvider,
-                        }).ToList() ?? new List<UserBankResponse>(),
+                        }).ToList() ?? [],
                         AdvertiserProfile = user.AdvertiserProfile is not null ? new AdvertiserProfileInfoResponse()
                         {
                             CompanyName = user.AdvertiserProfile.CompanyName,
@@ -257,7 +278,7 @@ namespace ANF.Service
                         Role = user.Role.ToString(),
                         Balance = user.Wallet.Balance,
                         ImageUrl = user.PublisherProfile?.ImageUrl,
-                        BankResponses = user.UserBanks.Select(ub => new UserBankResponse
+                        BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
                         {
                             Id = (int)ub.Id,
                             BankingNo = ub.BankingNo,
@@ -318,26 +339,53 @@ namespace ANF.Service
 
                 var user = _mapper.Map<User>(request);
                 userRepository.Add(user);
+
                 // Send email verification to user
-                var verificationUrl = @$"{_appBaseUrl}/users/{user.Id}/verify-account";
-                var msg = new EmailMessage
+                if (_currentEnv == "Development")
                 {
-                    To = user.Email,
-                    Subject = "Account verification."
-                };
-                var verificationResult = await _emailService.SendVerificationEmail(msg, verificationUrl);
-                if (verificationResult)
-                {
-                    await _unitOfWork.SaveAsync();  // Save user's information into database to store user's wallet info
+                    var verificationUrl = @$"{_appBaseUrlDev}/users/{user.Id}/verify-account";
+                    var msg = new EmailMessage
+                    {
+                        To = user.Email,
+                        Subject = "Account verification."
+                    };
+                    var verificationResult = await _emailService.SendVerificationEmail(msg, verificationUrl);
+                    if (verificationResult)
+                    {
+                        await _unitOfWork.SaveAsync();  // Save user's information into database to store user's wallet info
+                    }
+                    else throw new Exception("Email sending failure!");
+                    //Enable user's wallet
+                    var wallet = new Wallet
+                    {
+                        UserCode = user.UserCode,
+                    };
+                    walletRepository.Add(wallet);
+                    return await _unitOfWork.SaveAsync() > 0;   // Save user's wallet information
+
                 }
-                else throw new Exception("Email sending failure!");
-                //Enable user's wallet
-                var wallet = new Wallet
+                else
                 {
-                    UserCode = user.UserCode,
-                };
-                walletRepository.Add(wallet);
-                return await _unitOfWork.SaveAsync() > 0;   // Save user's wallet information
+                    var verificationUrl = @$"{_appBaseUrlProd}/users/{user.Id}/verify-account";
+                    var msg = new EmailMessage
+                    {
+                        To = user.Email,
+                        Subject = "Account verification."
+                    };
+                    var verificationResult = await _emailService.SendVerificationEmail(msg, verificationUrl);
+                    if (verificationResult)
+                    {
+                        await _unitOfWork.SaveAsync();  // Save user's information into database to store user's wallet info
+                    }
+                    else throw new Exception("Email sending failure!");
+                    //Enable user's wallet
+                    var wallet = new Wallet
+                    {
+                        UserCode = user.UserCode,
+                    };
+                    walletRepository.Add(wallet);
+                    return await _unitOfWork.SaveAsync() > 0;   // Save user's wallet information
+                }
             }
             catch
             {
@@ -466,12 +514,12 @@ namespace ANF.Service
                     Balance = user.Wallet.Balance,
                     ImageUrl = user.PublisherProfile?.ImageUrl,
                     AccessToken = token,
-                    BankResponses = user.UserBanks.Select(ub => new UserBankResponse
+                    BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
                     {
                         Id = (int)ub.Id,
                         BankingNo = ub.BankingNo,
                         BankingProvider = ub.BankingProvider,
-                    }).ToList() ?? new List<UserBankResponse>(),
+                    }).ToList() ?? [],
                     PublisherProfile = user.PublisherProfile is not null ? new PublisherProfileInfoResponse()
                     {
                         Specialization = user.PublisherProfile.Specialization,
@@ -553,7 +601,7 @@ namespace ANF.Service
                         .AnyAsync(ub => ub.BankingNo == request.BankingNo);
                     if (isDuplicated)
                         throw new DuplicatedException("This banking number has already existed in the platform!");
-                    
+
                     var userBank = new UserBank
                     {
                         UserCode = currentUserCode,

@@ -32,12 +32,14 @@ namespace ANF.Service
         private readonly CancellationTokenSource _cts;
         private readonly Task _processingTask;
         private readonly ILogger<TrackingService> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _httpClient;
         private readonly IpApiSettings _ipApiSettings;
 
         public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IHttpClientFactory httpClientFactory,
             IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger,
-            IOptions<IpApiSettings> options)
+            IOptions<IpApiSettings> options,
+            IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _cache = cache;
@@ -46,6 +48,7 @@ namespace ANF.Service
             _scopeFactory = scopeFactory;
             _processingTask = Task.Run(() => ProcessQueueAsync(_cts.Token));
             _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
             _ipApiSettings = options.Value;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri(_ipApiBaseUrl);
@@ -69,10 +72,12 @@ namespace ANF.Service
                 var remoteIpAddress = httpRequest.HttpContext.Connection.RemoteIpAddress;
                 if (remoteIpAddress == null) throw new InvalidOperationException("Cannot determine the client's IP address.");
 
-                var ipAddress = remoteIpAddress.MapToIPv4().ToString();
+                // Get remote IP address
+                var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress.ToString();
 
-                // Bỏ comment đoạn dưới để test trên localhost
+                // For local testing
                 if (ipAddress == "0.0.0.1") ipAddress = "your-ip";
+
 
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
                 if (offerId < 1 || uaInfor.IsRobot())

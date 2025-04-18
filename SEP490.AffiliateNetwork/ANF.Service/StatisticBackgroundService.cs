@@ -203,7 +203,9 @@ namespace ANF.Service
                                                        .AsNoTracking()
                                                        .Where(v => v.ClickId != null
                                                                     && clickIds.Contains(v.ClickId)
-                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success)
+                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success
+                                                                    && v.ConversionStatus == Core.Enums.ConversionStatus.Success
+                                                                    )
                                                        .ToListAsync();
 
                 int validatedClicksCount = validatedClickList.Count();
@@ -252,7 +254,9 @@ namespace ANF.Service
                                                        .AsNoTracking()
                                                        .Where(v => v.ClickId != null
                                                                     && clickIds.Contains(v.ClickId)
-                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success)
+                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success
+                                                                    && v.ConversionStatus == Core.Enums.ConversionStatus.Success
+                                                                    )
                                                        .ToListAsync();
                 int validatedClicksCount = validatedClickList.Count();
 

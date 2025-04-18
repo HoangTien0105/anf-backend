@@ -11,9 +11,13 @@ namespace ANF.Service
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly PayOSSettings _options = options.Value;
+        
+        private readonly string _appBaseUrLDev = "http://localhost:5272/api/affiliate-network";
+        
+        private readonly string _appBaseUrLProd = " https://be.l3on.id.vn/api/affiliate-network";
 
-        //TODO: Please change the base url based on the environment (Dev, Prod)
-        private readonly string _appBaseUrl = "http://localhost:5272/api/affiliate-network";
+        private readonly string _currentEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            ?? string.Empty;
 
         public Task<bool> CancelPaymentLink()
         {
@@ -31,17 +35,34 @@ namespace ANF.Service
                 throw new KeyNotFoundException("Transaction does not exist!");
             ItemData item = new ItemData(transaction.Reason ?? string.Empty, 1, (int)transaction.Amount);
             items.Add(item);
-            
-            var paymentData = new PaymentData(
-                orderCode: transaction.Id,
-                amount: (int)transaction.Amount,
-                description: transaction.Reason ?? string.Empty,
-                items: items,
-                cancelUrl: _appBaseUrl + $"/users/revoke-payment?transactionId={transaction.Id}",
-                returnUrl: _appBaseUrl + $"/users/confirm-payment?transactionId={transaction.Id}"
-            );  
-            var paymentResult = await payOS.createPaymentLink(paymentData);
-            return paymentResult.checkoutUrl;
+
+            if (_currentEnv == "Development")
+            {
+                var paymentData = new PaymentData(
+                    orderCode: transaction.Id,
+                    amount: (int)transaction.Amount,
+                    description: transaction.Reason ?? string.Empty,
+                    items: items,
+                    cancelUrl: _appBaseUrLDev + $"/users/revoke-payment?transactionId={transaction.Id}",
+                    returnUrl: _appBaseUrLDev + $"/users/confirm-payment?transactionId={transaction.Id}"
+                );
+                var paymentResult = await payOS.createPaymentLink(paymentData);
+                return paymentResult.checkoutUrl;
+
+            }
+            else
+            {
+                var paymentData = new PaymentData(
+                    orderCode: transaction.Id,
+                    amount: (int)transaction.Amount,
+                    description: transaction.Reason ?? string.Empty,
+                    items: items,
+                    cancelUrl: _appBaseUrLProd + $"/users/revoke-payment?transactionId={transaction.Id}",
+                    returnUrl: _appBaseUrLProd + $"/users/confirm-payment?transactionId={transaction.Id}"
+                );
+                var paymentResult = await payOS.createPaymentLink(paymentData);
+                return paymentResult.checkoutUrl;
+            }
         }
 
         public async Task<string> CreatePaymentLinkForSubscription(long transactionId)
@@ -55,17 +76,33 @@ namespace ANF.Service
                 throw new KeyNotFoundException("Transaction does not exist!");
             ItemData item = new ItemData(transaction.Reason ?? string.Empty, 1, (int)transaction.Amount);
             items.Add(item);
-            
-            var paymentData = new PaymentData(
-                orderCode: transaction.Id,
-                amount: (int)transaction.Amount,
-                description: transaction.Reason ?? string.Empty,
-                items: items,
-                cancelUrl: _appBaseUrl + $"/users/revoke-payment?transactionId={transaction.Id}",
-                returnUrl: _appBaseUrl + $"/users/confirm-subscription-purchase?transactionId={transaction.Id}"
-            );
-            var paymentResult = await payOS.createPaymentLink(paymentData);
-            return paymentResult.checkoutUrl;
+
+            if (_currentEnv == "Development")
+            {
+                var paymentData = new PaymentData(
+                    orderCode: transaction.Id,
+                    amount: (int)transaction.Amount,
+                    description: transaction.Reason ?? string.Empty,
+                    items: items,
+                    cancelUrl: _appBaseUrLDev + $"/users/revoke-payment?transactionId={transaction.Id}",
+                    returnUrl: _appBaseUrLDev + $"/users/confirm-subscription-purchase?transactionId={transaction.Id}"
+                );
+                var paymentResult = await payOS.createPaymentLink(paymentData);
+                return paymentResult.checkoutUrl;
+            }
+            else
+            {
+                var paymentData = new PaymentData(
+                    orderCode: transaction.Id,
+                    amount: (int)transaction.Amount,
+                    description: transaction.Reason ?? string.Empty,
+                    items: items,
+                    cancelUrl: _appBaseUrLProd + $"/users/revoke-payment?transactionId={transaction.Id}",
+                    returnUrl: _appBaseUrLProd + $"/users/confirm-subscription-purchase?transactionId={transaction.Id}"
+                );
+                var paymentResult = await payOS.createPaymentLink(paymentData);
+                return paymentResult.checkoutUrl;
+            }
         }
 
         public Task<string> GetPaymentLinkInformation()
