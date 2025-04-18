@@ -30,6 +30,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "SEP490.AffiliateNetwork V1");
 });
 
+app.UseForwardedHeaders();  // IMPORTANT: This must come *before* any middleware
 
 app.UseHttpsRedirection();
 

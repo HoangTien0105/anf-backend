@@ -71,8 +71,9 @@ namespace ANF.Service
 
                 var ipAddress = remoteIpAddress.MapToIPv4().ToString();
 
-                // Bỏ comment đoạn dưới để test trên localhost
+                // For local testing
                 if (ipAddress == "0.0.0.1") ipAddress = "your-ip";
+
 
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
                 if (offerId < 1 || uaInfor.IsRobot())

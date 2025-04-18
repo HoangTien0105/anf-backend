@@ -6,6 +6,7 @@ using ANF.Service;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -69,6 +70,34 @@ namespace ANF.Application.Extensions
 
             services.AddSingleton<RabbitMQPublisher>();
 
+            services.Configure<ForwardedHeadersOptions>(o =>
+            {
+                // Cloudflare IPv4 ranges (current list from Cloudflare)
+                var cloudflareNets = new[]
+                {
+                    IPNetwork.Parse("173.245.48.0/20"),
+                    IPNetwork.Parse("103.21.244.0/22"),
+                    IPNetwork.Parse("103.22.200.0/22"),
+                    IPNetwork.Parse("103.31.4.0/22"),
+                    IPNetwork.Parse("141.101.64.0/18"),
+                    IPNetwork.Parse("108.162.192.0/18"),
+                    IPNetwork.Parse("190.93.240.0/20"),
+                    IPNetwork.Parse("188.114.96.0/20"),
+                    IPNetwork.Parse("197.234.240.0/22"),
+                    IPNetwork.Parse("198.41.128.0/17"),
+                    IPNetwork.Parse("162.158.0.0/15"),
+                    IPNetwork.Parse("104.16.0.0/13"),
+                    IPNetwork.Parse("104.24.0.0/14"),
+                    IPNetwork.Parse("172.64.0.0/13"),
+                    IPNetwork.Parse("131.0.72.0/22"),
+                };
+
+                o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                foreach (var item in cloudflareNets)
+                {
+                    o.KnownNetworks.Add(item);
+                }
+            });
 
             return services;
         }
