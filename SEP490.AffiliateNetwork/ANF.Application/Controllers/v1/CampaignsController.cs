@@ -160,9 +160,9 @@ namespace ANF.Application.Controllers.v1
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdateCampaignStatus(long id, [FromBody] CampaignStatusUpdatedRequest request)
+        public async Task<IActionResult> UpdateCampaignStatus(long id, [FromBody] CampaignOfferStatusUpdatedRequest request)
         {
-            var result = await _campaignService.UpdateCampaignStatus(id, request.CampaignStatus, request.RejectReason);
+            var result = await _campaignService.UpdateCampaignStatus(id, request.Status, request.RejectReason);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {
