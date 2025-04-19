@@ -229,8 +229,7 @@ namespace ANF.Application.Controllers.v1
         /// Update offer status for admin
         /// </summary>
         /// <param name="id">Offer's id</param>
-        /// <param name="status">Offer's status</param>
-        /// <param name="rejectedReason">Rejected reason</param>
+        /// <param name="request">Offer status updated model</param>
         /// <returns></returns>
         [HttpPatch("offers/{id}")]
         [MapToApiVersion(1)]
@@ -239,9 +238,9 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetOfferOfPublisher(long id, string status, string? rejectedReason)
+        public async Task<IActionResult> UpdateOfferStatus(long id, [FromBody] CampaignOfferStatusUpdatedRequest request)
         {
-            var result = await _offerService.UpdateOfferStatus(id, status, rejectedReason);
+            var result = await _offerService.UpdateOfferStatus(id, request.Status, request.RejectReason);
             if (!result) return BadRequest();
             return Ok(new ApiResponse<string>
             {

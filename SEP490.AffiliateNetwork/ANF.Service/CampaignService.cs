@@ -14,12 +14,14 @@ namespace ANF.Service
     public class CampaignService(IUnitOfWork unitOfWork,
                                  ICloudinaryService cloudinaryService,
                                  IMapper mapper,
-                                 IUserClaimsService userClaimsService) : ICampaignService
+                                 IUserClaimsService userClaimsService,
+                                 IEmailService emailService) : ICampaignService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+        private readonly IEmailService _emailService = emailService;
 
         public async Task<bool> CreateCampaign(CampaignCreateRequest request)
         {
@@ -472,6 +474,7 @@ namespace ANF.Service
             {
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
+                var userRepository = _unitOfWork.GetRepository<User>();
 
                 if (!Enum.TryParse<CampaignStatus>(campaignStatus, true, out var status))
                     throw new ArgumentException("Invalid campaign's status. Please check again!");
@@ -534,9 +537,26 @@ namespace ANF.Service
                     campaign.Status = status;
                     offerRepository.UpdateRange(offers);
                 }
-
                 campaignRepository.Update(campaign);
-                return await _unitOfWork.SaveAsync() > 0;
+
+                var user = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaign.AdvertiserCode);
+                if(user is null) throw new KeyNotFoundException("Advertiser does not exist!");
+
+                var message = new EmailMessage
+                {
+                    To = user.Email,
+                    Subject = "Campaign notifications"
+                };
+
+                var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, null, campaign.Status.ToString());
+                if (emailResult)
+                {
+                    return await _unitOfWork.SaveAsync() > 0;
+                }
+                else
+                {
+                    throw new Exception("Failed to send email for campaign notifications!");
+                }
             }
             catch (Exception)
             {

@@ -13,11 +13,13 @@ namespace ANF.Service
 {
     public class OfferService(IUnitOfWork unitOfWork, IMapper mapper,
         ICloudinaryService cloudinaryService,
-        IUserClaimsService userClaimsService) : IOfferService
+        IUserClaimsService userClaimsService,
+        IEmailService emailService) : IOfferService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
+        private readonly IEmailService _emailService = emailService;
         private readonly IMapper _mapper = mapper;
 
         public async Task<bool> ApplyOffer(long offerId)
@@ -552,6 +554,7 @@ namespace ANF.Service
         {
             try
             {
+                var userRepository = _unitOfWork.GetRepository<User>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var offer = await offerRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.Id ==  offerId);
                 if (offer is null) throw new KeyNotFoundException("Offer does not exists.");
@@ -617,7 +620,24 @@ namespace ANF.Service
                 campaignRepository.Update(campaign);
                 offerRepository.Update(offer);
 
-                return await _unitOfWork.SaveAsync() > 0;
+                var user = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaign.AdvertiserCode);
+                if (user is null) throw new KeyNotFoundException("Advertiser does not exist!");
+
+                var message = new EmailMessage
+                {
+                    To = user.Email,
+                    Subject = "Campaign notifications"
+                };
+
+                var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, offer.Id, campaign.Status.ToString());
+                if (emailResult)
+                {
+                    return await _unitOfWork.SaveAsync() > 0;
+                }
+                else
+                {
+                    throw new Exception("Failed to send email for campaign notifications!");
+                }
             }
             catch (Exception)
             {
