@@ -30,8 +30,7 @@ namespace ANF.Service
                 .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
 
             CreateMap<SubscriptionRequest, Subscription>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
-                .ForMember(dest => dest.PricePerMonth, opt => opt.MapFrom(src => Math.Floor(src.Price)));
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()));
 
             CreateMap<PublisherProfileCreatedRequest, PublisherProfile>()
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]));
@@ -97,12 +96,12 @@ namespace ANF.Service
                 .ForMember(dest => dest.Offers, opt => opt.Ignore());
 
             CreateMap<Campaign, CampaignDetailedResponse>()
-                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images.Select(x => x.ImageUrl)))
+                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images!.Select(x => x.ImageUrl)))
                 .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
             CreateMap<Campaign, CampaignPubDetailedResponse>()
-                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images.Select(x => x.ImageUrl)))
+                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images!.Select(x => x.ImageUrl)))
                 .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers
                     .Where(offer => offer.Status == OfferStatus.Started || offer.Status == OfferStatus.Approved)));
 
@@ -119,10 +118,10 @@ namespace ANF.Service
             CreateMap<Subscription, SubscriptionResponse>();
 
             CreateMap<Campaign, CampaignResponse>()
-                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images.Select(x => x.ImageUrl)))
+                .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images!.Select(x => x.ImageUrl)))
                 .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category!.Name));
             
             CreateMap<CampaignImage, CampaignImageResponse>();
             

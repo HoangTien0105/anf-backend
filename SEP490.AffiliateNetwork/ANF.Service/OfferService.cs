@@ -537,7 +537,7 @@ namespace ANF.Service
                                         CategoryId = e.Campaign.CategoryId,
                                         CategoryName = e.Campaign.Name,
                                         Status = e.Campaign.Status.ToString(),
-                                        CampImages = e.Campaign.Images.Select(e => e.ImageUrl).ToList()
+                                        CampImages = e.Campaign.Images!.Select(e => e.ImageUrl!).ToList()
                                     }
                                 }).FirstOrDefaultAsync();
                 if(offer is not null)
