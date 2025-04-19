@@ -89,7 +89,7 @@ namespace ANF.Service
                 try
                 {
                     var eventData = JsonConvert.DeserializeObject<TrackingConversionEvent>(message);
-                    _logger.LogInformation("[Queue: {QueueName}] Deserialized event for click_id: {ClickId}", queueName, eventData.ClickId);
+                    _logger.LogInformation("[Queue: {QueueName}] Deserialized event for click_id: {ClickId}", queueName, eventData!.ClickId);
 
                     using (var scope = _serviceProvider.CreateScope())
                     {

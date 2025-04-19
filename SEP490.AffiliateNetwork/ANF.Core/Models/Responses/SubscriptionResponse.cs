@@ -1,26 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ANF.Core.Models.Responses
+﻿namespace ANF.Core.Models.Responses
 {
     /// <summary>
     /// Response model for subscriptions
     /// </summary>
     public class SubscriptionResponse
     {
-        public long Id { get; set; }
+        public long Id { get; init; }
 
-        public string Name { get; set; } = null!;
+        public string Name { get; init; } = null!;
 
-        public string? Description { get; set; }
+        public string? Description { get; init; }
 
-        public double Price { get; set; }
+        public decimal PricePerMonth { get; init; }
 
-        public string? Duration { get; set; }
+        public decimal PricePerYear { get; init; }
 
+        public string? PricingBenefit { get; init; }
+
+        public int MaxCreatedCampaign { get; init; }
     }
 }

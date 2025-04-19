@@ -68,7 +68,7 @@ namespace ANF.Service
 
                 string referer = httpRequest.Headers["Referer"].ToString();
 
-                string userAgent = httpRequest.Headers["User-Agent"];
+                string userAgent = httpRequest.Headers["User-Agent"].ToString();
                 var remoteIpAddress = httpRequest.HttpContext.Connection.RemoteIpAddress;
                 if (remoteIpAddress == null) throw new InvalidOperationException("Cannot determine the client's IP address.");
 
@@ -108,7 +108,7 @@ namespace ANF.Service
                 if (campaign.Status != CampaignStatus.Started)
                     throw new ArgumentException("Campaign is not available.");
 
-                var ipInfo = await GetIpInfoAsync(ipAddress);
+                var ipInfo = await GetIpInfoAsync(ipAddress!);
 
                 string clickId = StringHelper.GenerateUniqueCode();
 
@@ -135,15 +135,15 @@ namespace ANF.Service
                     { "click_id",trackingEvent.Id },
                     { "publisher_code", publisherCode },
                     { "offer_id", trackingEvent.OfferId.ToString() },
-                    { "ip_address", trackingEvent.IpAddress},
-                    { "user_agent", trackingEvent.SiteId },
+                    { "ip_address", trackingEvent.IpAddress!},
+                    { "user_agent", trackingEvent.SiteId! },
                     { "site_id", trackingEvent.UserAgent },
                     { "country", trackingEvent.Country},
                     { "click_time", trackingEvent.ClickTime.ToString()},
                     { "referer", trackingEvent.Referer},
                 }.Where(kv => kv.Value is not null).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-                string redirectUrl = BuildRedirectUrl(campaign.ProductUrl, campaign.TrackingParams, trackingData);
+                string redirectUrl = BuildRedirectUrl(campaign.ProductUrl, campaign.TrackingParams!, trackingData);
                 return redirectUrl;
             }
             catch (Exception)
@@ -216,9 +216,9 @@ namespace ANF.Service
                 {
                     string paramName = param.ContainsKey("param_name") ? param["param_name"] : null;
                     string paramValueKey = param.ContainsKey("param_value") ? param["param_value"] : null;
-                    if (!string.IsNullOrEmpty(paramName) && trackingData.ContainsKey(paramValueKey))
+                    if (!string.IsNullOrEmpty(paramName) && trackingData.ContainsKey(paramValueKey!))
                     {
-                        paramsDict[paramName] = trackingData[paramValueKey];
+                        paramsDict[paramName] = trackingData[paramValueKey!];
                     }
                 }
 
@@ -291,7 +291,7 @@ namespace ANF.Service
                             ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
 
                 money = trackingConversionEvent.PricingModel == "CPS"
-                            ? offer.Bid * (decimal)offer.CommissionRate
+                            ? offer.Bid * (decimal)offer.CommissionRate!
                             : offer.Bid;
                 _logger.LogInformation("=================== Calculated money: {Money} ===================", money);
 

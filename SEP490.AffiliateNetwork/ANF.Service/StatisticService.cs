@@ -157,7 +157,7 @@ namespace ANF.Service
 
             var publisherOfferStat = await publisherOfferStatsRepo.GetAll()
                                                             .AsNoTracking()
-                                                            .FirstOrDefaultAsync(po => ((po.OfferId == offerId) && po.PublisherCode.Equals(publisherCode)));
+                                                            .FirstOrDefaultAsync(po => ((po.OfferId == offerId) && po.PublisherCode!.Equals(publisherCode)));
             if (publisherOfferStat == null) throw new KeyNotFoundException("Not found");
 
             return _mapper.Map<PublisherOfferStatsResponse>(publisherOfferStat);
