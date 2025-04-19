@@ -31,17 +31,44 @@ namespace ANF.Core.Models.Entities
         [Column("reason")]
         public string? Reason { get; set; }
 
+        /// <summary>
+        /// The time created the transaction
+        /// </summary>
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
 
+        /// <summary>
+        /// Related to withdrawing money from users
+        /// </summary>
         [Column("approved_at")]
         public DateTime? ApprovedAt { get; set; }
 
+        /// <summary>
+        /// Banking number selected by user to receive the money
+        /// </summary>
         [Column("current_banking_no")]
         public string? CurrentBankingNo { get; set; }
 
         [Column("is_withdrawal")]
         public bool IsWithdrawal { get; set; } = false;
+
+        /// <summary>
+        /// Billing type of subscription
+        /// </summary>
+        [Column("billing_type")]
+        public SubscriptionBillingType? BillingType { get; set; }
+
+        /// <summary>
+        /// The start date and time when the subscription becomes valid or effective.
+        /// </summary>
+        [Column("valid_from")]
+        public DateTime? ValidFrom { get; set; }
+
+        /// <summary>
+        /// The end date and time when the subscription is no longer valid or effective.
+        /// </summary>
+        [Column("valid_to")]
+        public DateTime? ValidTo { get; set; }
 
         [Column("status")]
         public TransactionStatus Status { get; set; }

@@ -5,7 +5,7 @@
     /// </summary>
     public enum TrackingSourceStatus
     {
-        Draft,
+        Draft,  // TODO: REMOVE "DRAFT"
         Pending,
         Verified
     }

@@ -31,7 +31,7 @@ namespace ANF.Service
 
             CreateMap<SubscriptionRequest, Subscription>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => Math.Floor(src.Price)));
+                .ForMember(dest => dest.PricePerMonth, opt => opt.MapFrom(src => Math.Floor(src.Price)));
 
             CreateMap<PublisherProfileCreatedRequest, PublisherProfile>()
                 .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["ImageUrl"]));
