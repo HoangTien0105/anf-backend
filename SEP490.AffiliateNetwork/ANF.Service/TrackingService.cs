@@ -214,11 +214,11 @@ namespace ANF.Service
                 var paramsDict = new Dictionary<string, string>();
                 foreach (var param in trackingParams)
                 {
-                    string paramName = param.ContainsKey("param_name") ? param["param_name"] : null;
-                    string paramValueKey = param.ContainsKey("param_value") ? param["param_value"] : null;
-                    if (!string.IsNullOrEmpty(paramName) && trackingData.ContainsKey(paramValueKey!))
+                    string paramName = param.ContainsKey("param_name") ? param["param_name"] : string.Empty;
+                    string paramValueKey = param.ContainsKey("param_value") ? param["param_value"] : string.Empty;
+                    if (!string.IsNullOrEmpty(paramName) && trackingData.ContainsKey(paramValueKey))
                     {
-                        paramsDict[paramName] = trackingData[paramValueKey!];
+                        paramsDict[paramName] = trackingData[paramValueKey];
                     }
                 }
 
