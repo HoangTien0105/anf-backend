@@ -1,4 +1,5 @@
 using ANF.Application.Extensions;
+using ANF.Service.Hubs;
 using ANF.Application.Middlewares;
 using Microsoft.AspNetCore.HttpOverrides;
 
@@ -46,5 +47,7 @@ app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseCors("ANF");
 
 app.MapControllers();
+
+app.MapHub<CampaignHub>("/campaignHub");
 
 app.Run();

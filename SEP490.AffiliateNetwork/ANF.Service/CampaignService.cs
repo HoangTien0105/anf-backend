@@ -15,11 +15,13 @@ namespace ANF.Service
                                  ICloudinaryService cloudinaryService,
                                  IMapper mapper,
                                  IUserClaimsService userClaimsService,
+                                 INotificationService notificationService,
                                  IEmailService emailService) : ICampaignService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
+        private readonly INotificationService _notificationService = notificationService;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
         private readonly IEmailService _emailService = emailService;
 
@@ -551,6 +553,7 @@ namespace ANF.Service
                 var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, null, campaign.Status.ToString());
                 if (emailResult)
                 {
+                    await _notificationService.NotifyCampaignStatus(user.UserCode, campaign.Id, campaign.Status.ToString(), campaign.RejectReason);
                     return await _unitOfWork.SaveAsync() > 0;
                 }
                 else

@@ -60,6 +60,7 @@ namespace ANF.Application.Extensions
             services.AddApplicationService();
             services.AddMemoryCache();
             services.AddHttpClient();
+            services.AddSignalR();
 
             services.AddHostedService<RabbitMQConsumer>();
             services.AddHostedService<SampleIdDetectionService>();
@@ -258,6 +259,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPolicyService, PolicyService>();
             services.AddScoped<IPostbackService, PostbackService>();
             services.AddScoped<IStatisticService, StatisticService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             services.AddSingleton<SampleIdDetectionService>();
             services.AddSingleton<PostbackValidationService>();
