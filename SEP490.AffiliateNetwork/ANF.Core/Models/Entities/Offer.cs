@@ -16,7 +16,7 @@ namespace ANF.Core.Models.Entities
         [Column("pricing_model")]
         public string? PricingModel { get; set; }
 
-        [Column("offer_description")]
+        [Column("offer_description", TypeName = "ntext")]
         public string Description { get; set; } = null!;
 
         /// <summary>

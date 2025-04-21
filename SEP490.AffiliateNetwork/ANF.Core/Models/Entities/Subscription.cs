@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ANF.Core.Models.Entities
@@ -20,11 +21,23 @@ namespace ANF.Core.Models.Entities
         [Column("description")]
         public string? Description { get; set; }
 
-        [Column("sub_price", TypeName = "decimal(12)")]
-        public decimal Price { get; set; }
+        [Column("price_per_month", TypeName = "decimal(12)")]
+        public decimal? PricePerMonth { get; set; }
 
-        [Column("duration")]
-        public string? Duration { get; set; }
+        [Column("price_per_year", TypeName = "decimal(12)")]
+        public decimal? PricePerYear { get; set; }
+
+        /// <summary>
+        /// Short description of benefit when advertisers choose yearly billing
+        /// </summary>
+        [Column("pricing_benefit")]
+        public string? PricingBenefit { get; set; }
+        
+        [Column("max_created_campaign")]
+        public int MaxCreatedCampaign { get; set; }
+
+        [Column("priority_level")]
+        public CampaignDisplayPriority? PriorityLevel { get; set; }
 
         public ICollection<Transaction>? Transactions { get; set; }
     }

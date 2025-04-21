@@ -19,7 +19,7 @@ namespace ANF.Core.Models.Entities
         [Column("camp_name")]
         public string Name { get; set; } = null!;
 
-        [Column("description")]
+        [Column("description", TypeName = "ntext")]
         public string Description { get; set; } = null!;
 
         [Column("start_date")]

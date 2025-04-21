@@ -87,10 +87,10 @@ namespace ANF.Service
                             select new TrackingConversionEvent
                             {
                                 Id = tv.Id,
-                                ClickId = tv.ClickId,
+                                ClickId = tv.ClickId!,
                                 PublisherCode = te.PublisherCode,
                                 OfferId = te.OfferId,
-                                PricingModel = o.PricingModel,
+                                PricingModel = o.PricingModel!,
                                 Amount = tv.Amount
                             };
 
