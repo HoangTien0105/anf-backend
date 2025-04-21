@@ -48,6 +48,9 @@ app.UseCors("ANF");
 
 app.MapControllers();
 
+app.UseRouting();
+
 app.MapHub<CampaignHub>("/campaignHub");
+app.MapHub<OfferHub>("/offerHub");
 
 app.Run();

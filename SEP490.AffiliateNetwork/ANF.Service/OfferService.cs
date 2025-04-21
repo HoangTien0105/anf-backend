@@ -14,10 +14,12 @@ namespace ANF.Service
     public class OfferService(IUnitOfWork unitOfWork, IMapper mapper,
         ICloudinaryService cloudinaryService,
         IUserClaimsService userClaimsService,
+        INotificationService notificationService,
         IEmailService emailService) : IOfferService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ICloudinaryService _cloudinaryService = cloudinaryService;
+        private readonly INotificationService _notificationService = notificationService;
         private readonly IUserClaimsService _userClaimsService = userClaimsService;
         private readonly IEmailService _emailService = emailService;
         private readonly IMapper _mapper = mapper;
@@ -632,6 +634,7 @@ namespace ANF.Service
                 var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, offer.Id, campaign.Status.ToString());
                 if (emailResult)
                 {
+                    await _notificationService.NotifyOfferStatus(user.UserCode, offer.Id, offer.Status.ToString()!, offer.RejectedReason);
                     return await _unitOfWork.SaveAsync() > 0;
                 }
                 else

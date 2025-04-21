@@ -54,6 +54,7 @@ namespace ANF.Service
                 using var scope = _serviceScopeFactory.CreateScope();
                 var _emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
                 var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var _notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
@@ -96,6 +97,8 @@ namespace ANF.Service
                         }
                     }
                     offerRepository.UpdateRange(offers);
+
+                    await _notificationService.NotifyCampaignStatus(user.UserCode, v.Id, v.Status.ToString(), v.RejectReason);
                 }
                 campaignRepository.UpdateRange(verifiedCampaign);
 
@@ -112,6 +115,7 @@ namespace ANF.Service
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var _emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var _notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                 var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var userRepository = _unitOfWork.GetRepository<User>();
@@ -156,6 +160,7 @@ namespace ANF.Service
 
                     }
                     offerRepository.UpdateRange(offers);
+                    await _notificationService.NotifyCampaignStatus(user.UserCode, v.Id, v.Status.ToString(), v.RejectReason);
                 }
                 campaignRepository.UpdateRange(startedCampaign);
                 await _unitOfWork.SaveAsync();
@@ -172,6 +177,7 @@ namespace ANF.Service
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var _emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var _notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                 var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>(); 
                 var userRepository = _unitOfWork.GetRepository<User>();
@@ -205,6 +211,7 @@ namespace ANF.Service
                         continue;
                     }
                     offer.Status = OfferStatus.Started;
+                    await _notificationService.NotifyOfferStatus(user.UserCode, offer.Id, offer.Status.ToString()!, offer.RejectedReason);
                 }
 
                 offerRepository.UpdateRange(approveOffer);
@@ -222,6 +229,7 @@ namespace ANF.Service
             {
                 using var scope = _serviceScopeFactory.CreateScope();
                 var _emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                var _notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                 var _unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var userRepository = _unitOfWork.GetRepository<User>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
@@ -254,6 +262,7 @@ namespace ANF.Service
                         continue;
                     }
                     offer.Status = OfferStatus.Ended;
+                    await _notificationService.NotifyOfferStatus(user.UserCode, offer.Id, offer.Status.ToString()!, offer.RejectedReason);
                 }
 
                 offerRepository.UpdateRange(endOffer);
