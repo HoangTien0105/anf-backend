@@ -50,7 +50,6 @@ app.MapControllers();
 
 app.UseRouting();
 
-app.MapHub<CampaignHub>("/campaignHub");
-app.MapHub<OfferHub>("/offerHub");
+app.MapHub<NotificationHub>("/notiHub");
 
 app.Run();

@@ -2,7 +2,7 @@
 
 namespace ANF.Service.Hubs
 {
-    public class CampaignHub : Hub
+    public class NotificationHub : Hub
     {
         public async Task SendCampaignStatusNoti(string message)
         {
