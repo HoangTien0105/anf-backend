@@ -35,7 +35,7 @@ namespace ANF.Service
             await _hubContext.Clients.User(userCode).SendAsync("PublisherOfferStatusUpdated", new
             {
                 UserCode = userCode,
-                OfferId = offerId,
+                OfferId = pubOfferId,
                 Status = status,
                 RejectReason = rejectReason
             });

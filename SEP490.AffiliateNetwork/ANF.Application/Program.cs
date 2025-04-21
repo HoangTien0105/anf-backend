@@ -36,9 +36,13 @@ app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseWebSockets();
 
 app.UseMiddleware<UserClaimsMiddleware>();
 
@@ -47,8 +51,6 @@ app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseCors("ANF");
 
 app.MapControllers();
-
-app.UseRouting();
 
 app.MapHub<NotificationHub>("/notiHub");
 
