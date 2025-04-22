@@ -91,6 +91,14 @@ namespace ANF.Service
             return postbackLog;
         }
 
+        public async Task<PostbackData> GetPostbackDataByTransactionId(string id)
+        {
+            var postbackRepository = _unitOfWork.GetRepository<PostbackData>();
+            var postback = await postbackRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.TransactionId == id);
+            if(postback is null) throw new KeyNotFoundException("No data for postback data!");
+            return postback;
+        }
+
         public async Task<PurchaseLog> GetPostbackLogById(long id)
         {
             var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
