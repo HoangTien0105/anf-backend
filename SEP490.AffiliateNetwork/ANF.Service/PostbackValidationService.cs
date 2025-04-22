@@ -150,7 +150,7 @@ namespace ANF.Service
 
                 int date = 0;
 
-                int unknownValidation = 0;
+                int validValidation = 0;
                 int failValidation = 0;
 
                 foreach (var item in postbacks)
@@ -181,10 +181,10 @@ namespace ANF.Service
                     } 
                     else
                     {
-                        trackingValidation.ValidationStatus = ValidationStatus.Unknown;
-                        trackingValidation.ConversionStatus = ConversionStatus.Failed;
+                        trackingValidation.ValidationStatus = ValidationStatus.Success;
+                        trackingValidation.ConversionStatus = ConversionStatus.Pending;
                         trackingValidation.ValidatedTime = DateTime.Now;
-                        unknownValidation++;
+                        validValidation++;
                     }
 
                     trackingValidationRepository.Update(trackingValidation);
@@ -192,8 +192,8 @@ namespace ANF.Service
 
                 await unitOfWork.SaveAsync();
 
-                _logger.LogInformation("=================== Updated tracking validations: {FailCount} failed, {UnknownCount} unknown ===================",
-                                        failValidation, unknownValidation);
+                _logger.LogInformation("=================== Updated tracking validations: {FailCount} failed, {ValidCount} unknown ===================",
+                                        failValidation, validValidation);
             }
             catch (Exception e)
             {
