@@ -38,7 +38,7 @@ namespace ANF.Core.Models.Entities
         public DateTime CreatedAt { get; set; }
 
         /// <summary>
-        /// Related to withdrawing money from users
+        /// Approved date of requesting to withdraw the money from users
         /// </summary>
         [Column("approved_at")]
         public DateTime? ApprovedAt { get; set; }
@@ -49,6 +49,9 @@ namespace ANF.Core.Models.Entities
         [Column("current_banking_no")]
         public string? CurrentBankingNo { get; set; }
 
+        /// <summary>
+        /// Indicate the transaction is withdrawal
+        /// </summary>
         [Column("is_withdrawal")]
         public bool IsWithdrawal { get; set; } = false;
 
@@ -69,6 +72,12 @@ namespace ANF.Core.Models.Entities
         /// </summary>
         [Column("valid_to")]
         public DateTime? ValidTo { get; set; }
+
+        /// <summary>
+        /// The remained slot to create campaigns in a subscription 
+        /// </summary>
+        [Column("remained_slot")]
+        public int? RemainedSlot { get; set; }
 
         [Column("status")]
         public TransactionStatus Status { get; set; }
