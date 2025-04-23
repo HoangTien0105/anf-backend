@@ -170,7 +170,8 @@ namespace ANF.Service
                         int.TryParse(parts[0], out date);
                     }
 
-                    if (item.Date > DateTime.Now.AddDays(-date)) continue;
+                    //Use for demo, use AddDays for production
+                    if (item.Date > DateTime.Now.AddMinutes(-date)) continue;
 
                     if(item.Status == PostbackStatus.Failed || item.Status == PostbackStatus.Refunded || item.Status == PostbackStatus.Canceled)
                     {
