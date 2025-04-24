@@ -14,6 +14,26 @@ namespace ANF.Application.Controllers.v1
         private readonly IPostbackService _postbackService = postbackService;
 
         /// <summary>
+        /// Get postback by transaction's id
+        /// </summary>
+        /// <param name="id">Transaction's id</param>
+        /// <returns></returns>
+        [HttpGet("postbacks/{id}")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetPostbackDataByTransactionId(string id)
+        {
+            var postback = await _postbackService.GetPostbackDataByTransactionId(id);
+            return Ok(new ApiResponse<PostbackData>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = postback
+            });
+        }
+
+        /// <summary>
         /// Create postback
         /// </summary>
         /// <param name="request">Postback Create Request</param>

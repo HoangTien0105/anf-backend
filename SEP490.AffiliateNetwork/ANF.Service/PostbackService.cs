@@ -6,6 +6,7 @@ using ANF.Core.Models.Requests;
 using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ANF.Service
 {
@@ -91,6 +92,14 @@ namespace ANF.Service
             return postbackLog;
         }
 
+        public async Task<PostbackData> GetPostbackDataByTransactionId(string id)
+        {
+            var postbackRepository = _unitOfWork.GetRepository<PostbackData>();
+            var postback = await postbackRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.TransactionId == id);
+            if(postback is null) throw new KeyNotFoundException("No data for postback data!");
+            return postback;
+        }
+
         public async Task<PurchaseLog> GetPostbackLogById(long id)
         {
             var postbackLogRepository = _unitOfWork.GetRepository<PurchaseLog>();
@@ -127,14 +136,22 @@ namespace ANF.Service
             try
             {
                 var postbackRepository = _unitOfWork.GetRepository<PostbackData>();
-                var postback = await postbackRepository.GetAll().FirstOrDefaultAsync(e => e.Id == id);
+                var postback = await postbackRepository.GetAll().Include(e => e.Offer).FirstOrDefaultAsync(e => e.Id == id);
 
                 if(postback is null) throw new KeyNotFoundException("Tracking event does not exists");
 
                 if (!Enum.TryParse<PostbackStatus>(status, true, out var postbackStatus))
                     throw new ArgumentException("Invalid postback's status. Please check again!");
 
-                if(DateTime.Now > postback.Date)
+                int date = 0;
+
+                if (postback.Offer is not null && postback.Offer.OrderReturnTime is not null)
+                {
+                    var parts = postback.Offer.OrderReturnTime.Trim().Split(" ");
+                    int.TryParse(parts[0], out date);
+                }
+
+                if (DateTime.Now.AddDays(-date) > postback.Date)
                     throw new ArgumentException("This postback cannot be modified anymore");
 
                 postback.Status = postbackStatus;
