@@ -292,6 +292,20 @@ namespace ANF.Application.Extensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                 };
+
+                opt.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notiHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });  // NOTE: Can add more authentication schema with configurations
             return services;
         }

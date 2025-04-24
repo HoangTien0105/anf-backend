@@ -551,9 +551,9 @@ namespace ANF.Service
                 };
 
                 var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, null, campaign.Status.ToString());
+                await _notificationService.NotifyCampaignStatus(user.UserCode, campaign.Id, campaign.Status.ToString(), campaign.RejectReason);
                 if (emailResult)
                 {
-                    await _notificationService.NotifyCampaignStatus(user.UserCode, campaign.Id, campaign.Status.ToString(), campaign.RejectReason);
                     return await _unitOfWork.SaveAsync() > 0;
                 }
                 else

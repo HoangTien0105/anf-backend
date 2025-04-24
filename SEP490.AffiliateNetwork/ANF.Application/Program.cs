@@ -35,9 +35,9 @@ app.UseSwaggerUI(c =>
 app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
 
+app.UseCors("ANF");
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -48,7 +48,6 @@ app.UseMiddleware<UserClaimsMiddleware>();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-app.UseCors("ANF");
 
 app.MapControllers();
 
