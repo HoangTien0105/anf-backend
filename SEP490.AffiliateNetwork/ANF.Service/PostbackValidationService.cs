@@ -14,7 +14,7 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<PostbackValidationService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
         public PostbackValidationService(IServiceScopeFactory serviceScopeFactory,
             ILogger<PostbackValidationService> logger)
@@ -39,7 +39,7 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
-                _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
+                _logger.LogInformation("=================== Postback validation Service completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
         
