@@ -458,7 +458,7 @@ namespace ANF.Service
                 .Include(u => u.UserBanks)
                 .Include(u => u.Wallet)
                 .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
-            if (user is null) throw new KeyNotFoundException("User does not exist.");
+            if (user is null) throw new KeyNotFoundException("Email or password is not correct! Please check again");
             if (user.Status == UserStatus.Deactive)
             {
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
