@@ -60,6 +60,7 @@ namespace ANF.Application.Extensions
             services.AddApplicationService();
             services.AddMemoryCache();
             services.AddHttpClient();
+            services.AddSignalR();
 
             services.AddHostedService<RabbitMQConsumer>();
             services.AddHostedService<SampleIdDetectionService>();
@@ -258,6 +259,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPolicyService, PolicyService>();
             services.AddScoped<IPostbackService, PostbackService>();
             services.AddScoped<IStatisticService, StatisticService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
             services.AddSingleton<SampleIdDetectionService>();
             services.AddSingleton<PostbackValidationService>();
@@ -289,6 +291,20 @@ namespace ANF.Application.Extensions
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidateLifetime = true,
+                };
+
+                opt.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/notiHub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });  // NOTE: Can add more authentication schema with configurations
             return services;
