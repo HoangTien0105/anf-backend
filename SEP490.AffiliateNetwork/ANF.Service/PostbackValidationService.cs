@@ -175,6 +175,7 @@ namespace ANF.Service
                         validValidation++;
                     }
 
+                    postbackRepository.Update(item.PostbackData);
                     trackingValidationRepository.Update(trackingValidation);
                 }
 
