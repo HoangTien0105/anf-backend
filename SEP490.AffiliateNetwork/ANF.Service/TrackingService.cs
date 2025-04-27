@@ -108,7 +108,8 @@ namespace ANF.Service
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(e => e.Id == offer.CampaignId);
                 if (campaign is null) throw new KeyNotFoundException("Offer does not exists");
-                if (campaign.Status != CampaignStatus.Started)
+
+                if (campaign.Status != CampaignStatus.Started && campaign.Status != CampaignStatus.Ended)
                     throw new ArgumentException("Campaign is not available.");
 
                 var ipInfo = await GetIpInfoAsync(ipAddress!);
@@ -128,7 +129,7 @@ namespace ANF.Service
                     ClickTime = DateTime.Now,
                     Referer = referer,
                     Proxy = ipInfo.Proxy.ToString(),
-                    Status = TrackingEventStatus.Pending
+                    Status = campaign.Status == CampaignStatus.Started ? TrackingEventStatus.Pending : TrackingEventStatus.Invalid,
                 };
 
                 _trackingQueue.Enqueue(trackingEvent);
