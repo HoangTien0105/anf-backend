@@ -83,6 +83,7 @@ namespace ANF.Service
                     throw new Exception("The email has already confirmed by the user!");    //TODO: Change the exception type
                 // Email verification success
                 user.EmailConfirmed = true;
+                user.Status = UserStatus.Active;
                 userRepository.Update(user);
                 await _unitOfWork.SaveAsync();
 

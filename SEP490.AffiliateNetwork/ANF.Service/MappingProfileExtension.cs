@@ -26,7 +26,7 @@ namespace ANF.Service
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => IdHelper.GenerateRandomLong()))
                 .ForMember(dest => dest.UserCode, opt => opt.MapFrom(_ => StringHelper.GenerateUniqueCode()))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => Enum.Parse<UserRoles>(src.Role, true))) //Case-insensitive parsing
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Active))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => UserStatus.Pending))
                 .ForMember(dest => dest.EmailConfirmed, opt => opt.MapFrom(src => false));
 
             CreateMap<SubscriptionRequest, Subscription>()
