@@ -14,7 +14,7 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<PostbackValidationService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
         public PostbackValidationService(IServiceScopeFactory serviceScopeFactory,
             ILogger<PostbackValidationService> logger)
@@ -39,7 +39,7 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
-                _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
+                _logger.LogInformation("=================== Postback validation Service completed one iteration at: {time} ===================", DateTime.Now);
             }
         }
         
@@ -69,16 +69,10 @@ namespace ANF.Service
                             on tv.ClickId equals pb.ClickId
                             where tv.ConversionStatus == ConversionStatus.Pending
                             && pb.Status == PostbackStatus.Success
-                            select new PostbackData
+                            select new 
                             {
-                                Id = pb.Id,
-                                ClickId = pb.ClickId,
-                                OfferId = pb.OfferId,
-                                TransactionId = pb.TransactionId,
-                                Date = pb.Date,
-                                PublisherCode = pb.PublisherCode,
-                                Amount = pb.Amount,
-                                Status = pb.Status,
+                                PostbackData = pb,
+                                TrackingValidation = tv
                             };
                                     
                 var postbacks = await query.ToListAsync();
@@ -87,18 +81,17 @@ namespace ANF.Service
                 // Check từng postback
                 foreach (var item in postbacks)
                 {
-                    var trackingValidation = await trackingValidationRepository.GetAll()
-                                            .FirstOrDefaultAsync(e => e.ClickId == item.ClickId);
+                    var trackingValidation = item.TrackingValidation;
                     // LỖi nếu không có tracking validtion cho postback
                     if (trackingValidation is null)
                     {
-                        _logger.LogWarning($"=================== Tracking validation does not exist for ClickId: {item.ClickId} ===================");
+                        _logger.LogWarning($"=================== Tracking validation does not exist for ClickId: {item.PostbackData.ClickId} ===================");
                         continue;
                     }
                     else
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Success;
-                        trackingValidation.Amount = (decimal?) item.Amount;
+                        trackingValidation.Amount = (decimal?) item.PostbackData.Amount;
                         trackingValidation.ValidatedTime = DateTime.Now;
                         trackingValidationRepository.Update(trackingValidation);
                     }
@@ -134,46 +127,39 @@ namespace ANF.Service
                             on tv.ClickId equals pb.ClickId
                             where tv.ConversionStatus == ConversionStatus.Pending
                             && pb.Status != PostbackStatus.Success
-                            select new PostbackData
+                            select new
                             {
-                                Id = pb.Id,
-                                ClickId = pb.ClickId,
-                                OfferId = pb.OfferId,
-                                TransactionId = pb.TransactionId,
-                                Date = pb.Date,
-                                PublisherCode = pb.PublisherCode,
-                                Amount = pb.Amount,
-                                Status = pb.Status,
+                                PostbackData = pb,
+                                TrackingValidation = tv
                             };
 
                 var postbacks = await query.ToListAsync();
 
                 int date = 0;
 
-                int unknownValidation = 0;
+                int validValidation = 0;
                 int failValidation = 0;
 
                 foreach (var item in postbacks)
                 {
-                    var trackingValidation = await trackingValidationRepository.GetAll()
-                                            .FirstOrDefaultAsync(e => e.ClickId == item.ClickId);
+                    var trackingValidation = item.TrackingValidation;
 
                     if (trackingValidation is null)
                     {
-                        _logger.LogWarning($"=================== Tracking validation does not exist for ClickId: {item.ClickId} ===================");
+                        _logger.LogWarning($"=================== Tracking validation does not exist for ClickId: {item.PostbackData.ClickId} ===================");
                         continue;
                     }
 
-                    if (item.Offer is not null && item.Offer.OrderReturnTime is not null)
+                    if (item.PostbackData.Offer is not null && item.PostbackData.Offer.OrderReturnTime is not null)
                     {
-                        var parts = item.Offer.OrderReturnTime.Trim().Split(" ");
+                        var parts = item.PostbackData.Offer.OrderReturnTime.Trim().Split(" ");
                         int.TryParse(parts[0], out date);
                     }
 
-                    // TODO: Thay AddDays thành AddMinutes để thực hiện demo
-                    if (item.Date > DateTime.Now.AddDays(-date)) continue;   
+                    //Use for demo, use AddDays for production
+                    if (item.PostbackData.Date > DateTime.Now.AddMinutes(-date)) continue;
 
-                    if(item.Status == PostbackStatus.Failed || item.Status == PostbackStatus.Refunded || item.Status == PostbackStatus.Canceled)
+                    if(item.PostbackData.Status == PostbackStatus.Failed || item.PostbackData.Status == PostbackStatus.Refunded || item.PostbackData.Status == PostbackStatus.Canceled)
                     {
                         trackingValidation.ValidationStatus = ValidationStatus.Failed;
                         trackingValidation.ConversionStatus = ConversionStatus.Failed;
@@ -182,19 +168,21 @@ namespace ANF.Service
                     } 
                     else
                     {
-                        trackingValidation.ValidationStatus = ValidationStatus.Unknown;
-                        trackingValidation.ConversionStatus = ConversionStatus.Failed;
+                        item.PostbackData.Status = PostbackStatus.Success;
+                        trackingValidation.ValidationStatus = ValidationStatus.Success;
+                        trackingValidation.ConversionStatus = ConversionStatus.Pending;
                         trackingValidation.ValidatedTime = DateTime.Now;
-                        unknownValidation++;
+                        validValidation++;
                     }
 
+                    postbackRepository.Update(item.PostbackData);
                     trackingValidationRepository.Update(trackingValidation);
                 }
 
                 await unitOfWork.SaveAsync();
 
-                _logger.LogInformation("=================== Updated tracking validations: {FailCount} failed, {UnknownCount} unknown ===================",
-                                        failValidation, unknownValidation);
+                _logger.LogInformation("=================== Updated tracking validations: {FailCount} failed, {ValidCount} unknown ===================",
+                                        failValidation, validValidation);
             }
             catch (Exception e)
             {

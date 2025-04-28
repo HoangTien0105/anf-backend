@@ -334,7 +334,7 @@ namespace ANF.Service
                     throw new ArgumentException("You must be at least 18 years old to register!");
                 var duplicatedUser = await userRepository.GetAll()
                     .AsNoTracking()
-                    .AnyAsync(u => u.Email == request.Email);
+                    .AnyAsync(u => u.Email == request.Email || u.PhoneNumber == request.PhoneNumber);
                 if (duplicatedUser) throw new DuplicatedException("User already exists.");
 
                 var user = _mapper.Map<User>(request);

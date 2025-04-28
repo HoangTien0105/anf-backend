@@ -14,7 +14,7 @@ namespace ANF.Service
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SampleIdDetectionService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
 
         public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory,
             ILogger<SampleIdDetectionService> logger)
@@ -40,7 +40,7 @@ namespace ANF.Service
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
-                _logger.LogInformation("=================== Completed one iteration at: {time} ===================", DateTime.Now);
+                _logger.LogInformation("=================== Spam IP Detection Service ompleted one iteration at: {time} ===================", DateTime.Now);
             }
         }
 

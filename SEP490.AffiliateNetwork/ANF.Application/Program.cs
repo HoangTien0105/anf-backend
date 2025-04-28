@@ -1,4 +1,5 @@
 using ANF.Application.Extensions;
+using ANF.Service.Hubs;
 using ANF.Application.Middlewares;
 using Microsoft.AspNetCore.HttpOverrides;
 
@@ -34,17 +35,22 @@ app.UseSwaggerUI(c =>
 app.UseForwardedHeaders();
 
 app.UseHttpsRedirection();
+app.UseRouting();
 
+app.UseCors("ANF");
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseWebSockets();
 
 app.UseMiddleware<UserClaimsMiddleware>();
 
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 
-app.UseCors("ANF");
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/notiHub");
 
 app.Run();

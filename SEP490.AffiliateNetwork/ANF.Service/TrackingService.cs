@@ -33,12 +33,14 @@ namespace ANF.Service
         private readonly Task _processingTask;
         private readonly ILogger<TrackingService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly INotificationService _notificationService;
         private readonly HttpClient _httpClient;
         private readonly IpApiSettings _ipApiSettings;
 
         public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IHttpClientFactory httpClientFactory,
             IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger,
             IOptions<IpApiSettings> options,
+            INotificationService notificationService,
             IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
@@ -50,6 +52,7 @@ namespace ANF.Service
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _ipApiSettings = options.Value;
+            _notificationService = notificationService;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri(_ipApiBaseUrl);
         }
@@ -105,7 +108,8 @@ namespace ANF.Service
                                     .AsNoTracking()
                                     .FirstOrDefaultAsync(e => e.Id == offer.CampaignId);
                 if (campaign is null) throw new KeyNotFoundException("Offer does not exists");
-                if (campaign.Status != CampaignStatus.Started)
+
+                if (campaign.Status != CampaignStatus.Started && campaign.Status != CampaignStatus.Ended)
                     throw new ArgumentException("Campaign is not available.");
 
                 var ipInfo = await GetIpInfoAsync(ipAddress!);
@@ -125,7 +129,7 @@ namespace ANF.Service
                     ClickTime = DateTime.Now,
                     Referer = referer,
                     Proxy = ipInfo.Proxy.ToString(),
-                    Status = TrackingEventStatus.Pending
+                    Status = campaign.Status == CampaignStatus.Started ? TrackingEventStatus.Pending : TrackingEventStatus.Invalid,
                 };
 
                 _trackingQueue.Enqueue(trackingEvent);
@@ -365,6 +369,13 @@ namespace ANF.Service
                 //Update tracking validation
                 trackingValidation.ConversionStatus = ConversionStatus.Success;
                 trackingValidationRepository.Update(trackingValidation);
+
+
+                //Advertiser wallet
+                await _notificationService.NotifyUserProfile(advertiserWallet.UserCode);
+
+                //Publisher wallet
+                await _notificationService.NotifyUserProfile(publisherWallet.UserCode);
 
                 await _unitOfWork.SaveAsync();
             }

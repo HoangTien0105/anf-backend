@@ -197,7 +197,7 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="id">User's id</param>
         /// <returns></returns>
-        [HttpPatch("users/{id}/verify-account")]
+        [HttpGet("users/{id}/verify-account")]
         [MapToApiVersion(1)]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
