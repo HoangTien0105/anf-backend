@@ -17,7 +17,7 @@ namespace ANF.Core.Services
 
         Task<bool> DeleteUser(long id);
 
-        Task<bool> ChangeEmailStatus(long userId);
+        Task<string> ChangeEmailStatus(long userId);
 
         Task<bool> ChangePassword(string email);
 

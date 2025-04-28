@@ -11,5 +11,8 @@
         /// URL to redirect to after cancel payment
         /// </summary>
         public const string PaymentCanceledPage = "http://localhost:3000/advertiser/profile";
+
+        public const string SignInRedirectPage = "https://dev.l3on.id.vn/auth/sign-in";
+
     }
 }

@@ -71,7 +71,7 @@ namespace ANF.Service
             }
         }
 
-        public async Task<bool> ChangeEmailStatus(long userId)
+        public async Task<string> ChangeEmailStatus(long userId)
         {
             try
             {
@@ -84,7 +84,9 @@ namespace ANF.Service
                 // Email verification success
                 user.EmailConfirmed = true;
                 userRepository.Update(user);
-                return await _unitOfWork.SaveAsync() > 0;
+                await _unitOfWork.SaveAsync();
+
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch
             {
@@ -457,12 +459,19 @@ namespace ANF.Service
                 .Include(u => u.AdvertiserProfile)
                 .Include(u => u.UserBanks)
                 .Include(u => u.Wallet)
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password && u.Status == UserStatus.Active);
+                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
             if (user is null) throw new KeyNotFoundException("Email or password is not correct! Please check again");
             if (user.Status == UserStatus.Deactive)
             {
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
             }
+
+            if(user.EmailConfirmed is false)
+                throw new UnauthorizedAccessException("User's account email is not verified yet.");
+
+            if(user.Status == UserStatus.Pending)
+                throw new UnauthorizedAccessException("User's account is not verified by admin yet.");
+            
             var token = _tokenService.GenerateToken(user);
 
             if (user.Role == UserRoles.Advertiser)

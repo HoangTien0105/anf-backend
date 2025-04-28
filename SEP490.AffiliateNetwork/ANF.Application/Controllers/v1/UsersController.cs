@@ -5,6 +5,7 @@ using ANF.Core.Models.Requests;
 using Asp.Versioning;
 using ANF.Core.Models.Responses;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -200,17 +201,13 @@ namespace ANF.Application.Controllers.v1
         [HttpGet("users/{id}/verify-account")]
         [MapToApiVersion(1)]
         [AllowAnonymous]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> VerifyUserAccount(long id)
         {
             var result = await _userService.ChangeEmailStatus(id);
-            if (!result) return BadRequest();
-            return Ok(new ApiResponse<string>
-            {
-                IsSuccess = true,
-                Message = "Success."
-            });
+            if (result.IsNullOrEmpty()) return BadRequest();
+            return Redirect(result);
         }
 
         /// <summary>
