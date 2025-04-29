@@ -8,5 +8,6 @@ namespace ANF.Core.Services
 
         Task<bool> SendTokenForResetPassword(EmailMessage message, string resetUrl);
         Task<bool> SendCampaignNotificationEmail(EmailMessage message, string campaignName, long? offer, string status);
+        Task<bool> SendNotificationEmail(EmailMessage message);
     }
 }

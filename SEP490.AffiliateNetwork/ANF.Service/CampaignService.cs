@@ -173,7 +173,15 @@ namespace ANF.Service
                 }
 
                 var affectedRows = await _unitOfWork.SaveAsync();
-                return affectedRows > 0;
+                if(affectedRows > 0)
+                {
+                    await _notificationService.NotifyCampaignCreated("A new campaign has just created");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
             catch (Exception)
             {

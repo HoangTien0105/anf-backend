@@ -68,7 +68,25 @@ namespace ANF.Service
 
                 pubOfferRepository.Add(publisherOffer);
                 var affectedRows = await _unitOfWork.SaveAsync();
-                return affectedRows > 0;
+                if(affectedRows > 0) {
+                    await _notificationService.NotifyRequestToJoinOffer(campaignExist.AdvertiserCode, "There is a request to join your offer");
+
+                    var advertiser = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaignExist.AdvertiserCode);
+
+                    var message = new EmailMessage
+                    {
+                        To = advertiser!.Email,
+                        Subject = "Campaign notifications",
+                        Body = "There is a request to join your offer"
+                    };
+
+                    var emailResult = await _emailService.SendNotificationEmail(message);
+                    return true;
+                } 
+                else
+                {
+                    return false;
+                }
 
             }
             catch (Exception)
@@ -330,6 +348,7 @@ namespace ANF.Service
             try
             {
                 var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
+                var userRepository = _unitOfWork.GetRepository<User>();
                 var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var offerRepository = _unitOfWork.GetRepository<Offer>();
                 var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
@@ -367,9 +386,33 @@ namespace ANF.Service
                 } 
 
                 pubOfferRepository.Update(pubOfferExist);
-                await _notificationService.NotifyPublisherOffer(advertiserCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
-                await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
-                return await _unitOfWork.SaveAsync() > 0;
+                var updatedRow = await _unitOfWork.SaveAsync() > 0;
+
+                if (updatedRow)
+                {
+                    //Notify to adv
+                    await _notificationService.NotifyPublisherOffer(advertiserCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
+                    //Notify to publ
+                    await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
+
+                    var advertiser = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == pubOfferExist.PublisherCode);
+
+                    var message = new EmailMessage
+                    {
+                        To = advertiser!.Email,
+                        Subject = "Campaign notifications",
+                        Body = "Advertiser have accepted your request to join offer"
+                    };
+
+                    var emailResult = await _emailService.SendNotificationEmail(message);
+
+                    if (!emailResult) throw new Exception("Failed to send email!");
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
 
             }
             catch (Exception)

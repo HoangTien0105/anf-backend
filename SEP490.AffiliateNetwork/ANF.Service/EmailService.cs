@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Models.Entities;
 using ANF.Core.Services;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -11,7 +12,7 @@ namespace ANF.Service
     {
         private readonly EmailSettings _options = options.Value;
 
-        public async Task<bool> SendCampaignNotificationEmail(EmailMessage message, string campaignName, long? offer , string status)
+        public async Task<bool> SendCampaignNotificationEmail(EmailMessage message, string campaignName, long? offer, string status)
         {
             var result = false;
             try
@@ -43,6 +44,43 @@ namespace ANF.Service
                         </div>"
                     };
                 }
+
+                using var client = new SmtpClient();
+                await client.ConnectAsync(_options.SmtpServer, _options.Port,
+                    SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(_options.SenderEmail, _options.Password);
+                await client.SendAsync(mimeMessage);
+                await client.DisconnectAsync(true);
+
+                result = true;
+            }
+            catch
+            {
+                throw;
+            }
+            return result;
+        }
+
+        public async Task<bool> SendNotificationEmail(EmailMessage message)
+        {
+            var result = false;
+            try
+            {
+                var mimeMessage = new MimeMessage();
+                mimeMessage.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
+                mimeMessage.To.Add(new MailboxAddress("", message.To));
+                mimeMessage.Subject = message.Subject;
+
+
+                mimeMessage.Body = new TextPart("html")
+                {
+                    Text = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1); background-color: #f9f9f9;'>
+                            <h2 style='color: #d9534f; text-align: center;'>Notification</h2>
+                            <p style='font-size: 16px; color: #555; text-align: center;'>{message.Body}</p>
+                        </div>"
+                };
+
 
                 using var client = new SmtpClient();
                 await client.ConnectAsync(_options.SmtpServer, _options.Port,
