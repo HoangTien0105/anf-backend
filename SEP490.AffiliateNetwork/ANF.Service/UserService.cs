@@ -358,10 +358,11 @@ namespace ANF.Service
                         await _unitOfWork.SaveAsync();  // Save user's information into database to store user's wallet info
                     }
                     else throw new Exception("Email sending failure!");
-                    //Enable user's wallet
+                    // Activate the wallet
                     var wallet = new Wallet
                     {
                         UserCode = user.UserCode,
+                        IsActive = true
                     };
                     walletRepository.Add(wallet);
                     return await _unitOfWork.SaveAsync() > 0;   // Save user's wallet information
