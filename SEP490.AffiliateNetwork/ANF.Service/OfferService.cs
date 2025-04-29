@@ -367,7 +367,9 @@ namespace ANF.Service
                 } 
 
                 pubOfferRepository.Update(pubOfferExist);
+                //Notify to adv
                 await _notificationService.NotifyPublisherOffer(advertiserCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
+                //Notify to publ
                 await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
                 return await _unitOfWork.SaveAsync() > 0;
 

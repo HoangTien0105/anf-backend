@@ -10,5 +10,24 @@ namespace ANF.Service.Hubs
         {
             await Clients.All.SendAsync("CampaignStatusUpdated", message); 
         }
+
+        public override async Task OnConnectedAsync()
+        {
+            var user = Context.User;
+            var isAdmin = user?.IsInRole("Admin") ?? false;
+
+            if (isAdmin)
+            {
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+            }
+
+            await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, "Admins");
+            await base.OnDisconnectedAsync(exception);
+        }
     }
 }

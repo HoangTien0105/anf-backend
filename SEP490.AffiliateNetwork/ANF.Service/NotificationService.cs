@@ -8,6 +8,12 @@ namespace ANF.Service
     public class NotificationService(IHubContext<NotificationHub> hubContext) : INotificationService
     {
         private readonly IHubContext<NotificationHub> _hubContext = hubContext;
+
+        public async Task NotifyCampaignCreated(string message)
+        {
+            await _hubContext.Clients.Group("Admins").SendAsync("CampaignCreated", message);
+        }
+
         public async Task NotifyCampaignStatus(string userCode, long campaignId, string status, string? rejectReason)
         {
             await _hubContext.Clients.User(userCode).SendAsync("CampaignStatusUpdated", new
@@ -38,6 +44,15 @@ namespace ANF.Service
                 OfferId = pubOfferId,
                 Status = status,
                 RejectReason = rejectReason
+            });
+        }
+
+        public async Task NotifyRequestToJoinOffer(string userCode, string message)
+        {
+            await _hubContext.Clients.User(userCode).SendAsync("NotifyRequestToJoinOffer", new
+            {
+                UserCode = userCode,
+                Message = message
             });
         }
 
