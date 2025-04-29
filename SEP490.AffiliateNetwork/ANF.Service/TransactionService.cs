@@ -50,7 +50,7 @@ namespace ANF.Service
                 transactionRepository.Delete(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return PaymentRedirectedPage.PaymentCanceledPage;
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch (Exception)
             {
@@ -94,7 +94,7 @@ namespace ANF.Service
                 transactionRepository.Update(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return PaymentRedirectedPage.PaymentSuccessfulPage;
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch (Exception ex)
             {
@@ -138,7 +138,7 @@ namespace ANF.Service
                 transactionRepository.Update(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return PaymentRedirectedPage.PaymentSuccessfulPage;
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch (Exception ex)
             {
