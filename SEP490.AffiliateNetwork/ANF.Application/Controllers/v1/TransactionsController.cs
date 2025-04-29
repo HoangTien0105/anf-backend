@@ -116,6 +116,33 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get withdrawal requests by user
+        /// </summary>
+        /// <param name="code">User's code</param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpGet("users/{code}/withdrawal-requests")]
+        [Authorize(Roles = "Publisher, Advertiser")]
+        [MapToApiVersion(1)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetWithdrawalRequestByUser(string code, [FromQuery] PaginationRequest request)
+        {
+            var result = await _transactionService.GetWithdrawalRequestsByUser(
+                code,
+                request.pageNumber,
+                request.pageSize);
+
+            return Ok(new ApiResponse<PaginationResponse<WithdrawalResponse>>
+            {
+                IsSuccess = true,
+                Message = "Fetch data successfully!",
+                Value = result
+            });
+        }
+
+
+        /// <summary>
         /// Update withdrawal status batch (for Admin)
         /// </summary>
         /// <param name="request"></param>
@@ -201,9 +228,9 @@ namespace ANF.Application.Controllers.v1
             [FromQuery] string fromDate,
             [FromQuery] string toDate)
         {
-            var response = await _transactionService.GetBatchPaymentDataForExporting(request.pageNumber, 
-                request.pageSize, 
-                fromDate, 
+            var response = await _transactionService.GetBatchPaymentDataForExporting(request.pageNumber,
+                request.pageSize,
+                fromDate,
                 toDate);
             return Ok(new ApiResponse<PaginationResponse<ExportedBatchDataResponse>>
             {

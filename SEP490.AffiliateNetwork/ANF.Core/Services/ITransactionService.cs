@@ -35,5 +35,9 @@ namespace ANF.Core.Services
             int pageSize);
 
         Task<decimal> GetCurrentBalanceInWallet(string userCode);
+
+        Task<PaginationResponse<WithdrawalResponse>> GetWithdrawalRequestsByUser(string userCode, 
+            int pageNumber, 
+            int pageSize);
     }
 }
