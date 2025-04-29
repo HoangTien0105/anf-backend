@@ -294,20 +294,22 @@ namespace ANF.Service
                 if (request.Amount > wallet.Balance)
                     throw new ArgumentException("Withdrawal amount exceeds current balance in wallet!");
 
-                // Check withdrawal amount and campaign's budget (For advertiser)
-                var advertiser = await _unitOfWork.GetRepository<User>()
+                var user = await _unitOfWork.GetRepository<User>()
                     .GetAll()
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.UserCode == currentUserCode && u.Role == UserRoles.Advertiser)
-                        ?? throw new KeyNotFoundException("Advertiser does not exist!");
-                if (advertiser is not null)
+                    .FirstOrDefaultAsync(u => u.UserCode == currentUserCode)
+                        ?? throw new KeyNotFoundException("User does not exist!");
+                // Check withdrawal amount and campaign's budget (For advertiser)
+                if (user is not null && user.Role == UserRoles.Advertiser)
                 {
                     var totalBudget = await campaignRepository.GetAll()
                         .AsNoTracking()
-                        .Where(c => c.AdvertiserCode == advertiser.UserCode &&
-                            (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started))
+                        .Where(c => c.AdvertiserCode == user.UserCode &&
+                            (c.Status == CampaignStatus.Verified || c.Status == CampaignStatus.Started || c.Status == CampaignStatus.Pending))
                         .SumAsync(c => c.Balance);
-                    if (request.Amount >= totalBudget)
+                    //if (request.Amount >= totalBudget)
+                    //    throw new ArgumentException("Withdrawal amount exceeds current total budget in campaigns!");
+                    if (wallet.Balance - request.Amount <= totalBudget)
                         throw new ArgumentException("Withdrawal amount exceeds current total budget in campaigns!");
 
                     //TODO: Cần review lại campaign balance
