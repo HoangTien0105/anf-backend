@@ -39,5 +39,12 @@ namespace ANF.Core.Services
         Task<PaginationResponse<WithdrawalResponse>> GetWithdrawalRequestsByUser(string userCode, 
             int pageNumber, 
             int pageSize);
+
+        /// <summary>
+        /// Get transaction by id
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <returns></returns>
+        Task<TransactionResponse?> GetTransactionById(long transactionId);
     }
 }

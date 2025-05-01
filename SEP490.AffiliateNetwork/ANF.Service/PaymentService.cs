@@ -11,9 +11,9 @@ namespace ANF.Service
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly PayOSSettings _options = options.Value;
-        
+
         private readonly string _appBaseUrLDev = "http://localhost:5272/api/affiliate-network";
-        
+
         private readonly string _appBaseUrLProd = " https://be.l3on.id.vn/api/affiliate-network";
 
         private readonly string _currentEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
@@ -48,7 +48,6 @@ namespace ANF.Service
                 );
                 var paymentResult = await payOS.createPaymentLink(paymentData);
                 return paymentResult.checkoutUrl;
-
             }
             else
             {

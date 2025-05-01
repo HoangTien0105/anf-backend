@@ -48,6 +48,25 @@ namespace ANF.Application.Controllers.v1
         }
 
         /// <summary>
+        /// Get transaction by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("transactions/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<TransactionResponse>>> GetTransactionById(long id)
+        {
+            var transaction = await _transactionService.GetTransactionById(id);
+            return Ok(new ApiResponse<TransactionResponse>
+            {
+                IsSuccess = true,
+                Message = "Fetch data successfully!",
+                Value = transaction
+            });
+        }
+
+        /// <summary>
         /// Deposit money from users
         /// </summary>
         /// <param name="request">Money amount</param>

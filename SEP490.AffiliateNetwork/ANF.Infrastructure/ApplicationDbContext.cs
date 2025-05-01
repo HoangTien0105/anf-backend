@@ -86,6 +86,7 @@ namespace ANF.Infrastructure
         {
             base.OnModelCreating(builder);
 
+            #region Entity type configurations
             new AdvertiserProfileTypeConfig().Configure(builder.Entity<AdvertiserProfile>());
             new PublisherProfileTypeConfig().Configure(builder.Entity<PublisherProfile>());
             new PublisherSourceTypeConfig().Configure(builder.Entity<TrafficSource>());
@@ -104,6 +105,8 @@ namespace ANF.Infrastructure
             new TrackingEventTypeConfig().Configure(builder.Entity<TrackingEvent>());
             new TrackingValidationTypeConfig().Configure(builder.Entity<TrackingValidation>());
             new FraudDetectionTypeConfig().Configure(builder.Entity<FraudDetection>());
+            new ComplaintTicketTypeConfig().Configure(builder.Entity<ComplaintTicket>());
+            #endregion
 
             #region Other type configurations
             builder.Entity<Subscription>()
@@ -114,7 +117,10 @@ namespace ANF.Infrastructure
                 .Property(c => c.Id).ValueGeneratedNever();
             #endregion
 
+            #region Seed data
             builder.SeedTrackingParams();
+            builder.Seed();
+            #endregion
         }
     }
 }

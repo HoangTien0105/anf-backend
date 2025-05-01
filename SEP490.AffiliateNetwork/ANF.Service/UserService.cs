@@ -6,6 +6,7 @@ using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
+using ANF.Infrastructure.Helpers;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -340,9 +341,12 @@ namespace ANF.Service
                     .AnyAsync(u => u.Email == request.Email || u.PhoneNumber == request.PhoneNumber);
                 if (duplicatedUser) throw new DuplicatedException("User already exists.");
 
+                // Hash user's password
+                var hashedPassword = PasswordHasher.HashPassword(request.Password);
                 var user = _mapper.Map<User>(request);
-                userRepository.Add(user);
+                user.Password = hashedPassword;
 
+                userRepository.Add(user);
                 // Send email verification to user
                 if (_currentEnv == "Development")
                 {
@@ -461,19 +465,24 @@ namespace ANF.Service
                 .Include(u => u.AdvertiserProfile)
                 .Include(u => u.UserBanks)
                 .Include(u => u.Wallet)
-                .FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
-            if (user is null) throw new KeyNotFoundException("Email or password is not correct! Please check again");
+                .FirstOrDefaultAsync(u => u.Email == email)
+                ?? throw new KeyNotFoundException("Email is not correct! Please check again.");
+
+            var isValidPassword = PasswordHasher.VerifyPassword(password, user.Password);
+            if (!isValidPassword)
+                throw new UnauthorizedAccessException("Password is not correct! Please check again.");
+
             if (user.Status == UserStatus.Deactive)
             {
                 throw new UnauthorizedAccessException("User's account has been deactivated! Please contact to the IT support.");
             }
 
-            if(user.EmailConfirmed is false)
+            if (user.EmailConfirmed is false)
                 throw new UnauthorizedAccessException("User's account email is not verified yet.");
 
-            if(user.Status == UserStatus.Pending)
+            if (user.Status == UserStatus.Pending)
                 throw new UnauthorizedAccessException("User's account is not verified by admin yet.");
-            
+
             var token = _tokenService.GenerateToken(user);
 
             if (user.Role == UserRoles.Advertiser)

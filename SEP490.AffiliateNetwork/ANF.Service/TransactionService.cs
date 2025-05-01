@@ -50,7 +50,7 @@ namespace ANF.Service
                 transactionRepository.Delete(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return PaymentRedirectedPage.PaymentCanceledPage;
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch (Exception)
             {
@@ -94,7 +94,7 @@ namespace ANF.Service
                 transactionRepository.Update(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return PaymentRedirectedPage.PaymentSuccessfulPage;
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch (Exception ex)
             {
@@ -138,7 +138,7 @@ namespace ANF.Service
                 transactionRepository.Update(transaction);
                 await _unitOfWork.SaveAsync();
 
-                return PaymentRedirectedPage.PaymentSuccessfulPage;
+                return PaymentRedirectedPage.SignInRedirectPage;
             }
             catch (Exception ex)
             {
@@ -454,6 +454,17 @@ namespace ANF.Service
                 ?? throw new KeyNotFoundException("Wallet does not exist!");
 
             return Task.FromResult(wallet.Balance);
+        }
+
+        public async Task<TransactionResponse?> GetTransactionById(long transactionId)
+        {
+            var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+
+            var transaction = await transactionRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == transactionId)
+                ?? throw new KeyNotFoundException("Transaction does not exist!");
+            return _mapper.Map<TransactionResponse>(transaction);
         }
 
         public async Task<PaginationResponse<UserTransactionResponse>> GetTransactionOfUser(string userCode,
