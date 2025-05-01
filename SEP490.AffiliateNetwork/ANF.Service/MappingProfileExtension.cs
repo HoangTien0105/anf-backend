@@ -168,6 +168,10 @@ namespace ANF.Service
             CreateMap<PublisherOfferStats, PublisherOfferStatsResponse>();
 
             CreateMap<PostbackLogUpdateRequest, PurchaseLog>();
+
+            #region Mapping between Transaction and TransactionResponse (/transactions/id)
+            CreateMap<Transaction, TransactionResponse>();
+            #endregion
         }
     }
 }

@@ -456,6 +456,17 @@ namespace ANF.Service
             return Task.FromResult(wallet.Balance);
         }
 
+        public async Task<TransactionResponse?> GetTransactionById(long transactionId)
+        {
+            var transactionRepository = _unitOfWork.GetRepository<Transaction>();
+
+            var transaction = await transactionRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == transactionId)
+                ?? throw new KeyNotFoundException("Transaction does not exist!");
+            return _mapper.Map<TransactionResponse>(transaction);
+        }
+
         public async Task<PaginationResponse<UserTransactionResponse>> GetTransactionOfUser(string userCode,
             int pageNumber,
             int pageSize)
