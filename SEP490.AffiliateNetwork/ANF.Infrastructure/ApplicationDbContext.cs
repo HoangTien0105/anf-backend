@@ -52,11 +52,13 @@ namespace ANF.Infrastructure
 
         public DbSet<BatchPayment> BatchPayments { get; set; } = null!;
 
-        public DbSet<AdvertiserOfferStats> AdvertiserOfferStats { get; set; } = null!;
+        public DbSet<AdvertiserCampaignStats> AdvertiserOfferStats { get; set; } = null!;
 
-        public DbSet<PublisherOfferStats> PublisherOfferStats { get; set; } = null!;
+        public DbSet<PublisherCampaignStats> PublisherOfferStats { get; set; } = null!;
 
         public DbSet<PurchaseLog> PurchaseLogs { get; set; } = null!;
+
+        public DbSet<AdminStats> AdminStats { get; set; } = null!;
 
         /// <summary>
         /// Get connection string from appsettings.json

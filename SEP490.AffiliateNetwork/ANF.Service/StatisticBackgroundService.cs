@@ -65,9 +65,9 @@ namespace ANF.Service
         }
         private async Task<bool> GenerateAdvertiserOfferStats(IUnitOfWork unitOfWork)
         {
-            try
+            /*try
             {
-                var advertiserOfferStatsRepo = unitOfWork.GetRepository<AdvertiserOfferStats>();
+                var advertiserOfferStatsRepo = unitOfWork.GetRepository<AdvertiserCampaignStats>();
                 var userRepo = unitOfWork.GetRepository<User>();
                 var campaignRepo = unitOfWork.GetRepository<Campaign>();
                 var OfferRepo = unitOfWork.GetRepository<Offer>();
@@ -109,14 +109,15 @@ namespace ANF.Service
             {
                 await unitOfWork.RollbackAsync();
                 throw new ArgumentException(ex.Message);
-            }
+            }*/
+            throw new NotImplementedException();
         }
 
         private async Task<bool> GeneratePublisherOfferStats(IUnitOfWork unitOfWork)
         {
-            try
+            /*try
             {
-                var publisherOfferStatsRepo = unitOfWork.GetRepository<PublisherOfferStats>();
+                var publisherOfferStatsRepo = unitOfWork.GetRepository<PublisherCampaignStats>();
                 var userRepo = unitOfWork.GetRepository<User>();
                 var publisherOfferRepo = unitOfWork.GetRepository<PublisherOffer>();
                 var OfferRepo = unitOfWork.GetRepository<Offer>();
@@ -178,13 +179,14 @@ namespace ANF.Service
             {
                 await unitOfWork.RollbackAsync();
                 throw new ArgumentException(ex.Message);
-            }
+            }*/
+            throw new NotImplementedException();
         }
 
 
-        private async Task<PublisherOfferStats?> AnalyzePublisherOfferStats(Offer offer, string publisherCode, IUnitOfWork unitOfWork)
+        private async Task<PublisherCampaignStats?> AnalyzePublisherOfferStats(Offer offer, string publisherCode, IUnitOfWork unitOfWork)
         {
-            try
+            /*try
             {
                 var trackingRepo = unitOfWork.GetRepository<TrackingEvent>();
                 var validationRepo = unitOfWork.GetRepository<TrackingValidation>();
@@ -214,7 +216,7 @@ namespace ANF.Service
                                   ? (validatedClickList.Sum(v => v.Amount ?? 0) * (decimal)(offer.CommissionRate ?? 0))
                                   : (validatedClicksCount * offer.Bid);
 
-                PublisherOfferStats newPublisherOfferStats = new PublisherOfferStats()
+                PublisherCampaignStats newPublisherOfferStats = new PublisherCampaignStats()
                 {
                     Date = DateTime.Now,
                     OfferId = offer.Id,
@@ -231,11 +233,12 @@ namespace ANF.Service
             catch
             {
                 return null;
-            }
+            }*/
+            throw new NotImplementedException();
         }
-        private async Task<AdvertiserOfferStats?> AnalyzeAdvertiserOfferStats(Offer offer, IUnitOfWork unitOfWork)
+        private async Task<AdvertiserCampaignStats?> AnalyzeAdvertiserOfferStats(Offer offer, IUnitOfWork unitOfWork)
         {
-            try
+            /*try
             {
                 var trackingRepo = unitOfWork.GetRepository<TrackingEvent>();
                 var validationRepo = unitOfWork.GetRepository<TrackingValidation>();
@@ -271,7 +274,7 @@ namespace ANF.Service
                                   ? (validatedClickList.Sum(v => v.Amount ?? 0) * (decimal)(offer.CommissionRate ?? 0))
                                   : (validatedClicksCount * offer.Bid);
 
-                AdvertiserOfferStats newAdvertiserOfferStats = new AdvertiserOfferStats()
+                AdvertiserCampaignStats newAdvertiserOfferStats = new AdvertiserCampaignStats()
                 {
                     Date = DateTime.Now,
                     OfferId = offer.Id,
@@ -289,7 +292,8 @@ namespace ANF.Service
             catch
             {
                 return null;
-            }
+            }*/
+            throw new NotImplementedException();
         }
     }
 }

@@ -4,6 +4,7 @@ using ANF.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ANF.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250503095912_FixStatsTable")]
+    partial class FixStatsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,52 +24,6 @@ namespace ANF.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ANF.Core.Models.Entities.AdminStats", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("date");
-
-                    b.Property<int>("TotalApprovedCampaign")
-                        .HasColumnType("int")
-                        .HasColumnName("total_approved_campaign");
-
-                    b.Property<int>("TotalCampaign")
-                        .HasColumnType("int")
-                        .HasColumnName("total_campaign");
-
-                    b.Property<int>("TotalPendingTicket")
-                        .HasColumnType("int")
-                        .HasColumnName("total_pending_ticket");
-
-                    b.Property<int>("TotalRejectedCampaign")
-                        .HasColumnType("int")
-                        .HasColumnName("total_rejected_campaign");
-
-                    b.Property<int>("TotalResolvedTicket")
-                        .HasColumnType("int")
-                        .HasColumnName("total_resolved_ticket");
-
-                    b.Property<int>("TotalTicket")
-                        .HasColumnType("int")
-                        .HasColumnName("total_ticket");
-
-                    b.Property<int>("TotalUser")
-                        .HasColumnType("int")
-                        .HasColumnName("total_user");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AdminStats");
-                });
 
             modelBuilder.Entity("ANF.Core.Models.Entities.AdvertiserCampaignStats", b =>
                 {

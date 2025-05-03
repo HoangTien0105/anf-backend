@@ -163,9 +163,9 @@ namespace ANF.Service
 
             CreateMap<Transaction, UserTransactionResponse>();
 
-            CreateMap<AdvertiserOfferStats, AdvertiserOfferStatsResponse>();
+            CreateMap<AdvertiserCampaignStats, AdvertiserOfferStatsResponse>();
 
-            CreateMap<PublisherOfferStats, PublisherOfferStatsResponse>();
+            CreateMap<PublisherCampaignStats, PublisherOfferStatsResponse>();
 
             CreateMap<PostbackLogUpdateRequest, PurchaseLog>();
 
