@@ -20,9 +20,9 @@ namespace ANF.Service
 
         public async Task<bool> GeneratePublisherOfferStatsByOfferId(long offerId, string publisherCode)
         {
-            try
+            /*try
             {
-                var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherOfferStats>();
+                var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherCampaignStats>();
                 var userRepo = _unitOfWork.GetRepository<User>();
                 var publisherOfferRepo = _unitOfWork.GetRepository<PublisherOffer>();
                 var OfferRepo = _unitOfWork.GetRepository<Offer>();
@@ -76,13 +76,14 @@ namespace ANF.Service
             {
                 await _unitOfWork.RollbackAsync();
                 throw new ArgumentException(ex.Message);
-            }
+            }*/
+            throw new NotImplementedException();
         }
         public async Task<bool> GeneratePublisherOfferStatsByPublisherCode(string publisherCode)
         {
-            try
+            /*try
             {
-                var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherOfferStats>();
+                var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherCampaignStats>();
                 var userRepo = _unitOfWork.GetRepository<User>();
                 var publisherOfferRepo = _unitOfWork.GetRepository<PublisherOffer>();
                 var OfferRepo = _unitOfWork.GetRepository<Offer>();
@@ -137,11 +138,12 @@ namespace ANF.Service
             {
                 await _unitOfWork.RollbackAsync();
                 throw new ArgumentException(ex.Message);
-            }
+            }*/
+            throw new NotImplementedException();
         }
         public async Task<List<PublisherOfferStatsResponse>> GetAllPublisherOfferStatsByPublisherCode(string publisherCode)
         {
-            var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherOfferStats>();
+            /*var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherCampaignStats>();
 
             var publisherOfferStatsList = await publisherOfferStatsRepo.GetAll()
                                                                  .AsNoTracking()
@@ -149,26 +151,28 @@ namespace ANF.Service
                                                                  .ToListAsync();
 
             if (publisherOfferStatsList == null) throw new KeyNotFoundException("Not found");
-            return _mapper.Map<List<PublisherOfferStatsResponse>>(publisherOfferStatsList);
+            return _mapper.Map<List<PublisherOfferStatsResponse>>(publisherOfferStatsList);*/
+            throw new NotImplementedException();
         }
         public async Task<PublisherOfferStatsResponse> GetPublisherOfferStatsByOfferId(long offerId, string publisherCode)
         {
-            var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherOfferStats>();
+            /*var publisherOfferStatsRepo = _unitOfWork.GetRepository<PublisherCampaignStats>();
 
             var publisherOfferStat = await publisherOfferStatsRepo.GetAll()
                                                             .AsNoTracking()
                                                             .FirstOrDefaultAsync(po => ((po.OfferId == offerId) && po.PublisherCode!.Equals(publisherCode)));
             if (publisherOfferStat == null) throw new KeyNotFoundException("Not found");
 
-            return _mapper.Map<PublisherOfferStatsResponse>(publisherOfferStat);
+            return _mapper.Map<PublisherOfferStatsResponse>(publisherOfferStat);*/
+            throw new NotImplementedException();
 
         }
         
         public async Task<bool> GenerateAdvertiserOfferStatsByAdvertiserCode(string advertiserCode)
         {
-            try
+            /*try
             {
-                var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserOfferStats>();
+                var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
                 var userRepo = _unitOfWork.GetRepository<User>();
                 var campaignRepo = _unitOfWork.GetRepository<Campaign>();
                 var OfferRepo = _unitOfWork.GetRepository<Offer>();
@@ -227,13 +231,14 @@ namespace ANF.Service
             {
                 await _unitOfWork.RollbackAsync();
                 throw new ArgumentException(ex.Message);
-            }
+            }*/
+            throw new NotImplementedException();
         }
         public async Task<bool> GenerateAdvertiserOfferStatsByOfferId(long offerId)
         {
-            try
+            /*try
             {
-                var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserOfferStats>();
+                var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
                 var offerRepo = _unitOfWork.GetRepository<Offer>();
 
                 //get offer details
@@ -265,20 +270,23 @@ namespace ANF.Service
             {
                 await _unitOfWork.RollbackAsync();
                 throw new ArgumentException(ex.Message);
-            }
+            }*/
+            throw new NotImplementedException();
         }
         public async Task<AdvertiserOfferStatsResponse> GetAdvertiserOfferStatsByOfferId(long offerId)
         {
-            var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserOfferStats>();
+            /*var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
             var statistic = await advertiserOfferStatsRepo.GetAll()
                                                     .AsNoTracking()
                                                     .FirstOrDefaultAsync(s => s.OfferId == offerId);
             if (statistic == null) throw new KeyNotFoundException("Statistic of offer with id = '" + offerId + "' is not found");
-            return _mapper.Map<AdvertiserOfferStatsResponse>(statistic);
+            return _mapper.Map<AdvertiserOfferStatsResponse>(statistic);*/
+
+            throw new NotImplementedException();
         }
         public async Task<List<AdvertiserOfferStatsResponse>> GetAllAdvertiserOffersStatsByAdvertiserCode(string advertiserCode)
         {
-            var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserOfferStats>();
+            /*var advertiserOfferStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
             var userRepo = _unitOfWork.GetRepository<User>();
             var campaignRepo = _unitOfWork.GetRepository<Campaign>();
             var OfferRepo = _unitOfWork.GetRepository<Offer>();
@@ -315,12 +323,14 @@ namespace ANF.Service
                                                     .Where(s => offerIds.Contains(s.OfferId))
                                                     .ToList();
             if (statistics == null) throw new KeyNotFoundException("Statistics are not found");
-            return _mapper.Map<List<AdvertiserOfferStatsResponse>>(statistics);
+            return _mapper.Map<List<AdvertiserOfferStatsResponse>>(statistics);*/
+
+            throw new NotImplementedException();
         }
 
-        private async Task<PublisherOfferStats?> AnalyzePublisherOfferStats(Offer offer, string publisherCode)
+        private async Task<PublisherCampaignStats?> AnalyzePublisherOfferStats(Offer offer, string publisherCode)
         {
-            try
+            /*try
             {
                 var trackingRepo = _unitOfWork.GetRepository<TrackingEvent>();
                 var validationRepo = _unitOfWork.GetRepository<TrackingValidation>();
@@ -350,7 +360,7 @@ namespace ANF.Service
                                   ? (validatedClickList.Sum(v => v.Amount ?? 0) * (decimal)(offer.CommissionRate ?? 0))
                                   : (validatedClicksCount * offer.Bid);
 
-                PublisherOfferStats newPublisherOfferStats = new PublisherOfferStats()
+                PublisherCampaignStats newPublisherOfferStats = new PublisherCampaignStats()
                 {
                     Date = DateTime.Now,
                     OfferId = offer.Id,
@@ -367,11 +377,13 @@ namespace ANF.Service
             catch
             {
                 return null;
-            }
+            }*/
+
+            throw new NotImplementedException();
         }
-        private async Task<AdvertiserOfferStats?> AnalyzeAdvertiserOfferStats(Offer offer)
+        private async Task<AdvertiserCampaignStats?> AnalyzeAdvertiserOfferStats(Offer offer)
         {
-            try
+            /*try
             {
                 var trackingRepo = _unitOfWork.GetRepository<TrackingEvent>();
                 var validationRepo = _unitOfWork.GetRepository<TrackingValidation>();
@@ -407,7 +419,7 @@ namespace ANF.Service
                                   ? (validatedClickList.Sum(v => v.Amount ?? 0) * (decimal)(offer.CommissionRate ?? 0))
                                   : (validatedClicksCount * offer.Bid);
 
-                AdvertiserOfferStats newAdvertiserOfferStats = new AdvertiserOfferStats()
+                AdvertiserCampaignStats newAdvertiserOfferStats = new AdvertiserCampaignStats()
                 {
                     Date = DateTime.Now,
                     OfferId = offer.Id,
@@ -425,7 +437,9 @@ namespace ANF.Service
             catch
             {
                 return null;
-            }
+            }*/
+
+            throw new NotImplementedException();
         }
     }
 }
