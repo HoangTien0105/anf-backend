@@ -20,20 +20,22 @@ namespace ANF.Service.Backgrounds
             {
                 try
                 {
+                    var now = DateTime.Now;
+                    var nextRunTime = DateTime.Today.AddHours(23).AddMinutes(30);
+                    if (now > nextRunTime)
+                        nextRunTime = nextRunTime.AddDays(1);
 
+                    var delay = nextRunTime - now;
+                    //_logger.LogInformation($"AdminStatsBackgroundService will run at {nextRunTime} (in {delay})");
+                    await Task.Delay(delay, stoppingToken);
 
-                    // Execute the stats collection every minute
                     using var scope = _serviceScopeFactory.CreateScope();
                     var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                     await AddStatsDataForAdmin(unitOfWork);
-
-                    // Wait for 1 minute before the next execution
-                    await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e.Message, e.StackTrace);
-                    // Wait 5 seconds before retrying on error
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                 }
             }
