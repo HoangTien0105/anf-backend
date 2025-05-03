@@ -63,15 +63,16 @@ namespace ANF.Application.Extensions
             services.AddMemoryCache();
             services.AddHttpClient();
             services.AddSignalR();
+            services.AddSingleton<RabbitMQPublisher>();
 
+            #region Hosted services
             services.AddHostedService<RabbitMQConsumer>();
             services.AddHostedService<SampleIdDetectionService>();
             services.AddHostedService<PostbackValidationService>();
             services.AddHostedService<CampaignBackgroundService>();
-
             services.AddHostedService<StatisticBackgroundService>();
-
-            services.AddSingleton<RabbitMQPublisher>();
+            services.AddHostedService<AdminStatsBackgroundService>();
+            #endregion
 
             services.Configure<ForwardedHeadersOptions>(o =>
             {
@@ -263,11 +264,13 @@ namespace ANF.Application.Extensions
             services.AddScoped<IStatisticService, StatisticService>();
             services.AddScoped<INotificationService, NotificationService>();
 
+            #region Background services
             services.AddSingleton<SampleIdDetectionService>();
             services.AddSingleton<PostbackValidationService>();
             services.AddSingleton<StatisticBackgroundService>();
             services.AddSingleton<CampaignBackgroundService>();
-
+            services.AddSingleton<AdminStatsBackgroundService>();
+            #endregion
             return services;
         }
 
