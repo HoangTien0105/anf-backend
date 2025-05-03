@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using RabbitMQ.Client;
 using System.Text;
 
-namespace ANF.Service
+namespace ANF.Service.RabbitMQ
 {
     public sealed class RabbitMQPublisher : IDisposable
     {

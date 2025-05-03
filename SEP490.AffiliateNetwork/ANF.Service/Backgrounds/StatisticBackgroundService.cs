@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace ANF.Service
+namespace ANF.Service.Backgrounds
 {
     public class StatisticBackgroundService(IServiceScopeFactory scopeFactory,
         ILogger<StatisticBackgroundService> logger) : BackgroundService

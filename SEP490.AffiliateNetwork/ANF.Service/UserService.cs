@@ -719,5 +719,74 @@ namespace ANF.Service
                 throw;
             }
         }
+
+        public async Task<UserStatsAdminResponse?> GetUserStats(DateTime from, DateTime to)
+        {
+            var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
+            var totalUsers = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalUser);
+
+            var response = new UserStatsAdminResponse
+            {
+                TotalUser = totalUsers,
+            };
+            return response;
+        }
+
+        public async Task<CampaignStatsAdminResponse?> GetCampaignStats(DateTime from, DateTime to)
+        {
+            var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
+            var totalCampaign = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalCampaign);
+
+            var totalApprovedCampaign = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalApprovedCampaign);
+
+            var totalRejectedCampaign = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalResolvedTicket);
+
+            var response = new CampaignStatsAdminResponse
+            {
+                TotalCampaign = totalCampaign,
+                TotalApprovedCampaign = totalApprovedCampaign,
+                TotalRejectedCampaign = totalRejectedCampaign
+            };
+            return response;
+        }
+
+        public async Task<TicketStatsAdminResponse?> GetTicketStats(DateTime from, DateTime to)
+        {
+            var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
+            var totalTicket = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalTicket);
+
+            var totalResolvedTicket = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalResolvedTicket);
+
+            var totalPendingTicket = await adminStatsRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => a.Date >= from && a.Date <= to)
+                .SumAsync(a => a.TotalPendingTicket);
+
+            var response = new TicketStatsAdminResponse
+            {
+                TotalTicket = totalTicket,
+                TotalResolvedTicket = totalResolvedTicket,
+                TotalPendingTicket = totalPendingTicket
+            };
+            return response;
+        }
     }
 }

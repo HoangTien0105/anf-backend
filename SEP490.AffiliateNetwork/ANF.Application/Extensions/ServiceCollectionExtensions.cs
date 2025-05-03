@@ -3,6 +3,8 @@ using ANF.Core.Commons;
 using ANF.Core.Services;
 using ANF.Infrastructure;
 using ANF.Service;
+using ANF.Service.Backgrounds;
+using ANF.Service.RabbitMQ;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

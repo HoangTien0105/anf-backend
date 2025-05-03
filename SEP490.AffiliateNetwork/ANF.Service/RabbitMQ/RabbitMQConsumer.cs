@@ -9,7 +9,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 
-namespace ANF.Service
+namespace ANF.Service.RabbitMQ
 {
     public sealed class RabbitMQConsumer : BackgroundService, IDisposable
     {

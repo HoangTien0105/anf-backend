@@ -3,12 +3,13 @@ using ANF.Core.Commons;
 using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
+using ANF.Service.RabbitMQ;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace ANF.Service
+namespace ANF.Service.Backgrounds
 {
     public sealed class SampleIdDetectionService : BackgroundService
     {
@@ -83,7 +84,7 @@ namespace ANF.Service
                                 tv.ValidationStatus == ValidationStatus.Success &&
                                 tv.ConversionStatus == ConversionStatus.Pending &&
                                 (o.PricingModel == "CPC" || o.PricingModel == "CPA" || o.PricingModel == "CPS") &&
-                                (tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime)
+                                tv.ValidatedTime >= fromTime && tv.ValidatedTime <= toTime
                             select new TrackingConversionEvent
                             {
                                 Id = tv.Id,
@@ -158,7 +159,7 @@ namespace ANF.Service
             {
                 if (spamIps.Contains(trackingItem.IpAddress))
                 {
-                    trackingItem.Status = Core.Enums.TrackingEventStatus.Fraud;
+                    trackingItem.Status = TrackingEventStatus.Fraud;
                     fraudEvents.Add(trackingItem);
                     var fraudDetection = new FraudDetection
                     {

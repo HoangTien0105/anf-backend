@@ -14,12 +14,23 @@ namespace ANF.Core.Models.Entities
         [Column("total_user")]
         public int TotalUser { get; set; }
 
+        /// <summary>
+        /// Total number of campaigns in network.
+        /// </summary>
         [Column("total_campaign")]
         public int TotalCampaign { get; set; }
 
+        /// <summary>
+        /// Total number of rejected campaign.
+        /// Campaign's state is "Rejected"
+        /// </summary>
         [Column("total_rejected_campaign")]
         public int TotalRejectedCampaign { get; set; }
 
+        /// <summary>
+        /// Total number of rejected campaign.
+        /// Campaign's state is "Verified" or "Started"
+        /// </summary>
         [Column("total_approved_campaign")]
         public int TotalApprovedCampaign { get; set; }
 
