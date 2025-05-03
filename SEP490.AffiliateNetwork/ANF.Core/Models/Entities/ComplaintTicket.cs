@@ -1,4 +1,5 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Enums;
 
 namespace ANF.Core.Models.Entities
 {
@@ -16,6 +17,8 @@ namespace ANF.Core.Models.Entities
 
         // TODO: Fix the property based on the requirement
         public string? ImageUrl { get; set; }
+
+        public TicketStatus Status { get; set; }
 
         public long? TypeId { get; set; }
 

@@ -38,5 +38,11 @@ namespace ANF.Core.Services
         Task<bool> AddBankingInformation(List<UserBankCreateRequest> requests);
 
         Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdatedRequest request);
+
+        Task<UserStatsAdminResponse?> GetUserStats(DateTime from, DateTime to);
+
+        Task<CampaignStatsAdminResponse?> GetCampaignStats(DateTime from, DateTime to);
+
+        Task<TicketStatsAdminResponse?> GetTicketStats(DateTime from, DateTime to);
     }
 }

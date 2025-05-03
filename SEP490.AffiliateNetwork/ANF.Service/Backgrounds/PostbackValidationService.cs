@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace ANF.Service
+namespace ANF.Service.Backgrounds
 {
     public sealed class PostbackValidationService : BackgroundService
     {
