@@ -78,17 +78,19 @@ namespace ANF.Service
         public async Task<PaginationResponse<SubscriptionResponse>> GetSubscriptions(PaginationRequest request)
         {
             var subscriptionRepository = _unitOfWork.GetRepository<Subscription>();
-            var subscriptions = await subscriptionRepository.GetAll()
-                            .AsNoTracking()
+            
+            var query = subscriptionRepository.GetAll()
+                .AsNoTracking();
+            var totalCount = await query.CountAsync();
+            var subscriptions = await query
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
             if (!subscriptions.Any())
                 throw new KeyNotFoundException("No data for subscriptions!");
-            var totalCounts = subscriptions.Count();
 
             var data = _mapper.Map<List<SubscriptionResponse>>(subscriptions);
-            return new PaginationResponse<SubscriptionResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<SubscriptionResponse>(data, totalCount, request.pageNumber, request.pageSize);
         }
 
         public async Task<bool> UpdateSubscription(long id, SubscriptionRequest request)

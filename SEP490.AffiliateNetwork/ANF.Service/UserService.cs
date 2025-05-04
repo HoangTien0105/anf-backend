@@ -573,32 +573,38 @@ namespace ANF.Service
         public async Task<PaginationResponse<AdvertiserResponse>> GetAdvertisers(PaginationRequest request)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
-            var users = await userRepository.GetAll()
+            
+            var query = userRepository.GetAll()
                 .AsNoTracking()
-                .Where(u => u.Role == UserRoles.Advertiser)
+                .Where(u => u.Role == UserRoles.Advertiser);
+            var totalCount = await query.CountAsync();
+            var users = await query
                 .Skip((request.pageNumber - 1) * request.pageSize)
                 .Take(request.pageSize)
                 .ToListAsync();
             if (!users.Any())
                 throw new NoDataRetrievalException("No data for users!");
-            var totalCount = users.Count();
 
             var data = _mapper.Map<List<AdvertiserResponse>>(users);
-            return new PaginationResponse<AdvertiserResponse>(data, totalCount, request.pageNumber, request.pageSize);
+            return new PaginationResponse<AdvertiserResponse>(data, totalCount, 
+                request.pageNumber, 
+                request.pageSize);
         }
 
         public async Task<PaginationResponse<PublisherResponse>> GetPublishers(PaginationRequest request)
         {
             var userRepository = _unitOfWork.GetRepository<User>();
-            var users = await userRepository.GetAll()
+            
+            var query = userRepository.GetAll()
                 .AsNoTracking()
-                .Where(u => u.Role == UserRoles.Publisher)
+                .Where(u => u.Role == UserRoles.Publisher);
+            var totalCount = await query.CountAsync();
+            var users = await query
                 .Skip((request.pageNumber - 1) * request.pageSize)
                 .Take(request.pageSize)
                 .ToListAsync();
             if (!users.Any())
                 throw new NoDataRetrievalException("No data for users!");
-            var totalCount = users.Count();
 
             var data = _mapper.Map<List<PublisherResponse>>(users);
             return new PaginationResponse<PublisherResponse>(data, totalCount, request.pageNumber, request.pageSize);

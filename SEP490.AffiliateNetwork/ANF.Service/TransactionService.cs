@@ -422,7 +422,7 @@ namespace ANF.Service
             }
         }
 
-        public async Task<PaginationResponse<ExportedBatchDataResponse>> GetBatchPaymentDataForExporting(int pageNumber, int pageSize,
+        public async Task<PaginationResponse<ExportedBatchDataResponse>> GetBatchPaymentDataForExporting(PaginationRequest request,
             string fromDate,
             string toDate)
         {
@@ -432,17 +432,21 @@ namespace ANF.Service
 
             DateTime from = DateTime.Parse(fromDate ?? throw new ArgumentException(nameof(fromDate)));
             DateTime to = DateTime.Parse(toDate ?? throw new ArgumentException(nameof(toDate)));
-            var data = await batchPaymentRepository.GetAll()
-                .AsNoTracking()
-                .Where(bp => bp.Date >= from && bp.Date <= to)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
 
+            var query = batchPaymentRepository.GetAll()
+                .AsNoTracking()
+                .Where(bp => bp.Date >= from && bp.Date <= to);
+            var totalRecord = await query.CountAsync();
+
+            var data = await query
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
             if (!data.Any()) throw new NoDataRetrievalException("No data of batch payment!");
-            var count = data.Count;
             var response = _mapper.Map<List<ExportedBatchDataResponse>>(data);
-            return new PaginationResponse<ExportedBatchDataResponse>(response, count, pageNumber, pageSize);
+            return new PaginationResponse<ExportedBatchDataResponse>(response, totalRecord,
+                request.pageNumber,
+                request.pageSize);
         }
 
         public Task<decimal> GetCurrentBalanceInWallet(string userCode)
@@ -474,21 +478,18 @@ namespace ANF.Service
             try
             {
                 var transactionRepository = _unitOfWork.GetRepository<Transaction>();
-                //var walletRepository = _unitOfWork.GetRepository<Wallet>();
 
-                //var wallet = walletRepository.GetAll()
-                //     .AsNoTracking()
-                //     .FirstOrDefault(w => w.UserCode == userCode)
-                //     ?? throw new KeyNotFoundException("Wallet does not exist!");
-                var transactions = await transactionRepository.GetAll()
+                var query = transactionRepository.GetAll()
                     .AsNoTracking()
                     .Where(t => t.UserCode == userCode)
-                    .OrderByDescending(t => t.CreatedAt)
-                    .ToListAsync();
-                if (!transactions.Any())
-                    throw new NoDataRetrievalException("No data of transactions!");
+                    .OrderByDescending(t => t.CreatedAt);
+                var count = await query.CountAsync();
+                var transactions = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync()
+                    ?? throw new NoDataRetrievalException("No data of transactions!");
 
-                var count = transactions.Count;
                 var data = _mapper.Map<List<UserTransactionResponse>>(transactions);
                 return new PaginationResponse<UserTransactionResponse>(data, count, pageNumber, pageSize);
             }
@@ -509,17 +510,18 @@ namespace ANF.Service
 
             if (string.IsNullOrEmpty(fromDate) && string.IsNullOrEmpty(toDate))
             {
-                var withdrawalRequests = await transactionRepository.GetAll()
+                var query = transactionRepository.GetAll()
                     .AsNoTracking()
                     .Where(t => t.Status == TransactionStatus.Pending &&
-                        t.IsWithdrawal == true)
+                        t.IsWithdrawal == true);
+                var count = await query.CountAsync();
+                var withdrawalRequests = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
                 if (!withdrawalRequests.Any())
                     throw new NoDataRetrievalException("No data of withdrawal requests!");
 
-                var count = withdrawalRequests.Count;
                 var data = _mapper.Map<List<WithdrawalResponse>>(withdrawalRequests);
                 return new PaginationResponse<WithdrawalResponse>(data, count, pageNumber, pageSize);
             }
@@ -530,19 +532,20 @@ namespace ANF.Service
 
                 if (from >= to)
                     throw new ArgumentException("From date must be less than to date!");
-
-                var withdrawalRequests = await transactionRepository.GetAll()
+                
+                var query = transactionRepository.GetAll()
                     .AsNoTracking()
                     .Where(t => t.Status == TransactionStatus.Pending &&
                         t.IsWithdrawal == true &&
-                        t.CreatedAt >= from && t.CreatedAt <= to)
+                        t.CreatedAt >= from && t.CreatedAt <= to);
+                var count = await query.CountAsync();
+                var withdrawalRequests = await query
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
                 if (!withdrawalRequests.Any())
                     throw new NoDataRetrievalException("No data of withdrawal requests!");
-
-                var count = withdrawalRequests.Count;
+                
                 var data = _mapper.Map<List<WithdrawalResponse>>(withdrawalRequests);
                 return new PaginationResponse<WithdrawalResponse>(data, count, pageNumber, pageSize);
             }
@@ -554,13 +557,15 @@ namespace ANF.Service
         {
             var transactionRepository = _unitOfWork.GetRepository<Transaction>();
             var responses = new List<WithdrawalResponse>();
-
-            var transactions = await transactionRepository.GetAll()
+            
+            var query = transactionRepository.GetAll()
                 .AsNoTracking()
                 .Where(t => t.UserCode == userCode && t.IsWithdrawal == true)
-                .OrderByDescending(t => t.CreatedAt)
-                .ToListAsync();
-            if (transactions.Count == 0) 
+                .OrderByDescending(t => t.CreatedAt);
+            var count = await query.CountAsync();
+
+            var transactions = await query.ToListAsync();
+            if (transactions.Count == 0)
                 throw new NoDataRetrievalException("No data of withdrawal requests!");
             foreach (var item in transactions)
             {
@@ -576,7 +581,9 @@ namespace ANF.Service
                 };
                 responses.Add(response);
             }
-            return new PaginationResponse<WithdrawalResponse>(responses, transactions.Count, pageNumber, pageSize);
+            return new PaginationResponse<WithdrawalResponse>(responses, count, 
+                pageNumber, 
+                pageSize);
         }
 
         public async Task<bool> UpdateWithdrawalStatus(List<long> tIds, string status)

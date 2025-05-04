@@ -307,21 +307,23 @@ namespace ANF.Service
         public async Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
-            var campaigns = await campaignRepository.GetAll()
-                            .AsNoTracking()
-                            .Include(e => e.Images)
-                            .Include(e => e.Category)
-                            .Include(e => e.Offers)
-                            .Where(e => e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started)
-                            .Skip((request.pageNumber - 1) * request.pageSize)
-                            .Take(request.pageSize)
-                            .ToListAsync();
+            var query = campaignRepository.GetAll()
+                .AsNoTracking()
+                .Include(e => e.Images)
+                .Include(e => e.Category)
+                .Include(e => e.Offers)
+                .Where(e => e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started);
+            var totalRecord = await query.CountAsync();
+            
+            var campaigns = await query
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
             if (!campaigns.Any())
                 throw new KeyNotFoundException("No data for campaigns!");
-            var totalCounts = campaigns.Count();
 
             var data = _mapper.Map<List<CampaignDetailedResponse>>(campaigns);
-            return new PaginationResponse<CampaignDetailedResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<CampaignDetailedResponse>(data, totalRecord, request.pageNumber, request.pageSize);
         }
 
         /// <summary>
@@ -340,11 +342,14 @@ namespace ANF.Service
                 throw new UnauthorizedAccessException("Advertiser's code does not match!");
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
-            var campaigns = await campaignRepository.GetAll()
-                            .AsNoTracking()
-                            .Where(e => e.AdvertiserCode.ToString() == id)
-                            .Include(e => e.Category)
-                            .Include(e => e.Images)
+
+            var query = campaignRepository.GetAll()
+                .AsNoTracking()
+                .Where(e => e.AdvertiserCode.ToString() == id)
+                .Include(e => e.Category)
+                .Include(e => e.Images);
+            var totalRecord = await query.CountAsync();
+            var campaigns = await query
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
@@ -362,20 +367,22 @@ namespace ANF.Service
 
                 campaign.Offers = _mapper.Map<List<OfferResponse>>(offers);
             }
-
-            var totalCounts = campaigns.Count();
-
-            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<CampaignResponse>(data, totalRecord, 
+                request.pageNumber, 
+                request.pageSize);
         }
 
         public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
-            var campaigns = await campaignRepository.GetAll()
+
+            var query = campaignRepository.GetAll()
                             .AsNoTracking()
                             .Include(e => e.Category)
-                            .Include(e => e.Images)
+                            .Include(e => e.Images);
+            var totalRecord = await query.CountAsync();
+            var campaigns = await query
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
@@ -393,10 +400,9 @@ namespace ANF.Service
 
                 campaign.Offers = _mapper.Map<List<OfferResponse>>(offers);
             }
-
-            var totalCounts = data.Count();
-
-            return new PaginationResponse<CampaignResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<CampaignResponse>(data, totalRecord, 
+                request.pageNumber, 
+                request.pageSize);
         }
 
         public async Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request)

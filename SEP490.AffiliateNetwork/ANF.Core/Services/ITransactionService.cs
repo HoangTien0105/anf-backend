@@ -26,7 +26,7 @@ namespace ANF.Core.Services
 
         Task<IActionResult> ExportBatchPaymentData(List<ExportedBatchDataResponse> data);
 
-        Task<PaginationResponse<ExportedBatchDataResponse>> GetBatchPaymentDataForExporting(int pageNumber, int pageSize, 
+        Task<PaginationResponse<ExportedBatchDataResponse>> GetBatchPaymentDataForExporting(PaginationRequest request, 
             string fromDate, 
             string toDate);
 
