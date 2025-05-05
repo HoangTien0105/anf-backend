@@ -14,6 +14,9 @@ namespace ANF.Core.Models.Entities
         [Column("campaign_id")]
         public long CampaignId { get; set; }
 
+        [Column("publisher_code")]
+        public string? PublisherCode { get; set; }
+
         /// <summary>
         /// The date of the statistics.
         /// </summary>
