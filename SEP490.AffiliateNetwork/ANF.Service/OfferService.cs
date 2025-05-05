@@ -391,7 +391,7 @@ namespace ANF.Service
                 if (updatedRow)
                 {
                     //Notify to publ
-                    await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
+                    await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason, campaignExist.Id );
 
                     var publisher = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == pubOfferExist.PublisherCode);
 
