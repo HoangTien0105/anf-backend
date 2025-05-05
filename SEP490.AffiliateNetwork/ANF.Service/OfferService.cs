@@ -80,7 +80,7 @@ namespace ANF.Service
                         Body = "There is a request to join your offer"
                     };
 
-                    var emailResult = await _emailService.SendNotificationEmail(message);
+                    var emailResult = await _emailService.SendNotificationEmailForAdvertiser(message, campaignExist.Id, offerId);
                     return true;
                 } 
                 else
@@ -395,16 +395,16 @@ namespace ANF.Service
                     //Notify to publ
                     await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
 
-                    var advertiser = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == pubOfferExist.PublisherCode);
+                    var publisher = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == pubOfferExist.PublisherCode);
 
                     var message = new EmailMessage
                     {
-                        To = advertiser!.Email,
+                        To = publisher!.Email,
                         Subject = "Campaign notifications",
                         Body = "Advertiser have accepted your request to join offer"
                     };
 
-                    var emailResult = await _emailService.SendNotificationEmail(message);
+                    var emailResult = await _emailService.SendNotificationEmailForPublisher(message, campaignExist.Id);
 
                     if (!emailResult) throw new Exception("Failed to send email!");
                     return true;
