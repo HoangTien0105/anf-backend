@@ -41,8 +41,8 @@ namespace ANF.Core.Models.Entities
         [Column("total_mobile")]
         public int TotalMobile { get; set; }
 
-        [Column("total_phone")]
-        public int TotalPhone { get; set; }
+        [Column("total_computer")]
+        public int TotalComputer { get; set; }
 
         [Column("total_tablet")]
         public int TotalTablet { get; set; }
