@@ -14,6 +14,9 @@ namespace ANF.Core.Models.Entities
         [Column("campaign_id")]
         public long CampaignId { get; set; }
 
+        [Column("publisher_code")]
+        public string? PublisherCode { get; set; }
+
         /// <summary>
         /// The date of the statistics.
         /// </summary>
@@ -35,8 +38,8 @@ namespace ANF.Core.Models.Entities
         [Column("total_mobile")]
         public int TotalMobile { get; set; }
 
-        [Column("total_phone")]
-        public int TotalPhone { get; set; }
+        [Column("total_computer")]
+        public int TotalComputer { get; set; }
 
         [Column("total_tablet")]
         public int TotalTablet { get; set; }

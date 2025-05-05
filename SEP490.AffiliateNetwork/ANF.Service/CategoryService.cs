@@ -67,15 +67,19 @@ namespace ANF.Service
         public async Task<PaginationResponse<CategoryResponse>> GetCategories(PaginationRequest request)
         {
             var categoryRepository = _unitOfWork.GetRepository<Category>();
-            var categories = await categoryRepository.GetAll()
-                .AsNoTracking()
+            
+            var query = categoryRepository.GetAll()
+                .AsNoTracking();
+            var totalRecord = await query.CountAsync();
+            var categories = await query
                 .Skip((request.pageNumber - 1) * request.pageSize)
                 .Take(request.pageSize)
                 .ToListAsync();
             if (!categories.Any())
                 throw new NoDataRetrievalException("No data of categories.");
+            
             var data = _mapper.Map<List<CategoryResponse>>(categories);
-            return new PaginationResponse<CategoryResponse>(data, data.Count, request.pageNumber, request.pageSize);
+            return new PaginationResponse<CategoryResponse>(data, totalRecord, request.pageNumber, request.pageSize);
         }
 
         public async Task<CategoryResponse> GetCategory(long id)
