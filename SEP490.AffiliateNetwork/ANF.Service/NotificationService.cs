@@ -36,23 +36,26 @@ namespace ANF.Service
             });
         }
 
-        public async Task NotifyPublisherOffer(string userCode, long pubOfferId, string status, string? rejectReason)
+        public async Task NotifyPublisherOffer(string userCode, long pubOfferId, string status, string? rejectReason, long campaignId)
         {
             await _hubContext.Clients.User(userCode).SendAsync("PublisherOfferStatusUpdated", new
             {
                 UserCode = userCode,
                 OfferId = pubOfferId,
                 Status = status,
-                RejectReason = rejectReason
+                RejectReason = rejectReason,
+                CampaignId = campaignId
             });
         }
 
-        public async Task NotifyRequestToJoinOffer(string userCode, string message)
+        public async Task NotifyRequestToJoinOffer(string userCode, string message, long campaignId, long offerId)
         {
             await _hubContext.Clients.User(userCode).SendAsync("NotifyRequestToJoinOffer", new
             {
                 UserCode = userCode,
-                Message = message
+                Message = message,
+                CampaignId = campaignId,
+                OfferId = offerId
             });
         }
 

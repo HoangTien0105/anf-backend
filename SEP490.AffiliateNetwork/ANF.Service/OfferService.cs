@@ -69,7 +69,7 @@ namespace ANF.Service
                 pubOfferRepository.Add(publisherOffer);
                 var affectedRows = await _unitOfWork.SaveAsync();
                 if(affectedRows > 0) {
-                    await _notificationService.NotifyRequestToJoinOffer(campaignExist.AdvertiserCode, "There is a request to join your offer");
+                    await _notificationService.NotifyRequestToJoinOffer(campaignExist.AdvertiserCode, "There is a request to join your offer", campaignExist.Id, offerId);
 
                     var advertiser = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaignExist.AdvertiserCode);
 
@@ -77,10 +77,10 @@ namespace ANF.Service
                     {
                         To = advertiser!.Email,
                         Subject = "Campaign notifications",
-                        Body = "There is a request to join your offer"
+                        Body = "There is a request to join your offer (Campaign: " + campaignExist.Id + ")"
                     };
 
-                    var emailResult = await _emailService.SendNotificationEmail(message);
+                    var emailResult = await _emailService.SendNotificationEmailForAdvertiser(message, campaignExist.Id, offerId);
                     return true;
                 } 
                 else
@@ -390,21 +390,19 @@ namespace ANF.Service
 
                 if (updatedRow)
                 {
-                    //Notify to adv
-                    await _notificationService.NotifyPublisherOffer(advertiserCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
                     //Notify to publ
-                    await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason);
+                    await _notificationService.NotifyPublisherOffer(pubOfferExist.PublisherCode, pubOfferId, pubOfferExist.Status.ToString(), rejectReason, campaignExist.Id );
 
-                    var advertiser = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == pubOfferExist.PublisherCode);
+                    var publisher = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == pubOfferExist.PublisherCode);
 
                     var message = new EmailMessage
                     {
-                        To = advertiser!.Email,
+                        To = publisher!.Email,
                         Subject = "Campaign notifications",
-                        Body = "Advertiser have accepted your request to join offer"
+                        Body = "Advertiser have accepted your request to join offer (Campaign: " + campaignExist.Id + ")"
                     };
 
-                    var emailResult = await _emailService.SendNotificationEmail(message);
+                    var emailResult = await _emailService.SendNotificationEmailForPublisher(message, campaignExist.Id);
 
                     if (!emailResult) throw new Exception("Failed to send email!");
                     return true;
@@ -676,7 +674,7 @@ namespace ANF.Service
                     Subject = "Campaign notifications"
                 };
 
-                var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, offer.Id, campaign.Status.ToString());
+                var emailResult = await _emailService.SendCampaignNotificationEmail(message, campaign.Name, campaign.Id, offer.Id, campaign.Status.ToString());
                 if (emailResult)
                 {
                     await _notificationService.NotifyOfferStatus(user.UserCode, offer.Id, offer.Status.ToString()!, offer.RejectedReason);

@@ -78,7 +78,7 @@ namespace ANF.Service.Backgrounds
                         Subject = "Campaign notifications"
                     };
 
-                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, v.Name, null, "Started");
+                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, v.Name, v.Id, null, "Started");
                     if (!emailResult)
                     {
                         _logger.LogInformation("=================== Failed to send email for campaign notifications! ===================");
@@ -140,7 +140,7 @@ namespace ANF.Service.Backgrounds
                         Subject = "Campaign notifications"
                     };
 
-                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, v.Name, null, "Ended");
+                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, v.Name, v.Id, null, "Ended");
                     if (!emailResult)
                     {
                         _logger.LogInformation("=================== Failed to send email for campaign notifications! ===================");
@@ -204,7 +204,7 @@ namespace ANF.Service.Backgrounds
                         Subject = "Campaign notifications"
                     };
 
-                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, offer.Campaign.Name, offer.Id, "Started");
+                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, offer.Campaign.Name, offer.CampaignId, offer.Id, "Started");
                     if (!emailResult)
                     {
                         _logger.LogInformation("=================== Failed to send email for campaign notifications! ===================");
@@ -255,7 +255,7 @@ namespace ANF.Service.Backgrounds
                         Subject = "Campaign notifications"
                     };
 
-                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, offer.Campaign.Name, offer.Id, "Ended");
+                    var emailResult = await _emailService.SendCampaignNotificationEmail(message, offer.Campaign.Name, offer.CampaignId, offer.Id, "Ended");
                     if (!emailResult)
                     {
                         _logger.LogInformation("=================== Failed to send email for campaign notifications! ===================");
