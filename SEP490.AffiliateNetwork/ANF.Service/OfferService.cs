@@ -69,7 +69,7 @@ namespace ANF.Service
                 pubOfferRepository.Add(publisherOffer);
                 var affectedRows = await _unitOfWork.SaveAsync();
                 if(affectedRows > 0) {
-                    await _notificationService.NotifyRequestToJoinOffer(campaignExist.AdvertiserCode, "There is a request to join your offer");
+                    await _notificationService.NotifyRequestToJoinOffer(campaignExist.AdvertiserCode, "There is a request to join your offer", campaignExist.Id, offerId);
 
                     var advertiser = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == campaignExist.AdvertiserCode);
 
