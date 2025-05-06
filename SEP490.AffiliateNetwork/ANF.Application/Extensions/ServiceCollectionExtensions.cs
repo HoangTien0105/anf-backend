@@ -72,6 +72,7 @@ namespace ANF.Application.Extensions
             services.AddHostedService<CampaignBackgroundService>();
             services.AddHostedService<StatisticBackgroundService>();
             services.AddHostedService<AdminStatsBackgroundService>();
+            services.AddHostedService<AdvertiserCampaignStatsBackgroundService>();
             #endregion
 
             services.Configure<ForwardedHeadersOptions>(o =>
@@ -270,6 +271,7 @@ namespace ANF.Application.Extensions
             services.AddSingleton<StatisticBackgroundService>();
             services.AddSingleton<CampaignBackgroundService>();
             services.AddSingleton<AdminStatsBackgroundService>();
+            services.AddSingleton<AdvertiserCampaignStatsBackgroundService>();
             #endregion
             return services;
         }
