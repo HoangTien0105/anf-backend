@@ -5,6 +5,7 @@ using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using ANF.Service;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ANF.Application.Controllers.v1
@@ -26,6 +27,28 @@ namespace ANF.Application.Controllers.v1
         {
             var postback = await _postbackService.GetPostbackDataByTransactionId(id);
             return Ok(new ApiResponse<PostbackData>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = postback
+            });
+        }
+
+        /// <summary>
+        /// Get postback by offer's id
+        /// </summary>
+        /// <param name="id">Offer's id</param>
+        /// <param name="request">Pagination request </param>
+        /// <returns></returns>
+        [HttpGet("postbacks/offer/{id}")]
+        [MapToApiVersion(1)]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetAllPostbackDataByOfferId(long id, [FromQuery] PaginationRequest request)
+        {
+            var postback = await _postbackService.GetAllPostbackOfferId(id, request);
+            return Ok(new ApiResponse<PaginationResponse<PostbackData>>
             {
                 IsSuccess = true,
                 Message = "Success.",

@@ -1,8 +1,10 @@
 ﻿using ANF.Core;
+using ANF.Core.Commons;
 using ANF.Core.Enums;
 using ANF.Core.Exceptions;
 using ANF.Core.Models.Entities;
 using ANF.Core.Models.Requests;
+using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -10,10 +12,11 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ANF.Service
 {
-    public class PostbackService(IUnitOfWork unitOfWork, IMapper mapper) : IPostbackService
+    public class PostbackService(IUnitOfWork unitOfWork, IMapper mapper, IUserClaimsService userClaimsService) : IPostbackService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
+        private readonly IUserClaimsService _userClaimsService = userClaimsService;
 
         public async Task<bool> CreatePostBack(PostbackRequest postbackRequest)
         {
@@ -90,6 +93,43 @@ namespace ANF.Service
             var postbackLog = await postbackLogRepository.GetAll().AsNoTracking().Where(e => e.TransactionId == id).ToListAsync();
             if (!postbackLog.Any()) throw new KeyNotFoundException("No data for postback logs!");
             return postbackLog;
+        }
+
+        public async Task<PaginationResponse<PostbackData>> GetAllPostbackOfferId(long id, PaginationRequest request)
+        {
+            var postbackRepository = _unitOfWork.GetRepository<PostbackData>();
+            var offerRepository = _unitOfWork.GetRepository<Offer>();
+            var userRepository = _unitOfWork.GetRepository<User>();
+
+            var userCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+        
+            var user = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == userCode);
+
+            if (user!.Role == UserRoles.Advertiser) {
+                var offer = await offerRepository.GetAll()
+                    .AsNoTracking()
+                    .Include(e => e.Campaign)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (offer!.Campaign.AdvertiserCode != userCode) throw new ArgumentException("This offer is not belong to this advertiser");
+            } 
+
+            IQueryable<PostbackData> query = postbackRepository.GetAll()
+                 .Where(e => e.OfferId == id && e.Status == PostbackStatus.Success);
+
+            if (user!.Role == UserRoles.Publisher)
+            {
+                query = query.Where(e => e.PublisherCode == userCode);
+            }
+            
+            var totalRecord = await query.CountAsync();
+
+            var postbacks = await query
+                .Skip((request.pageNumber - 1) * request.pageSize)
+                .Take(request.pageSize)
+                .ToListAsync();
+            if (!postbacks.Any()) throw new KeyNotFoundException("No data for postback!");
+            return new PaginationResponse<PostbackData>(postbacks, totalRecord, request.pageNumber, request.pageSize);
         }
 
         public async Task<PostbackData> GetPostbackDataByTransactionId(string id)
