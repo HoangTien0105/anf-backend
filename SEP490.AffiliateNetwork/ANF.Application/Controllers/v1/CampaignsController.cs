@@ -5,6 +5,7 @@ using ANF.Core.Models.Responses;
 using ANF.Core.Models.Requests;
 using ANF.Core.Commons;
 using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
 
 namespace ANF.Application.Controllers.v1
 {
@@ -16,14 +17,15 @@ namespace ANF.Application.Controllers.v1
         /// Get campaigns with verified status
         /// </summary>
         /// <param name="request">Pagination request model</param>
+        /// <param name="cateId">Category's id</param>
         /// <returns></returns>
         [HttpGet("campaigns")]
         [MapToApiVersion(1)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetCampaigns([FromQuery] PaginationRequest request)
+        public async Task<IActionResult> GetCampaigns([FromQuery] PaginationRequest request, [FromQuery] long? cateId = null)
         {
-            var campaigns = await _campaignService.GetCampaigns(request);
+            var campaigns = await _campaignService.GetCampaigns(request, cateId);
             return Ok(new ApiResponse<PaginationResponse<CampaignDetailedResponse>>
             {
                 IsSuccess = true,
@@ -92,6 +94,31 @@ namespace ANF.Application.Controllers.v1
         {
             var campaigns = await _campaignService.GetCampaignsWithOffers(request);
             return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success.",
+                Value = campaigns
+            });
+        }
+
+        /// <summary>
+        /// Get campaigns with date range
+        /// </summary>
+        /// <param name="request">Pagination request model</param>
+        /// <param name="from">From date</param>
+        /// <param name="to">To date</param>
+        /// <returns></returns>
+        [HttpGet("campaigns/date")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Advertiser, Publisher")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetCampaignsWithDateRange([FromQuery] PaginationRequest request, 
+            [FromQuery][Required] DateTime from, 
+            [FromQuery][Required] DateTime to)
+        {
+            var campaigns = await _campaignService.GetCampaignsWithDateRange(request, from, to);
+            return Ok(new ApiResponse<PaginationResponse<CampaignDetailedResponse>>
             {
                 IsSuccess = true,
                 Message = "Success.",
