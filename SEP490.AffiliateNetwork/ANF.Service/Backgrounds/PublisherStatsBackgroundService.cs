@@ -17,7 +17,7 @@ namespace ANF.Service.Backgrounds
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation($"Stats generation started at {DateTime.UtcNow:UTC}");
+                _logger.LogInformation($"================ Stats generation started at {DateTime.Now}================");
 
                 try
                 {

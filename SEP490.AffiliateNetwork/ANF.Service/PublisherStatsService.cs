@@ -253,7 +253,13 @@ namespace ANF.Service
                     Campaigns = g.Select(e => new CampaignStatsDto
                     {
                         CampaignId = e.CampaignId,
-                        TotalRevenue = e.TotalRevenue
+                        TotalRevenue = e.TotalRevenue,
+                        TotalClick = e.TotalClick,
+                        TotalVerifiedClick = e.TotalVerifiedClick,
+                        TotalFraudClick = e.TotalFraudClick,
+                        TotalComputer = e.TotalComputer,
+                        TotalMobile = e.TotalMobile,
+                        TotalTablet = e.TotalTablet
                     }).ToList()
                 })
                 .OrderBy(g => g.Date)
@@ -274,8 +280,7 @@ namespace ANF.Service
                     .AsNoTracking()
                     .Where(e => e.PublisherCode == publisherCode
                              && e.Date >= from
-                             && e.Date <= to
-                             && e.TotalRevenue != 0)
+                             && e.Date <= to)
                     .OrderBy(e => e.Date)
                     .ToListAsync();
 
@@ -287,7 +292,13 @@ namespace ANF.Service
                     Campaigns = g.Select(e => new CampaignStatsDto
                     {
                         CampaignId = e.CampaignId,
-                        TotalRevenue = e.TotalRevenue
+                        TotalRevenue = e.TotalRevenue,
+                        TotalClick = e.TotalClick,
+                        TotalVerifiedClick = e.TotalVerifiedClick,
+                        TotalFraudClick = e.TotalFraudClick,
+                        TotalComputer = e.TotalComputer,
+                        TotalMobile = e.TotalMobile,
+                        TotalTablet = e.TotalTablet
                     }).ToList()
                 })
                 .OrderBy(g => g.Date)

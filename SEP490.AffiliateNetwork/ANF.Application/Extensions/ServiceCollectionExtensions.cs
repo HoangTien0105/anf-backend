@@ -268,7 +268,6 @@ namespace ANF.Application.Extensions
             #region Background services
             services.AddSingleton<SampleIdDetectionService>();
             services.AddSingleton<PostbackValidationService>();
-            services.AddSingleton<StatisticBackgroundService>();
             services.AddSingleton<CampaignBackgroundService>();
             services.AddSingleton<AdminStatsBackgroundService>();
             services.AddSingleton<PublisherStatsBackgroundService>();
