@@ -241,7 +241,8 @@ namespace ANF.Service
                     var campaignBalance = await campaignRepository
                         .GetAll()
                         .AsNoTracking()
-                        .Where(e => e.AdvertiserCode == userCode)
+                        .Where(e => e.AdvertiserCode == userCode
+                                 && e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started)
                         .SumAsync(e => e.Balance);
 
                     var response = new DetailedUserResponse()
