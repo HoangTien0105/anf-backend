@@ -27,8 +27,8 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetPublisherCampaignRevenueStatsByCampaignId(long id,
-            [Required] DateTime from,
-            [Required] DateTime to)
+            [FromQuery][Required] DateTime from,
+            [FromQuery][Required] DateTime to)
         {
             var publisherOfferStats = await _publisherStatsService.GetRevenueStatsByCampaignId(id, from, to);
             return Ok(new ApiResponse<List<PublisherStatsResponse>>
@@ -51,8 +51,8 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetPublisherCampaignRevenueStats(
-            [Required] DateTime from,
-            [Required] DateTime to)
+            [FromQuery][Required] DateTime from,
+            [FromQuery][Required] DateTime to)
         {
             var publisherOfferStats = await _publisherStatsService.GetRevenueStats(from, to);
             return Ok(new ApiResponse<List<PublisherStatsResponse>>

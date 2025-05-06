@@ -240,8 +240,7 @@ namespace ANF.Service
                     .Where(e => e.PublisherCode == publisherCode
                              && e.CampaignId == campaignId
                              && e.Date >= from
-                             && e.Date <= to
-                             && e.TotalRevenue != 0)
+                             && e.Date <= to)
                     .OrderBy(e => e.Date)
                     .ToListAsync();
 
@@ -285,25 +284,27 @@ namespace ANF.Service
                     .ToListAsync();
 
             var response = stats
-                .GroupBy(e => e.Date)
+                .GroupBy(e => e.Date.Date)
                 .Select(g => new PublisherStatsResponse
                 {
                     Date = g.Key,
-                    Campaigns = g.Select(e => new CampaignStatsDto
-                    {
-                        CampaignId = e.CampaignId,
-                        TotalRevenue = e.TotalRevenue,
-                        TotalClick = e.TotalClick,
-                        TotalVerifiedClick = e.TotalVerifiedClick,
-                        TotalFraudClick = e.TotalFraudClick,
-                        TotalComputer = e.TotalComputer,
-                        TotalMobile = e.TotalMobile,
-                        TotalTablet = e.TotalTablet
-                    }).ToList()
+                    Campaigns = g
+                        .GroupBy(e => e.CampaignId)
+                .Select(cg => new CampaignStatsDto
+                {
+                    CampaignId = cg.Key,
+                    TotalRevenue = cg.Sum(e => e.TotalRevenue),
+                    TotalClick = cg.Sum(e => e.TotalClick),
+                    TotalVerifiedClick = cg.Sum(e => e.TotalVerifiedClick),
+                    TotalFraudClick = cg.Sum(e => e.TotalFraudClick),
+                    TotalComputer = cg.Sum(e => e.TotalComputer),
+                    TotalMobile = cg.Sum(e => e.TotalMobile),
+                    TotalTablet = cg.Sum(e => e.TotalTablet)
+                })
+                .ToList()
                 })
                 .OrderBy(g => g.Date)
                 .ToList();
-
 
             return response;
         }
