@@ -242,7 +242,7 @@ namespace ANF.Service
                         .GetAll()
                         .AsNoTracking()
                         .Where(e => e.AdvertiserCode == userCode
-                                 && e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started)
+                                 && (e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started))
                         .SumAsync(e => e.Balance);
 
                     var response = new DetailedUserResponse()
