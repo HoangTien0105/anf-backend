@@ -158,7 +158,6 @@ namespace ANF.Service.Backgrounds
                                                        .AsNoTracking()
                                                        .Where(v => v.ClickId != null
                                                                     && clickIds.Contains(v.ClickId)
-                                                                    && v.ValidationStatus == Core.Enums.ValidationStatus.Success
                                                                     && v.ConversionStatus == Core.Enums.ConversionStatus.Success
                                                                     && v.ValidatedTime >= yesterday
                                                                     && v.ValidatedTime <= endOfYesterday)
