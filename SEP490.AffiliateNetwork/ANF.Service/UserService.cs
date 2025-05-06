@@ -81,7 +81,7 @@ namespace ANF.Service
                 if (user is null)
                     throw new KeyNotFoundException("User does not exist!");
                 if (user.EmailConfirmed == true)
-                    throw new Exception("The email has already confirmed by the user!");    //TODO: Change the exception type
+                    throw new Exception("The email has already confirmed by the user!");
                 // Email verification success
                 user.EmailConfirmed = true;
                 user.Status = UserStatus.Active;
