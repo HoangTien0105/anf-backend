@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ANF.Service.Backgrounds
 {
@@ -37,7 +38,7 @@ namespace ANF.Service.Backgrounds
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Error occurred while checking for spam IPs", e.StackTrace);
+                    _logger.LogError(e, "Error occurred while checking for spam IPs");
                     //throw;
                 }
                 await Task.Delay(_checkInterval, stoppingToken);
@@ -158,6 +159,18 @@ namespace ANF.Service.Backgrounds
             foreach (var trackingItem in trackingData)
             {
                 if (spamIps.Contains(trackingItem.IpAddress))
+                {
+                    trackingItem.Status = TrackingEventStatus.Fraud;
+                    fraudEvents.Add(trackingItem);
+                    var fraudDetection = new FraudDetection
+                    {
+                        ClickId = trackingItem.Id,
+                        Reason = $"=================== Detect duplicated IP address: {trackingItem.IpAddress} ===================",
+                        DetectedTime = DateTime.Now,
+                    };
+                    fraudDetectionRepository.Add(fraudDetection);
+                }
+                else if(trackingItem.Proxy.IsNullOrEmpty() || trackingItem.Proxy == "True")
                 {
                     trackingItem.Status = TrackingEventStatus.Fraud;
                     fraudEvents.Add(trackingItem);

@@ -263,13 +263,14 @@ namespace ANF.Application.Extensions
             services.AddScoped<IPostbackService, PostbackService>();
             services.AddScoped<IStatisticService, StatisticService>();
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IPublisherStatsService, PublisherStatsService>();
 
             #region Background services
             services.AddSingleton<SampleIdDetectionService>();
             services.AddSingleton<PostbackValidationService>();
-            services.AddSingleton<StatisticBackgroundService>();
             services.AddSingleton<CampaignBackgroundService>();
             services.AddSingleton<AdminStatsBackgroundService>();
+            services.AddSingleton<PublisherStatsBackgroundService>();
             #endregion
             return services;
         }

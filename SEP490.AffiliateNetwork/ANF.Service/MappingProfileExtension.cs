@@ -103,7 +103,7 @@ namespace ANF.Service
             CreateMap<Campaign, CampaignPubDetailedResponse>()
                 .ForMember(dest => dest.CampImages, opt => opt.MapFrom(src => src.Images!.Select(x => x.ImageUrl)))
                 .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers
-                    .Where(offer => offer.Status == OfferStatus.Started || offer.Status == OfferStatus.Approved)));
+                    .Where(offer => offer.Status == OfferStatus.Started || offer.Status == OfferStatus.Approved || offer.Status == OfferStatus.Ended)));
 
             CreateMap<OfferForCampaignCreateRequest, OfferCreateRequest>();
 

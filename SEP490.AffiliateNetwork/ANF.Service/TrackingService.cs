@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 using MyCSharp.HttpUserAgentParser;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -66,14 +67,45 @@ namespace ANF.Service
                 var publiserOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
                 var userRepository = _unitOfWork.GetRepository<User>();
 
+                var baseUrl = "https://dev.l3on.id.vn";
+
+                var offer = await offerRepository.GetAll()
+                                    .AsNoTracking()
+                                    .Include(e => e.Campaign)
+                                    .FirstOrDefaultAsync(e => e.Id == offerId);
+
+                if (offer is null)
+                {
+                    _logger.LogInformation("Offer with ID {OfferId} not found.", offerId);
+                    return baseUrl;
+                }
+
+                var campaign = offer.Campaign;
+
+                if(campaign is null)
+                {
+                    _logger.LogInformation("Campaign with Offer ID {OfferId} not found.", offerId);
+                    return baseUrl;
+                }
+
+                var campaignUrl = campaign.ProductUrl;
+
                 var userExist = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode.ToString() == publisherCode);
-                if (userExist is null) throw new KeyNotFoundException("Publisher not found.");
+                if (userExist is null)
+                {
+                    _logger.LogInformation("Publisher with ID {PublisherCode} not found.", publisherCode);
+                    return campaignUrl;
+                }
 
                 string referer = httpRequest.Headers["Referer"].ToString();
 
                 string userAgent = httpRequest.Headers["User-Agent"].ToString();
                 var remoteIpAddress = httpRequest.HttpContext.Connection.RemoteIpAddress;
-                if (remoteIpAddress == null) throw new InvalidOperationException("Cannot determine the client's IP address.");
+                if (remoteIpAddress == null)
+                {
+                    _logger.LogInformation("Cannot determine the client's IP address.");
+                    return campaignUrl;
+                }
 
                 // Get remote IP address
                 var ipAddress = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress.ToString();
@@ -83,34 +115,41 @@ namespace ANF.Service
 
 
                 var uaInfor = HttpUserAgentParser.Parse(userAgent);
-                if (offerId < 1 || uaInfor.IsRobot())
+                if (offerId < 1)
                 {
-                    throw new ArgumentException(offerId < 1 ? "Invalid offer" : "Bot requests are not allowed.");
+                    _logger.LogInformation("Invalid offer ID {OfferId}.", offerId);
+                    return campaignUrl;
+                }
+                bool isBot = false;
+                if (uaInfor.IsRobot())
+                {
+                    _logger.LogInformation("Bot request detected for offer ID {OfferId}.", offerId);
+                    isBot = true;
                 }
 
-                var offer = await offerRepository.GetAll()
-                                    .AsNoTracking()
-                                    .FirstOrDefaultAsync(e => e.Id == offerId);
-                if (offer is null) throw new KeyNotFoundException("Offer does not exists");
 
                 // Check whether the publisher is running the offer
                 var isExisted = await publiserOfferRepository.GetAll()
                     .AsNoTracking()
                     .AnyAsync(e => e.PublisherCode == publisherCode && e.OfferId == offerId);
                 if (!isExisted)
-                    throw new KeyNotFoundException("This offer is not run by this publisher!");
+                {
+                    _logger.LogInformation("This offer is not run by this publisher!");
+                    return campaignUrl;
+                }
 
                 //Offer kết thúc nhưng vẫn lưu tracking được
                 if (DateTime.Now < offer.StartDate)
-                    throw new ArgumentException("Offer is not available.");
-
-                var campaign = await campaignRepository.GetAll()
-                                    .AsNoTracking()
-                                    .FirstOrDefaultAsync(e => e.Id == offer.CampaignId);
-                if (campaign is null) throw new KeyNotFoundException("Offer does not exists");
+                {
+                    _logger.LogInformation("Offer is not available");
+                    return campaignUrl;
+                }
 
                 if (campaign.Status != CampaignStatus.Started && campaign.Status != CampaignStatus.Ended)
-                    throw new ArgumentException("Campaign is not available.");
+                {
+                    _logger.LogInformation("Campaign is not available");
+                    return campaignUrl;
+                }
 
                 var ipInfo = await GetIpInfoAsync(ipAddress!);
 
@@ -129,8 +168,10 @@ namespace ANF.Service
                     ClickTime = DateTime.Now,
                     Referer = referer,
                     Proxy = ipInfo.Proxy.ToString(),
-                    Status = campaign.Status == CampaignStatus.Started ? TrackingEventStatus.Pending : TrackingEventStatus.Invalid,
                 };
+
+                if (isBot) trackingEvent.Status = TrackingEventStatus.Fraud;
+                trackingEvent.Status = campaign.Status == CampaignStatus.Started ? TrackingEventStatus.Pending : TrackingEventStatus.Invalid;
 
                 _trackingQueue.Enqueue(trackingEvent);
 
@@ -162,9 +203,22 @@ namespace ANF.Service
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var trackingEventRepository = unitOfWork.GetRepository<TrackingEvent>();
+                var fraudRepository = unitOfWork.GetRepository<FraudDetection>();
                 try
                 {
                     trackingEventRepository.Add(trackingEvent);
+
+                    if(trackingEvent.Status == TrackingEventStatus.Fraud)
+                    {
+                        FraudDetection fraud = new FraudDetection
+                        {
+                            ClickId = trackingEvent.Id,
+                            Reason = "Bot devices",
+                            DetectedTime = DateTime.Now
+                        };
+                        fraudRepository.Add(fraud);
+                    }
+
                     await unitOfWork.SaveAsync();
                 }
                 catch (Exception)
