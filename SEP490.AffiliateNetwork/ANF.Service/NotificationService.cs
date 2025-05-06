@@ -9,9 +9,13 @@ namespace ANF.Service
     {
         private readonly IHubContext<NotificationHub> _hubContext = hubContext;
 
-        public async Task NotifyCampaignCreated(string message)
+        public async Task NotifyCampaignCreated(string message, long campaignId)
         {
-            await _hubContext.Clients.Group("Admins").SendAsync("CampaignCreated", message);
+            await _hubContext.Clients.Group("Admins").SendAsync("CampaignCreated", new
+            {
+                Message = message,
+                CampaignId = campaignId
+            });
         }
 
         public async Task NotifyCampaignStatus(string userCode, long campaignId, string status, string? rejectReason)
