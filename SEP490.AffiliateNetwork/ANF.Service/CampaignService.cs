@@ -175,7 +175,7 @@ namespace ANF.Service
                 var affectedRows = await _unitOfWork.SaveAsync();
                 if(affectedRows > 0)
                 {
-                    await _notificationService.NotifyCampaignCreated("A new campaign has just created");
+                    await _notificationService.NotifyCampaignCreated("A new campaign has just created", campaign.Id);
                     return true;
                 }
                 else

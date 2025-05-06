@@ -9,6 +9,6 @@
         Task NotifyPublisherOffer(string userCode, long pubOfferId, string status, string? rejectReason, long campaignId);
         //Notify adv about their offer has new join request
         Task NotifyRequestToJoinOffer(string userCode, string message, long campaignId, long offerId);
-        Task NotifyCampaignCreated(string message);
+        Task NotifyCampaignCreated(string message, long campaignId);
     }
 }   
