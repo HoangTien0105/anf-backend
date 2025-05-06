@@ -247,8 +247,7 @@ namespace ANF.Application.Controllers.v1
             [FromQuery] string fromDate,
             [FromQuery] string toDate)
         {
-            var response = await _transactionService.GetBatchPaymentDataForExporting(request.pageNumber,
-                request.pageSize,
+            var response = await _transactionService.GetBatchPaymentDataForExporting(request,
                 fromDate,
                 toDate);
             return Ok(new ApiResponse<PaginationResponse<ExportedBatchDataResponse>>

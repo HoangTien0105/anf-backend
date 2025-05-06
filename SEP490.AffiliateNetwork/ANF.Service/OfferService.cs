@@ -257,17 +257,19 @@ namespace ANF.Service
         public async Task<PaginationResponse<OfferResponse>> GetOffers(PaginationRequest request)
         {
             var offerRepository = _unitOfWork.GetRepository<Offer>();
-            var offers = await offerRepository.GetAll()
-                            .AsNoTracking()
+            
+            var query = offerRepository.GetAll()
+                .AsNoTracking();
+            var totalRecord = await query.CountAsync();
+            var offers = await query
                             .Skip((request.pageNumber - 1) * request.pageSize)
                             .Take(request.pageSize)
                             .ToListAsync();
             if (!offers.Any())
                 throw new KeyNotFoundException("No data for offers!");
-            var totalCounts = offers.Count();
 
             var data = _mapper.Map<List<OfferResponse>>(offers);
-            return new PaginationResponse<OfferResponse>(data, totalCounts, request.pageNumber, request.pageSize);
+            return new PaginationResponse<OfferResponse>(data, totalRecord, request.pageNumber, request.pageSize);
         }
 
         public async Task<List<PublisherOfferResponse>> GetPublisherOfOffer(long offerId)

@@ -11,7 +11,7 @@ namespace ANF.Service
 {
     public class PolicyService(IUnitOfWork unitOfWork, IMapper mapper) : IPolicyService
     {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork; 
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
 
         public async Task<bool> CreatePolicy(PolicyCreateRequest request)
@@ -55,7 +55,7 @@ namespace ANF.Service
             {
                 var policyRepo = _unitOfWork.GetRepository<Policy>();
                 var existedPolicy = await policyRepo.GetAll().AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
-                
+
                 if (existedPolicy is null)
                 {
                     throw new KeyNotFoundException("Not found Policy with id=" + id);
@@ -74,16 +74,19 @@ namespace ANF.Service
         public async Task<PaginationResponse<PolicyResponse>> GetPolicies(PaginationRequest request)
         {
             var policyRepo = _unitOfWork.GetRepository<Policy>();
-            var policies = await policyRepo.GetAll()
-                                    .AsNoTracking()
-                                    .Skip((request.pageNumber - 1)* request.pageSize)
-                                    .Take(request.pageSize)
-                                    .ToListAsync();
-            if (!policies.Any()) throw new KeyNotFoundException("No Policy found.");
-            var totalCount = policies.Count();
+            
+            var query = policyRepo.GetAll().AsNoTracking();
+            var totalRecord = await query.CountAsync();
+            var policies = await query
+                            .Skip((request.pageNumber - 1) * request.pageSize)
+                            .Take(request.pageSize)
+                            .ToListAsync() 
+                            ?? throw new NoDataRetrievalException("No data of policy!");
 
             var response = _mapper.Map<List<PolicyResponse>>(policies);
-            return new PaginationResponse<PolicyResponse>(response, totalCount, request.pageNumber, request.pageSize);
+            return new PaginationResponse<PolicyResponse>(response, totalRecord, 
+                request.pageNumber, 
+                request.pageSize);
         }
 
         public async Task<PolicyResponse> GetPolicyById(long policyId)
@@ -94,13 +97,14 @@ namespace ANF.Service
             if (policy is null) throw new KeyNotFoundException("not found policy with Id:" + policyId);
 
             var response = _mapper.Map<PolicyResponse>(policy);
-            return response;            
+            return response;
 
         }
 
         public async Task<bool> UpdatePolicy(long id, PolicyUpdateRequest request)
         {
-            try {
+            try
+            {
                 var policyRepo = _unitOfWork.GetRepository<Policy>();
                 var existedPolicy = await policyRepo.GetAll().AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
                 //check id
@@ -119,7 +123,8 @@ namespace ANF.Service
                 policyRepo.Update(existedPolicy);
                 return await _unitOfWork.SaveAsync() > 0;
             }
-            catch (Exception e){
+            catch (Exception e)
+            {
                 await _unitOfWork.RollbackAsync();
                 throw new Exception(e.Message);
             }
