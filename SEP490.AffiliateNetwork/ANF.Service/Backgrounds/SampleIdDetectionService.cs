@@ -16,7 +16,7 @@ namespace ANF.Service.Backgrounds
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SampleIdDetectionService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(2);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
         public SampleIdDetectionService(IServiceScopeFactory serviceScopeFactory,
             ILogger<SampleIdDetectionService> logger)

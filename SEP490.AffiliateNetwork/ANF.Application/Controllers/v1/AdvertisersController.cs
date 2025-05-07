@@ -132,17 +132,18 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        [HttpGet("campaigns/{id}/click-stats")]
+
+        [HttpGet("campaigns/{id}/stats")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<AdvertiserCampaignStatsResponse.ClickStats>>> GetClickStats(long id,
-            DateTime from,
-            DateTime to)
+        public async Task<ActionResult<List<AdvertiserCampaignStatsResponse>>> GetClickStats(long id,
+             DateTime from,
+             DateTime to)
         {
-            var result = await _advertiserService.GetClickStatistics(id, from, to);
-            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse.ClickStats>>
+            var result = await _advertiserService.GetTotalStatsOfCampaign(id, from, to);
+            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse>>
             {
                 IsSuccess = true,
                 Message = "Success",
@@ -150,35 +151,17 @@ namespace ANF.Application.Controllers.v1
             });
         }
 
-        [HttpGet("campaigns/{id}/device-stats")]
+        [HttpGet("campaigns/stats")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<AdvertiserCampaignStatsResponse.DeviceStats>>> GetDeviceStats(long id,
-            DateTime from,
-            DateTime to)
+        public async Task<ActionResult<List<AdvertiserCampaignStatsResponse>>> GetClickStats(
+             DateTime from,
+             DateTime to)
         {
-            var result = await _advertiserService.GetDeviceStatistics(id, from, to);
-            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse.DeviceStats>>
-            {
-                IsSuccess = true,
-                Message = "Success",
-                Value = result
-            });
-        }
-
-        [HttpGet("campaigns/{id}/offer-stats")]
-        [MapToApiVersion(1)]
-        [Authorize(Roles = "Advertiser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<AdvertiserCampaignStatsResponse.OfferStats>>> GetOfferStats(long id,
-            DateTime from,
-            DateTime to)
-        {
-            var result = await _advertiserService.GetOfferStatistics(id, from, to);
-            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse.OfferStats>>
+            var result = await _advertiserService.GetTotalStatsOfAllCampaigns(from, to);
+            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse>>
             {
                 IsSuccess = true,
                 Message = "Success",
