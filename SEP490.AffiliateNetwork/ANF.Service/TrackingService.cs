@@ -321,6 +321,7 @@ namespace ANF.Service
             var transactionRepository = _unitOfWork.GetRepository<Transaction>();
             var userRepository = _unitOfWork.GetRepository<User>();
             var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
+            var postBackRepository = _unitOfWork.GetRepository<PostbackData>();
 
             var trackingValidation = await trackingValidationRepository.GetAll()
                 .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.Id);
@@ -354,7 +355,7 @@ namespace ANF.Service
                             ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
 
                 money = trackingConversionEvent.PricingModel == "CPS"
-                            ? offer.Bid * (decimal)offer.CommissionRate!
+                            ? (decimal)trackingValidation.Amount! * ((decimal)offer.CommissionRate! / 100)
                             : offer.Bid;
                 _logger.LogInformation("=================== Calculated money: {Money} ===================", money);
 
@@ -447,6 +448,15 @@ namespace ANF.Service
                 trackingValidation.ValidationStatus = ValidationStatus.Failed;
                 trackingValidation.Amount = money;
                 trackingValidationRepository.Update(trackingValidation);
+                if(trackingConversionEvent.PricingModel == "CPS")
+                {
+                    var postback = await postBackRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.ClickId == trackingConversionEvent.ClickId);
+                    if (postback is not null)
+                    {
+                        postback.Status = PostbackStatus.Failed;
+                        postBackRepository.Update(postback);
+                    }
+                }
                 await _unitOfWork.SaveAsync();
                 throw;
             }

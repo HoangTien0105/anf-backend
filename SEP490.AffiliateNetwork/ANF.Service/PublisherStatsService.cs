@@ -162,7 +162,7 @@ namespace ANF.Service
                             if (offer.PricingModel == "CPS")
                             {
                                 decimal sumAmount = offerValidatedClicks.Sum(v => v.Amount ?? 0);
-                                totalRevenue += sumAmount * (decimal)(offer.CommissionRate ?? 0);
+                                totalRevenue += sumAmount * ((decimal)(offer.CommissionRate ?? 0) / 100);
                             }
                             else
                             {
