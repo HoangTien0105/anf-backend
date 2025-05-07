@@ -124,6 +124,7 @@ namespace ANF.Service.Backgrounds
                             join pb in postbackRepository
                                 .GetAll()
                                 .AsNoTracking()
+                                .Include(pb => pb.Offer)
                             on tv.ClickId equals pb.ClickId
                             where tv.ConversionStatus == ConversionStatus.Pending
                             && pb.Status != PostbackStatus.Success
