@@ -175,7 +175,7 @@ namespace ANF.Service
                 }
                 else
                 {
-                    trackingEvent.Status = TrackingEventStatus.Invalid;
+                    trackingEvent.Status = TrackingEventStatus.Valid;
                 }
 
                 _trackingQueue.Enqueue(trackingEvent);
