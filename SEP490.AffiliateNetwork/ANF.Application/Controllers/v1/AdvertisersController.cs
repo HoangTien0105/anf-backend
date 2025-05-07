@@ -178,14 +178,13 @@ namespace ANF.Application.Controllers.v1
             DateTime from,
             DateTime to)
         {
-            //var result = await _advertiserService.GetDeviceStatistics(id, from, to);
-            //return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse.DeviceStats>>
-            //{
-            //    IsSuccess = true,
-            //    Message = "Success",
-            //    Value = result
-            //});
-            return Ok();
+            var result = await _advertiserService.GetDeviceStatistics(id, from, to);
+            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success",
+                Value = result
+            });
         }
         
 
@@ -198,14 +197,13 @@ namespace ANF.Application.Controllers.v1
             DateTime from,
             DateTime to)
         {
-            //var result = await _advertiserService.GetOfferStatistics(id, from, to);
-            //return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse.OfferStats>>
-            //{
-            //    IsSuccess = true,
-            //    Message = "Success",
-            //    Value = result
-            //});
-            return Ok();
+            var result = await _advertiserService.GetOfferStatistics(id, from, to);
+            return Ok(new ApiResponse<List<AdvertiserCampaignStatsResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success",
+                Value = result
+            });
         }
     }
 }
