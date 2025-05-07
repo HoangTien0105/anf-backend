@@ -84,15 +84,16 @@ namespace ANF.Application.Controllers.v1
         /// Get campaigns including offers for admin with all status
         /// </summary>
         /// <param name="request">Pagination request model</param>
+        /// <param name="search">Search params</param>
         /// <returns></returns>
         [HttpGet("campaigns/offers")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetCampaignsWithOffers([FromQuery] PaginationRequest request)
+        public async Task<IActionResult> GetCampaignsWithOffers([FromQuery] PaginationRequest request, [FromQuery] string? search)
         {
-            var campaigns = await _campaignService.GetCampaignsWithOffers(request);
+            var campaigns = await _campaignService.GetCampaignsWithOffers(request, search);
             return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
             {
                 IsSuccess = true,
@@ -127,15 +128,16 @@ namespace ANF.Application.Controllers.v1
         /// </summary>
         /// <param name="request">Pagination data</param>
         /// <param name="code">Advertiser's code</param>
+        /// <param name="search">Search params</param>
         /// <returns></returns>
         [HttpGet("campaigns/advertisers/{code}/offers")] 
         [MapToApiVersion(1)]
         [Authorize(Roles = "Admin, Advertiser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, string code)
+        public async Task<IActionResult> GetCampaignsByAdvertiserWithOffers([FromQuery] PaginationRequest request, string code, string? search)
         {
-            var campaigns = await _campaignService.GetCampaignsByAdvertisersWithOffers(request, code);
+            var campaigns = await _campaignService.GetCampaignsByAdvertisersWithOffers(request, code, search);
             return Ok(new ApiResponse<PaginationResponse<CampaignResponse>>
             {
                 IsSuccess = true,

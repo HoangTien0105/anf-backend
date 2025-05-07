@@ -341,7 +341,7 @@ namespace ANF.Service
         /// <exception cref="UnauthorizedAccessException"></exception>
         /// <exception cref="KeyNotFoundException"></exception>
         public async Task<PaginationResponse<CampaignResponse>>
-            GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id)
+            GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id, string? search)
         {
             var currentAdvertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
             if (id != currentAdvertiserCode)
@@ -349,11 +349,17 @@ namespace ANF.Service
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
 
-            var query = campaignRepository.GetAll()
+            IQueryable<Campaign> query = campaignRepository.GetAll()
                 .AsNoTracking()
                 .Where(e => e.AdvertiserCode.ToString() == id)
                 .Include(e => e.Category)
                 .Include(e => e.Images);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(e => e.Name.ToLower().Contains(search.ToLower()));
+            }
+
             var totalRecord = await query.CountAsync();
             var campaigns = await query
                             .Skip((request.pageNumber - 1) * request.pageSize)
@@ -433,15 +439,23 @@ namespace ANF.Service
             return data;
         }
 
-        public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request)
+        public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request, string? search)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var offerRepository = _unitOfWork.GetRepository<Offer>();
 
-            var query = campaignRepository.GetAll()
+            IQueryable<Campaign> query;
+
+            query = campaignRepository.GetAll()
                             .AsNoTracking()
                             .Include(e => e.Category)
                             .Include(e => e.Images);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(e => e.Name.Contains(search));
+            }
+
             var totalRecord = await query.CountAsync();
             var campaigns = await query
                             .Skip((request.pageNumber - 1) * request.pageSize)

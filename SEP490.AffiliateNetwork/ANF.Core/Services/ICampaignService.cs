@@ -7,8 +7,8 @@ namespace ANF.Core.Services
     {
         Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request, long? cateId);
         Task<List<CampaignDetailedResponse>> GetCampaignsWithDateRange(DateTime from, DateTime to);
-        Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request);
-        Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id);
+        Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request, string? search);
+        Task<PaginationResponse<CampaignResponse>> GetCampaignsByAdvertisersWithOffers(PaginationRequest request, string id, string? search);
         Task<bool> CreateCampaign(CampaignCreateRequest request);
         Task<bool> UpdateCampaignInformation(long id, CampaignUpdateRequest request);
         Task<bool> UpdateCampaignStatus(long id, string campaignStatus, string? rejectReason);
