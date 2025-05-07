@@ -173,7 +173,7 @@ namespace ANF.Service
                     Id = IdHelper.GenerateTransactionId(),
                     UserCode = currentUserCode,
                     WalletId = wallet.Id,
-                    Reason = $"Nạp vào ví {wallet.Id}",
+                    Reason = $"Deposit into wallet {wallet.Id}",
                     Amount = request.Amount,
                     CreatedAt = DateTime.Now,
                     Status = TransactionStatus.Pending,
