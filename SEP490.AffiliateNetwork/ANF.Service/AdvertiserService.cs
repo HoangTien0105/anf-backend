@@ -223,20 +223,20 @@ namespace ANF.Service
                         .GroupBy(s => s.CampaignId)
                         .Select(cg =>
                         {
-                            var first = cg.First();
+                            var first = cg.OrderByDescending(e => e.Date).First();
                             return new CampaignStatsResponseModel
                             {
                                 CampaignId = first.CampaignId,
-                                TotalClick = cg.Sum(x => x.TotalClick),
-                                TotalValidClick = cg.Sum(x => x.TotalVerifiedClick),
-                                TotalFraudClick = cg.Sum(x => x.TotalFraudClick),
-                                TotalOffer = cg.Sum(x => x.TotalOffer),
-                                TotalJoinedPublisher = cg.Sum(x => x.TotalJoinedPublisher),
-                                TotalRejectedPublisher = cg.Sum(x => x.TotalRejectedPublisher),
-                                TotalMobile = cg.Sum(x => x.TotalMobile),
-                                TotalComputer = cg.Sum(x => x.TotalComputer),
-                                TotalTablet = cg.Sum(x => x.TotalTablet),
-                                BudgetSpent = cg.Sum(x => x.TotalBudgetSpent)
+                                TotalClick = first.TotalClick,
+                                TotalValidClick = first.TotalVerifiedClick,
+                                TotalFraudClick = first.TotalFraudClick,
+                                TotalOffer = first.TotalOffer,
+                                TotalJoinedPublisher = first.TotalJoinedPublisher,
+                                TotalRejectedPublisher = first.TotalRejectedPublisher,
+                                TotalMobile = first.TotalMobile,
+                                TotalComputer = first.TotalComputer,
+                                TotalTablet = first.TotalTablet,
+                                BudgetSpent = first.TotalBudgetSpent
                             };
                         })
                         .ToList()
@@ -255,7 +255,7 @@ namespace ANF.Service
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == campaignId
                                           && c.AdvertiserCode == advertiserCode
-                                          && c.Status == CampaignStatus.Started)
+                                          && (c.Status == CampaignStatus.Started || c.Status == CampaignStatus.Ended))
                 ?? throw new NoDataRetrievalException("Campaign not found or inactive!");
 
             // Fetch stats for the single campaign
@@ -272,24 +272,29 @@ namespace ANF.Service
                 .Select(g => new AdvertiserCampaignStatsResponse
                 {
                     Date = g.Key,
-                    CampaignStatsResponses =
-                    [
-                        new CampaignStatsResponseModel
+                    CampaignStatsResponses = g
+                        .GroupBy(s => s.CampaignId)
+                        .Select(cg =>
                         {
-                            CampaignId = campaignId,
-                            TotalClick = g.Sum(x => x.TotalClick),
-                            TotalValidClick = g.Sum(x => x.TotalVerifiedClick),
-                            TotalFraudClick = g.Sum(x => x.TotalFraudClick),
-                            TotalOffer = g.Sum(x => x.TotalOffer),
-                            TotalJoinedPublisher = g.Sum(x => x.TotalJoinedPublisher),
-                            TotalRejectedPublisher = g.Sum(x => x.TotalRejectedPublisher),
-                            TotalMobile = g.Sum(x => x.TotalMobile),
-                            TotalComputer = g.Sum(x => x.TotalComputer),
-                            TotalTablet = g.Sum(x => x.TotalTablet),
-                            BudgetSpent = g.Sum(x => x.TotalBudgetSpent)
-                        }
-                    ]
+                            var first = cg.OrderByDescending(e => e.Date).First();
+                            return new CampaignStatsResponseModel
+                            {
+                                CampaignId = first.CampaignId,
+                                TotalClick = first.TotalClick,
+                                TotalValidClick = first.TotalVerifiedClick,
+                                TotalFraudClick = first.TotalFraudClick,
+                                TotalOffer = first.TotalOffer,
+                                TotalJoinedPublisher = first.TotalJoinedPublisher,
+                                TotalRejectedPublisher = first.TotalRejectedPublisher,
+                                TotalMobile = first.TotalMobile,
+                                TotalComputer = first.TotalComputer,
+                                TotalTablet = first.TotalTablet,
+                                BudgetSpent = first.TotalBudgetSpent
+                            };
+                        })
+                        .ToList()
                 }).ToList();
+
 
             return response;
         }
