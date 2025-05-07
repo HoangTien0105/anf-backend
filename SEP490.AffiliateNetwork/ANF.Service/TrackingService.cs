@@ -37,7 +37,8 @@ namespace ANF.Service
         private readonly INotificationService _notificationService;
         private readonly HttpClient _httpClient;
         private readonly IpApiSettings _ipApiSettings;
-
+        private readonly string _env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? string.Empty;
+            
         public TrackingService(IUnitOfWork unitOfWork, IMemoryCache cache, IHttpClientFactory httpClientFactory,
             IServiceScopeFactory scopeFactory, ILogger<TrackingService> logger,
             IOptions<IpApiSettings> options,
@@ -82,12 +83,6 @@ namespace ANF.Service
 
                 var campaign = offer.Campaign;
 
-                if(campaign is null)
-                {
-                    _logger.LogInformation("Campaign with Offer ID {OfferId} not found.", offerId);
-                    return baseUrl;
-                }
-
                 var campaignUrl = campaign.ProductUrl;
 
                 var userExist = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode.ToString() == publisherCode);
@@ -120,13 +115,13 @@ namespace ANF.Service
                     _logger.LogInformation("Invalid offer ID {OfferId}.", offerId);
                     return campaignUrl;
                 }
+                
                 bool isBot = false;
                 if (uaInfor.IsRobot())
                 {
                     _logger.LogInformation("Bot request detected for offer ID {OfferId}.", offerId);
                     isBot = true;
                 }
-
 
                 // Check whether the publisher is running the offer
                 var isExisted = await publiserOfferRepository.GetAll()
@@ -170,8 +165,18 @@ namespace ANF.Service
                     Proxy = ipInfo.Proxy.ToString(),
                 };
 
-                if (isBot) trackingEvent.Status = TrackingEventStatus.Fraud;
-                trackingEvent.Status = campaign.Status == CampaignStatus.Started ? TrackingEventStatus.Pending : TrackingEventStatus.Invalid;
+                if (isBot || ipInfo == null || ipInfo.Proxy == true)
+                {
+                    trackingEvent.Status = TrackingEventStatus.Fraud;
+                } 
+                else if(campaign.Status != CampaignStatus.Started)
+                {
+                    trackingEvent.Status = TrackingEventStatus.Invalid;
+                }
+                else
+                {
+                    trackingEvent.Status = TrackingEventStatus.Invalid;
+                }
 
                 _trackingQueue.Enqueue(trackingEvent);
 
@@ -316,6 +321,7 @@ namespace ANF.Service
             var transactionRepository = _unitOfWork.GetRepository<Transaction>();
             var userRepository = _unitOfWork.GetRepository<User>();
             var trackingValidationRepository = _unitOfWork.GetRepository<TrackingValidation>();
+            var postBackRepository = _unitOfWork.GetRepository<PostbackData>();
 
             var trackingValidation = await trackingValidationRepository.GetAll()
                 .FirstOrDefaultAsync(e => e.Id == trackingConversionEvent.Id);
@@ -349,7 +355,7 @@ namespace ANF.Service
                             ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
 
                 money = trackingConversionEvent.PricingModel == "CPS"
-                            ? offer.Bid * (decimal)offer.CommissionRate!
+                            ? (decimal)trackingValidation.Amount! * ((decimal)offer.CommissionRate! / 100)
                             : offer.Bid;
                 _logger.LogInformation("=================== Calculated money: {Money} ===================", money);
 
@@ -442,6 +448,15 @@ namespace ANF.Service
                 trackingValidation.ValidationStatus = ValidationStatus.Failed;
                 trackingValidation.Amount = money;
                 trackingValidationRepository.Update(trackingValidation);
+                if(trackingConversionEvent.PricingModel == "CPS")
+                {
+                    var postback = await postBackRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.ClickId == trackingConversionEvent.ClickId);
+                    if (postback is not null)
+                    {
+                        postback.Status = PostbackStatus.Failed;
+                        postBackRepository.Update(postback);
+                    }
+                }
                 await _unitOfWork.SaveAsync();
                 throw;
             }

@@ -304,7 +304,7 @@ namespace ANF.Service
             return data;
         }
 
-        public async Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request)
+        public async Task<PaginationResponse<CampaignDetailedResponse>> GetCampaigns(PaginationRequest request, long? cateId)
         {
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
             var query = campaignRepository.GetAll()
@@ -313,6 +313,12 @@ namespace ANF.Service
                 .Include(e => e.Category)
                 .Include(e => e.Offers)
                 .Where(e => e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started);
+
+            if (cateId.HasValue)
+            {
+                query = query.Where(e => e.CategoryId == cateId.Value);
+            }
+
             var totalRecord = await query.CountAsync();
             
             var campaigns = await query
@@ -370,6 +376,61 @@ namespace ANF.Service
             return new PaginationResponse<CampaignResponse>(data, totalRecord, 
                 request.pageNumber, 
                 request.pageSize);
+        }
+
+        public async Task<List<CampaignDetailedResponse>> GetCampaignsWithDateRange(DateTime from, DateTime to)
+        {
+            if (from > to) throw new ArgumentException("To date must be after from date");
+
+            var currentUserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var userRepository = _unitOfWork.GetRepository<User>();
+            var pubOfferRepository = _unitOfWork.GetRepository<PublisherOffer>();
+
+            var user = await userRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.UserCode == currentUserCode);
+
+            IQueryable<Campaign> query;
+
+            if (user!.Role == UserRoles.Advertiser)
+            {
+                query = campaignRepository.GetAll()
+                                          .AsNoTracking()
+                                          .Where(e => e.AdvertiserCode == currentUserCode
+                                              && e.StartDate <= to && e.EndDate >= from);
+            }  
+            else if(user.Role == UserRoles.Publisher)
+            {
+                var joinOffers = await pubOfferRepository.GetAll()
+                        .AsNoTracking()
+                        .Where(e => e.PublisherCode == currentUserCode)
+                        .Select(e => e.OfferId)
+                        .ToListAsync();
+
+                query = campaignRepository.GetAll()
+                            .AsNoTracking()
+                            .Where(e => e.Offers.Any(o => joinOffers.Contains(o.Id))
+                                     && e.StartDate <= to && e.EndDate >= from);
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("User role is not authorized to access this function.");
+            }
+
+            var totalRecord = await query.CountAsync();
+            var campaigns = await query
+                            .Include(c => c.Images)
+                            .Include(c => c.Category)
+                            .Include(c => c.Offers)
+                            .OrderByDescending(c => c.StartDate)
+                            .ToListAsync();
+
+            if (!campaigns.Any())
+            {
+                throw new KeyNotFoundException("No data for campaigns!");
+            }
+
+            var data = _mapper.Map<List<CampaignDetailedResponse>>(campaigns);
+            return data;
         }
 
         public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request)

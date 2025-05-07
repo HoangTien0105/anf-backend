@@ -218,6 +218,7 @@ namespace ANF.Service
             try
             {
                 var userRepository = _unitOfWork.GetRepository<User>();
+                var campaignRepository = _unitOfWork.GetRepository<Campaign>();
                 var userCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
                 if (string.IsNullOrEmpty(userCode))
                 {
@@ -237,6 +238,13 @@ namespace ANF.Service
 
                 if (user.Role == UserRoles.Advertiser)
                 {
+                    var campaignBalance = await campaignRepository
+                        .GetAll()
+                        .AsNoTracking()
+                        .Where(e => e.AdvertiserCode == userCode
+                                 && (e.Status == CampaignStatus.Verified || e.Status == CampaignStatus.Started))
+                        .SumAsync(e => e.Balance);
+
                     var response = new DetailedUserResponse()
                     {
                         Id = user.Id,
@@ -250,6 +258,7 @@ namespace ANF.Service
                         Email = user.Email,
                         Role = user.Role.ToString(),
                         Balance = user.Wallet.Balance,
+                        CurrentBalance = user.Wallet.Balance - campaignBalance,
                         ImageUrl = user.AdvertiserProfile?.ImageUrl,
                         BankResponses = user.UserBanks?.Select(ub => new UserBankResponse
                         {

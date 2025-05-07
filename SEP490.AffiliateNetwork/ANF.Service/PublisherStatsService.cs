@@ -135,7 +135,6 @@ namespace ANF.Service
                         .AsNoTracking()
                         .Where(v => v.ClickId != null
                                  && clickIds.Contains(v.ClickId)
-                                 && v.ValidationStatus == Core.Enums.ValidationStatus.Success
                                  && v.ConversionStatus == Core.Enums.ConversionStatus.Success
                                  && v.ValidatedTime >= startOfDay
                                  && v.ValidatedTime <= endOfDay)
@@ -163,7 +162,7 @@ namespace ANF.Service
                             if (offer.PricingModel == "CPS")
                             {
                                 decimal sumAmount = offerValidatedClicks.Sum(v => v.Amount ?? 0);
-                                totalRevenue += sumAmount * (decimal)(offer.CommissionRate ?? 0);
+                                totalRevenue += sumAmount * ((decimal)(offer.CommissionRate ?? 0) / 100);
                             }
                             else
                             {

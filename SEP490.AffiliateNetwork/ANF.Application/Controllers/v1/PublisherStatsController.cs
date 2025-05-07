@@ -70,8 +70,8 @@ namespace ANF.Application.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GenerateStatsByCampaignId(
-           [Required] DateTime from,
-           [Required] DateTime to)
+           [FromQuery][Required] DateTime from,
+           [FromQuery][Required] DateTime to)
         {
             var publisherOfferStats = await _publisherStatsService.GeneratePublisherOfferStatsByPublisherCode(from, to);
             return Ok(new ApiResponse<bool>

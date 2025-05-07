@@ -26,6 +26,7 @@
         public string Role { get; set; } = null!;
 
         public decimal? Balance { get; set; }
+        public decimal? CurrentBalance { get; set; }
         public string? ImageUrl { get; set; }
 
         public ICollection<UserBankResponse> BankResponses { get; set; } = [];
