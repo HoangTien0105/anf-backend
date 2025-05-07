@@ -354,10 +354,19 @@ namespace ANF.Service
                             .FirstOrDefaultAsync(e => e.UserCode == trackingConversionEvent.PublisherCode)
                             ?? throw new KeyNotFoundException($"Publisher wallet {trackingConversionEvent.PublisherCode} not found.");
 
-                money = trackingConversionEvent.PricingModel == "CPS"
-                            ? (decimal)trackingValidation.Amount! * ((decimal)offer.CommissionRate! / 100)
-                            : offer.Bid;
-                _logger.LogInformation("=================== Calculated money: {Money} ===================", money);
+                if (trackingConversionEvent.PricingModel == "CPS")
+                {
+                    var postback = await postBackRepository.GetAll().AsNoTracking().FirstOrDefaultAsync(e => e.ClickId == trackingConversionEvent.ClickId);
+                    if (postback is not null)
+                    {
+                        double postBackMoney = postback.Amount ?? 0;
+                        money = (decimal) postBackMoney * ((decimal) (offer.CommissionRate ?? 0) / 100);
+                    }
+                } else
+                {
+                    money = offer.Bid;
+                }
+                _logger.LogInformation("====================================== Calculated money: {Money} ======================================", money);
 
                 if (advertiserWallet.Balance < money)
                 {
