@@ -75,7 +75,7 @@ namespace ANF.Application.Controllers.v1
         )
         {
             var result = await _userService.GetCampaignStats(from, to);
-            return Ok(new ApiResponse<CampaignStatsAdminResponse>
+            return Ok(new ApiResponse<List<CampaignStatsAdminResponse>>
             {
                 IsSuccess = true,
                 Message = "Success!",

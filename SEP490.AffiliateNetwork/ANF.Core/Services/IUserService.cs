@@ -43,7 +43,7 @@ namespace ANF.Core.Services
         Task<List<UserStatsAdminResponse>> GetUserStats(DateTime from, DateTime to);
         Task<AdminStats> GetLastestStats();
 
-        Task<CampaignStatsAdminResponse?> GetCampaignStats(DateTime from, DateTime to);
+        Task<List<CampaignStatsAdminResponse>> GetCampaignStats(DateTime from, DateTime to);
 
         Task<TicketStatsAdminResponse?> GetTicketStats(DateTime from, DateTime to);
     }

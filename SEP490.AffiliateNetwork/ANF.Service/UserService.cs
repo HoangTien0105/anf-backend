@@ -764,31 +764,34 @@ namespace ANF.Service
             return totalUsers;
         }
 
-        public async Task<CampaignStatsAdminResponse?> GetCampaignStats(DateTime from, DateTime to)
+        public async Task<List<CampaignStatsAdminResponse>> GetCampaignStats(DateTime from, DateTime to)
         {
+            if (from > to) throw new ArgumentException("To date must be behind from date");
+
             var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
-            var totalCampaign = await adminStatsRepository.GetAll()
-                .AsNoTracking()
-                .Where(a => a.Date >= from && a.Date <= to)
-                .SumAsync(a => a.TotalCampaign);
+            var stats = await adminStatsRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(a => a.Date >= from && a.Date <= to)
+                    .OrderBy(a => a.Date)
+                    .ToListAsync();
 
-            var totalApprovedCampaign = await adminStatsRepository.GetAll()
-                .AsNoTracking()
-                .Where(a => a.Date >= from && a.Date <= to)
-                .SumAsync(a => a.TotalApprovedCampaign);
+            var campaignStats = stats
+                    .GroupBy(e => e.Date.Date)
+                    .Select(g =>
+                    {
+                        var lastRecord = g.OrderByDescending(e => e.Date).First();
+                        return new CampaignStatsAdminResponse
+                        {
+                            Date = g.Key,
+                            TotalCampaign = lastRecord.TotalCampaign,
+                            TotalApprovedCampaign = lastRecord.TotalApprovedCampaign,
+                            TotalRejectedCampaign = lastRecord.TotalRejectedCampaign
+                        };
+                    })
+                    .OrderBy(r => r.Date)
+                    .ToList();
 
-            var totalRejectedCampaign = await adminStatsRepository.GetAll()
-                .AsNoTracking()
-                .Where(a => a.Date >= from && a.Date <= to)
-                .SumAsync(a => a.TotalResolvedTicket);
-
-            var response = new CampaignStatsAdminResponse
-            {
-                TotalCampaign = totalCampaign,
-                TotalApprovedCampaign = totalApprovedCampaign,
-                TotalRejectedCampaign = totalRejectedCampaign
-            };
-            return response;
+            return campaignStats;
         }
 
         public async Task<TicketStatsAdminResponse?> GetTicketStats(DateTime from, DateTime to)
