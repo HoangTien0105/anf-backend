@@ -15,36 +15,8 @@ namespace ANF.Core.Services
 
         Task<List<PublisherInformationForAdvertiser>> GetPendingPublisherInOffer(string offerId);
 
-        /// <summary>
-        /// Get click statistics for a campaign
-        /// </summary>
-        /// <param name="campaignId"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <returns></returns>
-        Task<List<AdvertiserCampaignStatsResponse>> GetClickStatistics(long campaignId,
-            DateTime from,
-            DateTime to);
+        Task<List<AdvertiserCampaignStatsResponse>> GetTotalStatsOfAllCampaigns(DateTime from, DateTime to);
 
-        Task<List<AdvertiserCampaignStatsResponse>> GetClickStatisticsOfCampagins(
-            DateTime from,
-            DateTime to
-        );
-
-
-        /// <summary>
-        /// Get device statistics for a campaign
-        /// </summary>
-        /// <param name="campaignId"></param>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <returns></returns> <summary>
-        Task<List<AdvertiserCampaignStatsResponse>> GetDeviceStatistics(long campaignId,
-            DateTime from,
-            DateTime to);
-
-        Task<List<AdvertiserCampaignStatsResponse>> GetOfferStatistics(long campaignId,
-            DateTime from,
-            DateTime to);
+        Task<List<AdvertiserCampaignStatsResponse>> GetTotalStatsOfCampaign(long campaignId, DateTime from, DateTime to);
     }
 }

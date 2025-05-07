@@ -191,177 +191,105 @@ namespace ANF.Service
                 throw;
             }
         }
-
-        public async Task<List<AdvertiserCampaignStatsResponse>> GetClickStatistics(long campaignId,
-            DateTime from,
-            DateTime to)
+        
+        public async Task<List<AdvertiserCampaignStatsResponse>> GetTotalStatsOfAllCampaigns(DateTime from, DateTime to)
         {
             var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
             var campaignRepository = _unitOfWork.GetRepository<Campaign>();
 
-            var campaign = await campaignRepository.GetAll()
-                .AsNoTracking()
-                .Where(c => c.Id == campaignId)
-                .FirstOrDefaultAsync()
-                ?? throw new KeyNotFoundException("Campaign does not exist!");
-
-            var stats = await advertiserCampaignStatsRepo.GetAll()
-                .AsNoTracking()
-                .Where(s => s.CampaignId == campaign.Id && s.Date >= from && s.Date <= to)
-                .ToListAsync()
-                ?? throw new NoDataRetrievalException("No statistics available for this campaign");
-
-            var response = stats
-                .GroupBy(e => e.Date)
-                .Select(g => new AdvertiserCampaignStatsResponse
-                {
-                    Date = g.Key,
-                    CampaignClickStats = g
-                        .GroupBy(e => e.CampaignId)
-                        .Select(cg => cg.OrderByDescending(e => e.Date).First())
-                        .Select(e => new CampaignClickStats
-                        {
-                            CampaignId = e.CampaignId,
-                            TotalClick = e.TotalClick,
-                            TotalValidClick = e.TotalVerifiedClick,
-                            TotalFraudClick = e.TotalFraudClick
-                        }).ToList()
-                })
-                .OrderBy(g => g.Date)
-                .ToList();
-
-            return response;
-        }
-
-        public async Task<List<AdvertiserCampaignStatsResponse>> GetDeviceStatistics(long campaignId,
-            DateTime from,
-            DateTime to)
-        {
-            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
-            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
-
-            // Validate if the campaign exists
-            var campaignExists = await campaignRepository.GetAll()
-                .AsNoTracking()
-                .AnyAsync(c => c.Id == campaignId);
-
-            if (!campaignExists)
-                throw new KeyNotFoundException("Campaign does not exist!");
-
-            // Fetch and group device statistics for the specified campaign
-            var stats = await advertiserCampaignStatsRepo.GetAll()
-                .AsNoTracking()
-                .Where(s => s.CampaignId == campaignId && s.Date >= from && s.Date <= to)
-                .ToListAsync()
-                ?? throw new NoDataRetrievalException("No device statistics available for the specified campaign!");
-
-            // Group and aggregate the statistics
-            var response = stats
-               .GroupBy(e => e.Date)
-               .Select(g => new AdvertiserCampaignStatsResponse
-               {
-                   Date = g.Key,
-                   DeviceStats = g
-                       .GroupBy(e => e.CampaignId)
-                       .Select(cg => cg.OrderByDescending(e => e.Date).First())
-                       .Select(e => new DeviceStats
-                       {
-                           CampaignId = e.CampaignId,
-                           TotalComputer = e.TotalComputer,
-                           TotalTablet = e.TotalTablet,
-                           TotalMobile = e.TotalMobile
-                       }).ToList()
-               })
-               .OrderBy(g => g.Date)
-               .ToList();
-
-            return response;
-        }
-
-        public async Task<List<AdvertiserCampaignStatsResponse>> GetOfferStatistics(long campaignId,
-            DateTime from,
-            DateTime to)
-        {
-            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
-
-            // Validate if the campaign exists
-            var campaignExists = await advertiserCampaignStatsRepo.GetAll()
-                .AsNoTracking()
-                .AnyAsync(s => s.CampaignId == campaignId);
-
-            if (!campaignExists)
-                throw new KeyNotFoundException("Campaign does not exist!");
-
-            // Fetch and group offer statistics
-            var stats = await advertiserCampaignStatsRepo.GetAll()
-                .AsNoTracking()
-                .Where(s => s.CampaignId == campaignId && s.Date >= from && s.Date <= to)
-                .ToListAsync()
-                ?? throw new NoDataRetrievalException("No device statistics available for the specified campaign!");
-
-            // Group and aggregate the statistics
-            var response = stats
-               .GroupBy(e => e.Date)
-               .Select(g => new AdvertiserCampaignStatsResponse
-               {
-                   Date = g.Key,
-                   OfferStats = g
-                       .GroupBy(e => e.CampaignId)
-                       .Select(cg => cg.OrderByDescending(e => e.Date).First())
-                       .Select(e => new OfferStats
-                       {
-                           CampaignId = e.CampaignId,
-                           TotalOffer = e.TotalOffer,
-                           TotalRejectedPublisher = e.TotalRejectedPublisher,
-                           TotalJoinedPublisher = e.TotalJoinedPublisher
-                       }).ToList()
-               })
-               .OrderBy(g => g.Date)
-               .ToList();
-
-            return response;
-        }
-
-        public async Task<List<AdvertiserCampaignStatsResponse>> GetClickStatisticsOfCampagins(DateTime from, DateTime to)
-        {
-            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
-            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+            var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
 
             var campaigns = await campaignRepository.GetAll()
                 .AsNoTracking()
-                .Where(c => c.AdvertiserCode == _userClaimsService.GetClaim(ClaimConstants.NameId)
-                    && c.Status == CampaignStatus.Started)
+                .Where(c => c.AdvertiserCode == advertiserCode && c.Status == CampaignStatus.Started)
                 .ToListAsync()
                 ?? throw new NoDataRetrievalException("No data of campaigns!");
 
-            // Fetch and group statistics for all campaigns
             var campaignIds = campaigns.Select(c => c.Id).ToList();
+
             var stats = await advertiserCampaignStatsRepo.GetAll()
                 .AsNoTracking()
                 .Where(s => campaignIds.Contains(s.CampaignId) && s.Date >= from && s.Date <= to)
                 .ToListAsync()
                 ?? throw new NoDataRetrievalException("No statistics available for the specified campaigns!");
 
-            // Group and aggregate the statistics
             var response = stats
-                .GroupBy(e => e.Date)
+                .GroupBy(s => s.Date.Date)
+                .OrderBy(g => g.Key)
                 .Select(g => new AdvertiserCampaignStatsResponse
                 {
                     Date = g.Key,
-                    CampaignClickStats = g
-                        .GroupBy(e => e.CampaignId)
-                        .Select(cg => cg.FirstOrDefault())
-                        .Select(e => new CampaignClickStats
+                    CampaignStatsResponses = g
+                        .GroupBy(s => s.CampaignId)
+                        .Select(cg =>
                         {
-                            CampaignId = e.CampaignId,
-                            TotalClick = e.TotalClick,
-                            TotalValidClick = e.TotalVerifiedClick,
-                            TotalFraudClick = e.TotalFraudClick
+                            var first = cg.First();
+                            return new CampaignStatsResponseModel
+                            {
+                                CampaignId = first.CampaignId,
+                                TotalClick = cg.Sum(x => x.TotalClick),
+                                TotalValidClick = cg.Sum(x => x.TotalVerifiedClick),
+                                TotalFraudClick = cg.Sum(x => x.TotalFraudClick),
+                                TotalOffer = cg.Sum(x => x.TotalOffer),
+                                TotalJoinedPublisher = cg.Sum(x => x.TotalJoinedPublisher),
+                                TotalRejectedPublisher = cg.Sum(x => x.TotalRejectedPublisher),
+                                TotalMobile = cg.Sum(x => x.TotalMobile),
+                                TotalComputer = cg.Sum(x => x.TotalComputer),
+                                TotalTablet = cg.Sum(x => x.TotalTablet),
+                                BudgetSpent = cg.Sum(x => x.TotalBudgetSpent)
+                            };
                         })
                         .ToList()
-                })
-                .OrderBy(g => g.Date)
-                .ToList();
+                }).ToList();
+            return response;
+        }
+
+        public async Task<List<AdvertiserCampaignStatsResponse>> GetTotalStatsOfCampaign(long campaignId, DateTime from, DateTime to)
+        {
+            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
+            var campaignRepository = _unitOfWork.GetRepository<Campaign>();
+
+            // Verify campaign ownership and status
+            var advertiserCode = _userClaimsService.GetClaim(ClaimConstants.NameId);
+            var campaign = await campaignRepository.GetAll()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == campaignId
+                                          && c.AdvertiserCode == advertiserCode
+                                          && c.Status == CampaignStatus.Started)
+                ?? throw new NoDataRetrievalException("Campaign not found or inactive!");
+
+            // Fetch stats for the single campaign
+            var stats = await advertiserCampaignStatsRepo.GetAll()
+                .AsNoTracking()
+                .Where(s => s.CampaignId == campaignId && s.Date >= from && s.Date <= to)
+                .ToListAsync()
+                ?? throw new NoDataRetrievalException("No statistics available for the specified campaign!");
+
+            // Group stats by Date and build response
+            var response = stats
+                .GroupBy(s => s.Date.Date)
+                .OrderBy(g => g.Key)
+                .Select(g => new AdvertiserCampaignStatsResponse
+                {
+                    Date = g.Key,
+                    CampaignStatsResponses =
+                    [
+                        new CampaignStatsResponseModel
+                        {
+                            CampaignId = campaignId,
+                            TotalClick = g.Sum(x => x.TotalClick),
+                            TotalValidClick = g.Sum(x => x.TotalVerifiedClick),
+                            TotalFraudClick = g.Sum(x => x.TotalFraudClick),
+                            TotalOffer = g.Sum(x => x.TotalOffer),
+                            TotalJoinedPublisher = g.Sum(x => x.TotalJoinedPublisher),
+                            TotalRejectedPublisher = g.Sum(x => x.TotalRejectedPublisher),
+                            TotalMobile = g.Sum(x => x.TotalMobile),
+                            TotalComputer = g.Sum(x => x.TotalComputer),
+                            TotalTablet = g.Sum(x => x.TotalTablet),
+                            BudgetSpent = g.Sum(x => x.TotalBudgetSpent)
+                        }
+                    ]
+                }).ToList();
 
             return response;
         }
