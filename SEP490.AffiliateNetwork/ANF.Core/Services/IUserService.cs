@@ -1,4 +1,5 @@
-﻿using ANF.Core.Models.Requests;
+﻿using ANF.Core.Models.Entities;
+using ANF.Core.Models.Requests;
 using ANF.Core.Models.Responses;
 
 namespace ANF.Core.Services
@@ -39,7 +40,8 @@ namespace ANF.Core.Services
 
         Task<bool> UpdateBankingInformation(long userBankId, UserBankUpdatedRequest request);
 
-        Task<UserStatsAdminResponse?> GetUserStats(DateTime from, DateTime to);
+        Task<List<UserStatsAdminResponse>> GetUserStats(DateTime from, DateTime to);
+        Task<AdminStats> GetLastestStats();
 
         Task<CampaignStatsAdminResponse?> GetCampaignStats(DateTime from, DateTime to);
 

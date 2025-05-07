@@ -735,19 +735,33 @@ namespace ANF.Service
             }
         }
 
-        public async Task<UserStatsAdminResponse?> GetUserStats(DateTime from, DateTime to)
+        public async Task<List<UserStatsAdminResponse>> GetUserStats(DateTime from, DateTime to)
         {
-            var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
-            var totalUsers = await adminStatsRepository.GetAll()
-                .AsNoTracking()
-                .Where(a => a.Date >= from && a.Date <= to)
-                .SumAsync(a => a.TotalUser);
+            if (from > to) throw new ArgumentException("To date must be behind from date");
 
-            var response = new UserStatsAdminResponse
-            {
-                TotalUser = totalUsers,
-            };
-            return response;
+            var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
+
+            var stats = await adminStatsRepository.GetAll()
+                    .AsNoTracking()
+                    .Where(e =>e.Date >= from
+                             && e.Date <= to)
+                    .OrderBy(e => e.Date)
+                    .ToListAsync();
+
+            var totalUsers = stats
+                .GroupBy(e => e.Date.Date)
+                .Select(g =>
+                {
+                    var lastRecord = g.OrderByDescending(e => e.Date).First();
+                    return new UserStatsAdminResponse
+                    {
+                        Date = g.Key,
+                        TotalUser = lastRecord.TotalUser
+                    };
+                })
+                .ToList();
+
+            return totalUsers;
         }
 
         public async Task<CampaignStatsAdminResponse?> GetCampaignStats(DateTime from, DateTime to)
@@ -802,6 +816,18 @@ namespace ANF.Service
                 TotalPendingTicket = totalPendingTicket
             };
             return response;
+        }
+
+        public async Task<AdminStats> GetLastestStats()
+        {
+            var adminStatsRepository = _unitOfWork.GetRepository<AdminStats>();
+
+            var stats = await adminStatsRepository.GetAll()
+                    .AsNoTracking()
+                    .OrderByDescending(e => e.Date)
+                    .FirstOrDefaultAsync();
+
+            return stats!;
         }
     }
 }

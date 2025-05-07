@@ -2,6 +2,7 @@
 {
     public class UserStatsAdminResponse
     {
+        public DateTime Date { get; set; }
         public int TotalUser { get; set; }
 
         // Field is not used currently

@@ -1,7 +1,9 @@
 ﻿using ANF.Core.Commons;
+using ANF.Core.Models.Entities;
 using ANF.Core.Models.Responses;
 using ANF.Core.Services;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
@@ -19,6 +21,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("stats/users")]
         [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<UserStatsAdminResponse>>> GetUserStats(
@@ -27,7 +30,27 @@ namespace ANF.Application.Controllers.v1
         )
         {
             var response = await _userService.GetUserStats(from, to);
-            return Ok(new ApiResponse<UserStatsAdminResponse>
+            return Ok(new ApiResponse<List<UserStatsAdminResponse>>
+            {
+                IsSuccess = true,
+                Message = "Success!",
+                Value = response
+            });
+        }
+
+        /// <summary>
+        /// Get all latest stats for admin
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("stats/admin")]
+        [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetLastestStats()
+        {
+            var response = await _userService.GetLastestStats();
+            return Ok(new ApiResponse<AdminStats>
             {
                 IsSuccess = true,
                 Message = "Success!",
@@ -43,6 +66,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("stats/campaigns")]
         [MapToApiVersion(1)]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ApiResponse<CampaignStatsAdminResponse>>> GetCampaignStats(
@@ -67,6 +91,7 @@ namespace ANF.Application.Controllers.v1
         /// <returns></returns>
         [HttpGet("stats/complaint-tickets")]
         [MapToApiVersion(1)]
+        [Authorize("Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<ApiResponse<TicketStatsAdminResponse>>> GetTicketStats(
             [Required] DateTime from,
