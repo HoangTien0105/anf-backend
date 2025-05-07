@@ -21,6 +21,7 @@
         public long? CategoryId { get; init; }
 
         public string? CategoryName { get; init; }
+        public string Status { get; init; } = null!;
 
         public ICollection<string> CampImages { get; set; } = new List<string>();
 
