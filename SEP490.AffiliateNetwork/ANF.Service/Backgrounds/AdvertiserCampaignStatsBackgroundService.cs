@@ -23,19 +23,19 @@ namespace ANF.Service.Backgrounds
                 {
                     // ORIGINAL TIMING: Runs daily at 00:01
                     // Calculate the delay until the next 00:01
-                    //var now = DateTime.Now;
-                    //var nextRunTime = DateTime.Today.AddDays(1).AddMinutes(1);
+                    var now = DateTime.Now;
+                    var nextRunTime = DateTime.Today.AddDays(1).AddMinutes(1);
 
                     // If the current time is already past 00:01, schedule for the next day
-                    //if (now > nextRunTime)
-                    //{
-                    //    nextRunTime = nextRunTime.AddDays(1);
-                    //}
+                    if (now > nextRunTime)
+                    {
+                        nextRunTime = nextRunTime.AddDays(1);
+                    }
 
-                    //var delay = nextRunTime - now;
+                    var delay = nextRunTime - now;
 
                     // TESTING: Run after 2 minutes
-                    var delay = TimeSpan.FromMinutes(2);
+                    //var delay = TimeSpan.FromMinutes(2);
 
                     // Wait until the next run time or until the task is canceled
                     await Task.Delay(delay, stoppingToken);
