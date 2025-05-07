@@ -10,7 +10,7 @@ namespace ANF.Core.Models.Entities
     {
         [Column("id")]
         public long Id { get; set; }
-        
+
         [Column("campaign_id")]
         public long CampaignId { get; set; }
 
@@ -22,6 +22,9 @@ namespace ANF.Core.Models.Entities
 
         [Column("total_click")]
         public int TotalClick { get; set; }
+
+        [Column("total_offer")]
+        public int TotalOffer { get; set; }
 
         [Column("total_verified_click")]
         public int TotalVerifiedClick { get; set; }
@@ -35,9 +38,9 @@ namespace ANF.Core.Models.Entities
         [Column("total_rejected_publisher")]
         public int TotalRejectedPublisher { get; set; }
 
-        [Column("total_budget_spent", TypeName ="decimal(12)")]
+        [Column("total_budget_spent", TypeName = "decimal(12)")]
         public decimal TotalBudgetSpent { get; set; }
-        
+
         [Column("total_mobile")]
         public int TotalMobile { get; set; }
 
