@@ -22,9 +22,15 @@ namespace ANF.Core.Services
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns>
-        Task<List<AdvertiserCampaignStatsResponse.ClickStats>> GetClickStatistics(long campaignId,
+        Task<List<AdvertiserCampaignStatsResponse>> GetClickStatistics(long campaignId,
             DateTime from,
             DateTime to);
+
+        Task<List<AdvertiserCampaignStatsResponse>> GetClickStatisticsOfCampagins(
+            DateTime from,
+            DateTime to
+        );
+
 
         /// <summary>
         /// Get device statistics for a campaign
@@ -33,11 +39,11 @@ namespace ANF.Core.Services
         /// <param name="from"></param>
         /// <param name="to"></param>
         /// <returns></returns> <summary>
-        Task<List<AdvertiserCampaignStatsResponse.DeviceStats>> GetDeviceStatistics(long campaignId,
+        Task<List<AdvertiserCampaignStatsResponse>> GetDeviceStatistics(long campaignId,
             DateTime from,
             DateTime to);
 
-        Task<List<AdvertiserCampaignStatsResponse.OfferStats>> GetOfferStatistics(long campaignId,
+        Task<List<AdvertiserCampaignStatsResponse>> GetOfferStatistics(long campaignId,
             DateTime from,
             DateTime to);
     }
