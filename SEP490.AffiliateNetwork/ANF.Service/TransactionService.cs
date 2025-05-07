@@ -321,7 +321,7 @@ namespace ANF.Service
                     Id = IdHelper.GenerateTransactionId(),
                     WalletId = wallet.Id,
                     Amount = request.Amount,
-                    Reason = $"Rút tiền từ ví {wallet.Id} về tài khoản {request.BankingNo}",
+                    Reason = $"Withdraw money from wallet {wallet.Id} to account {request.BankingNo}",
                     UserCode = currentUserCode,
                     CurrentBankingNo = request.BankingNo,
                     Status = TransactionStatus.Pending,
