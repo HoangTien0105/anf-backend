@@ -378,7 +378,7 @@ namespace ANF.Service
                 request.pageSize);
         }
 
-        public async Task<PaginationResponse<CampaignDetailedResponse>> GetCampaignsWithDateRange(PaginationRequest request, DateTime from, DateTime to)
+        public async Task<List<CampaignDetailedResponse>> GetCampaignsWithDateRange(DateTime from, DateTime to)
         {
             if (from > to) throw new ArgumentException("To date must be after from date");
 
@@ -421,8 +421,7 @@ namespace ANF.Service
                             .Include(c => c.Images)
                             .Include(c => c.Category)
                             .Include(c => c.Offers)
-                            .Skip((request.pageNumber - 1) * request.pageSize)
-                            .Take(request.pageSize)
+                            .OrderByDescending(c => c.StartDate)
                             .ToListAsync();
 
             if (!campaigns.Any())
@@ -431,7 +430,7 @@ namespace ANF.Service
             }
 
             var data = _mapper.Map<List<CampaignDetailedResponse>>(campaigns);
-            return new PaginationResponse<CampaignDetailedResponse>(data, totalRecord, request.pageNumber, request.pageSize);
+            return data;
         }
 
         public async Task<PaginationResponse<CampaignResponse>> GetCampaignsWithOffers(PaginationRequest request)

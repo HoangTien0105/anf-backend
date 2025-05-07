@@ -104,21 +104,17 @@ namespace ANF.Application.Controllers.v1
         /// <summary>
         /// Get campaigns with date range
         /// </summary>
-        /// <param name="request">Pagination request model</param>
-        /// <param name="from">From date</param>
-        /// <param name="to">To date</param>
+        /// <param name="rangeRequest">Pagination request model</param>
         /// <returns></returns>
         [HttpGet("campaigns/date")]
         [MapToApiVersion(1)]
         [Authorize(Roles = "Advertiser, Publisher")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetCampaignsWithDateRange([FromQuery] PaginationRequest request, 
-            [FromQuery][Required] DateTime from, 
-            [FromQuery][Required] DateTime to)
+        public async Task<IActionResult> GetCampaignsWithDateRange([FromQuery] DateRangeRequest rangeRequest)
         {
-            var campaigns = await _campaignService.GetCampaignsWithDateRange(request, from, to);
-            return Ok(new ApiResponse<PaginationResponse<CampaignDetailedResponse>>
+            var campaigns = await _campaignService.GetCampaignsWithDateRange(rangeRequest.From, rangeRequest.To);
+            return Ok(new ApiResponse<List<CampaignDetailedResponse>>
             {
                 IsSuccess = true,
                 Message = "Success.",

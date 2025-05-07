@@ -264,6 +264,7 @@ namespace ANF.Application.Extensions
             services.AddScoped<IStatisticService, StatisticService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IPublisherStatsService, PublisherStatsService>();
+            services.AddScoped<IFraudDetectionService, FraudDetectionService>();
 
             #region Background services
             services.AddSingleton<SampleIdDetectionService>();
