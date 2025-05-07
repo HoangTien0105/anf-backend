@@ -191,5 +191,77 @@ namespace ANF.Service
                 throw;
             }
         }
+
+        public async Task<List<AdvertiserCampaignStatsResponse.ClickStats>> GetClickStatistics(long campaignId,
+            DateTime from,
+            DateTime to)
+        {
+            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
+            var response = new List<AdvertiserCampaignStatsResponse.ClickStats>();
+
+            var stats = await advertiserCampaignStatsRepo.GetAll()
+                .AsNoTracking()
+                .Where(s => s.CampaignId == campaignId && s.Date >= from && s.Date <= to)
+                .ToListAsync() ?? throw new NoDataRetrievalException("No statistics available for this campaign");
+
+            foreach (var item in stats)
+            {
+                response.Add(new AdvertiserCampaignStatsResponse.ClickStats
+                {
+                    TotalClick = item.TotalClick,
+                    TotalValidClick = item.TotalVerifiedClick,
+                    TotalFraudClick = item.TotalFraudClick
+                });
+            }
+            return response;
+        }
+
+        public async Task<List<AdvertiserCampaignStatsResponse.DeviceStats>> GetDeviceStatistics(long campaignId,
+            DateTime from,
+            DateTime to)
+        {
+            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
+            var response = new List<AdvertiserCampaignStatsResponse.DeviceStats>();
+
+            var stats = await advertiserCampaignStatsRepo.GetAll()
+                .AsNoTracking()
+                .Where(s => s.CampaignId == campaignId && s.Date >= from && s.Date <= to)
+                .ToListAsync() ?? throw new NoDataRetrievalException("No statistics available for this campaign");
+
+            foreach (var item in stats)
+            {
+                response.Add(new AdvertiserCampaignStatsResponse.DeviceStats
+                {
+                    TotalComputer = item.TotalComputer,
+                    TotalMobile = item.TotalMobile,
+                    TotalTablet = item.TotalTablet
+                });
+            }
+            return response;
+        }
+
+        public async Task<List<AdvertiserCampaignStatsResponse.OfferStats>> GetOfferStatistics(long campaignId,
+            DateTime from,
+            DateTime to)
+        {
+            var advertiserCampaignStatsRepo = _unitOfWork.GetRepository<AdvertiserCampaignStats>();
+            var response = new List<AdvertiserCampaignStatsResponse.OfferStats>();
+
+            var stats = await advertiserCampaignStatsRepo.GetAll()
+                .AsNoTracking()
+                .Where(s => s.CampaignId == campaignId && s.Date >= from && s.Date <= to)
+                .ToListAsync() ?? throw new NoDataRetrievalException("No statistics available for this campaign");
+
+            foreach (var item in stats)
+            {
+                response.Add(new AdvertiserCampaignStatsResponse.OfferStats
+                {
+                    TotalJoinedPublisher = item.TotalJoinedPublisher,
+                    TotalRejectedPublisher = item.TotalRejectedPublisher,
+                    TotalOffer = item.TotalOffer
+                });
+            }
+            return response;
+        }
     }
 }

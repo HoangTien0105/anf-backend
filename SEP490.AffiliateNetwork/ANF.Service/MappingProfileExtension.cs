@@ -52,7 +52,7 @@ namespace ANF.Service
             CreateMap<User, AdvertiserResponse>();
 
             CreateMap<User, PublisherResponse>();
-            
+
             CreateMap<UpdatePasswordRequest, User>()
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.NewPassword))
                 .ForMember(dest => dest.ResetPasswordToken, opt => opt.MapFrom(_ => string.Empty))
@@ -111,7 +111,7 @@ namespace ANF.Service
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => OfferStatus.Pending))
                 .ForMember(dest => dest.ImageUrl, opt => opt.Ignore())
                 .ForMember(dest => dest.OrderReturnTime, opt => opt.Ignore());
-                
+
 
             CreateMap<TrafficSource, AffiliateSourceResponse>();
 
@@ -122,11 +122,11 @@ namespace ANF.Service
                 .ForMember(dest => dest.Offers, opt => opt.MapFrom(src => src.Offers))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category!.Name));
-            
+
             CreateMap<CampaignImage, CampaignImageResponse>();
-            
+
             CreateMap<Offer, OfferResponse>();
-            
+
             CreateMap<AdvertiserProfileUpdatedRequest, User>()
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
                 .ForMember(dest => dest.CitizenId, opt => opt.MapFrom(src => src.CitizenId))

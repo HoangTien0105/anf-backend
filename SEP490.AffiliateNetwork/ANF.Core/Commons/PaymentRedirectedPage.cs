@@ -25,7 +25,7 @@
         /// <summary>
         /// URL to redirect to offer after advertiser accepted request to join an offer for publisher
         /// </summary>
-        public const string OfferRedirectPageForPublisher = "https://dev.l3on.id.vn/publisher/campaigns/{0}}";
+        public const string OfferRedirectPageForPublisher = "https://dev.l3on.id.vn/publisher/campaigns/{0}#publishers";
 
         public const string SignInRedirectPage = "https://dev.l3on.id.vn/auth/sign-in";
     }

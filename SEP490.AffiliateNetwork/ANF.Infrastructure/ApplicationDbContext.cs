@@ -88,6 +88,9 @@ namespace ANF.Infrastructure
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<AdvertiserCampaignStats>().ToTable("AdvertiserCampaignStats");
+            builder.Entity<PublisherCampaignStats>().ToTable("PublisherCampaignStats");
+
             #region Entity type configurations
             new AdvertiserProfileTypeConfig().Configure(builder.Entity<AdvertiserProfile>());
             new PublisherProfileTypeConfig().Configure(builder.Entity<PublisherProfile>());

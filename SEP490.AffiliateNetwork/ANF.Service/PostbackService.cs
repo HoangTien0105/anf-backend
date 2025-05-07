@@ -115,7 +115,7 @@ namespace ANF.Service
             } 
 
             IQueryable<PostbackData> query = postbackRepository.GetAll()
-                 .Where(e => e.OfferId == id && e.Status == PostbackStatus.Success);
+                 .Where(e => e.OfferId == id && e.Status == PostbackStatus.Success).OrderByDescending(e => e.Date);
 
             if (user!.Role == UserRoles.Publisher)
             {

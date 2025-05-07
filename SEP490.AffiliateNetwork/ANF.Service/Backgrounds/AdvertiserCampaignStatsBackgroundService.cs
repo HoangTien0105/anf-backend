@@ -21,17 +21,21 @@ namespace ANF.Service.Backgrounds
             {
                 try
                 {
-                    // Calculate the delay until the next 23:50
-                    var now = DateTime.Now;
-                    var nextRunTime = DateTime.Today.AddHours(23).AddMinutes(50);
+                    // ORIGINAL TIMING: Runs daily at 00:01
+                    // Calculate the delay until the next 00:01
+                    //var now = DateTime.Now;
+                    //var nextRunTime = DateTime.Today.AddDays(1).AddMinutes(1);
 
-                    // If the current time is already past 23:50, schedule for the next day
-                    if (now > nextRunTime)
-                    {
-                        nextRunTime = nextRunTime.AddDays(1);
-                    }
+                    // If the current time is already past 00:01, schedule for the next day
+                    //if (now > nextRunTime)
+                    //{
+                    //    nextRunTime = nextRunTime.AddDays(1);
+                    //}
 
-                    var delay = nextRunTime - now;
+                    //var delay = nextRunTime - now;
+
+                    // TESTING: Run after 2 minutes
+                    var delay = TimeSpan.FromMinutes(2);
 
                     // Wait until the next run time or until the task is canceled
                     await Task.Delay(delay, stoppingToken);
@@ -55,12 +59,10 @@ namespace ANF.Service.Backgrounds
         /// <returns></returns>
         private async Task AddStatsDataForAdvertiser(IUnitOfWork unitOfWork)
         {
-            var today = DateTime.UtcNow.Date;
-            var endTime = DateTime.UtcNow;
-            if (endTime.Hour == 23 && endTime.Minute >= 50)
-            {
-                endTime = new DateTime(today.Year, today.Month, today.Day, 23, 50, 0);
-            }
+            var yesterday = DateTime.UtcNow.Date.AddDays(-1);
+            var startTime = yesterday;
+            var endTime = yesterday.AddDays(1).AddSeconds(-1); // 23:59:59 of yesterday
+
             var trackingEventRepo = unitOfWork.GetRepository<TrackingEvent>();
             var campaignRepo = unitOfWork.GetRepository<Campaign>();
             var publisherOfferRepo = unitOfWork.GetRepository<PublisherOffer>();
@@ -82,7 +84,7 @@ namespace ANF.Service.Backgrounds
                 var trackingEvents = await trackingEventRepo.GetAll()
                     .AsNoTracking()
                     .Include(te => te.TrackingValidation)
-                    .Where(te => te.ClickTime >= today && te.ClickTime <= endTime
+                    .Where(te => te.ClickTime >= startTime && te.ClickTime <= endTime
                         && offerIds.Contains(te.OfferId))
                     .ToListAsync();
 
@@ -116,7 +118,7 @@ namespace ANF.Service.Backgrounds
                     .Select(po => po.PublisherCode)
                     .Distinct()
                     .CountAsync();
-                
+
                 // Budget đã chi của campaign
                 var spendingBudget = campaign.Budget - campaign.Balance;
 
